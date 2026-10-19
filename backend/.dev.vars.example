@@ -1,0 +1,12 @@
+# Cloudflare Workers Local Environment Variables (.dev.vars)
+# Copy this file to .dev.vars for local development overrides
+
+ENVIRONMENT=development
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+# Placeholders for upcoming integration phases (Do NOT put real production credentials here)
+# SUPABASE_URL=https://your-project-id.supabase.co
+# SUPABASE_ANON_KEY=your-supabase-anon-key
+# SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+# RAZORPAY_KEY_ID=rzp_test_placeholder
+# RAZORPAY_KEY_SECRET=placeholder_secret
