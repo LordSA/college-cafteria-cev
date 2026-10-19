@@ -36,11 +36,30 @@ college-canteen-cev/
 │   └── package.json          # Worker scripts
 │
 ├── docs/
-│   └── architecture.md       # Full architecture specification
+│   ├── architecture.md       # Full architecture specification
+│   ├── design_customer.md    # Customer App mobile-first design system
+│   ├── design_admin.md       # Admin & Kitchen Display System (KDS) design system
+│   ├── api.md                # Cloudflare Worker REST API specification
+│   └── agent_rules.md        # Mirror of strict rules for agents and developers
 │
+├── AGENTS.md                 # Strict rules for AI agents and human developers
+├── project_memory.md         # Persistent memory & file/schema registry
+├── design.md                 # Unified design manifesto and theme index
+├── changelogs.md             # Chronological platform change history
 ├── .gitignore                # Root gitignore for all applications
 └── README.md                 # Primary project documentation
 ```
+
+---
+
+## Documentation & Developer Directives
+
+Before modifying this repository, all developers and automated agents **MUST** review:
+- [AGENTS.md](AGENTS.md): Strict rules on comment removal, Next.js caveats, and doc syncing.
+- [project_memory.md](project_memory.md): System memory, component index, and architectural contracts.
+- [design.md](design.md): Unified design philosophy and links to [Customer](docs/design_customer.md) & [Admin](docs/design_admin.md) design systems.
+- [changelogs.md](changelogs.md): Chronological modification log.
+
 
 ---
 
