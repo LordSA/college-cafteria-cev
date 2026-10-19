@@ -17,7 +17,6 @@ export default function AdminLandingPage() {
       <Header />
 
       <main className="flex-1 bg-slate-950 text-slate-100">
-        {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 py-16 sm:py-24">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/50 px-3.5 py-1.5 text-xs font-semibold text-indigo-300 shadow-sm">
@@ -34,7 +33,6 @@ export default function AdminLandingPage() {
               Streamlining inventory, real-time ticket dispatch, menu availability, and sales reconciliation.
             </p>
 
-            {/* Strict Security Guard Card */}
             <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-amber-500/30 bg-amber-950/20 p-6 text-left shadow-lg backdrop-blur-sm">
               <div className="flex items-start gap-4">
                 <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
@@ -56,7 +54,6 @@ export default function AdminLandingPage() {
           </div>
         </section>
 
-        {/* Planned Modules Overview */}
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="text-center">
@@ -122,7 +119,6 @@ export default function AdminLandingPage() {
           </div>
         </section>
 
-        {/* Technical Architecture Specs */}
         <section className="border-t border-slate-800/80 bg-slate-900/40 py-12">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <h3 className="text-sm font-semibold text-slate-300">Phase 1 Architecture Specifications</h3>

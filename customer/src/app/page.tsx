@@ -8,7 +8,6 @@ export default function CustomerLandingPage() {
       <Header />
 
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-stone-200/60 bg-gradient-to-b from-amber-50/50 via-white to-stone-50/30 py-20 sm:py-28">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 text-xs font-semibold text-amber-900 shadow-sm">
@@ -26,7 +25,6 @@ export default function CustomerLandingPage() {
               Browse fresh daily specials, customize your meals, pre-order between lectures, and pick up your hot food without standing in line.
             </p>
 
-            {/* Phase Notice Card */}
             <div className="mx-auto mt-10 max-w-xl rounded-2xl border border-amber-300/70 bg-gradient-to-br from-amber-50 to-orange-50/50 p-6 text-left shadow-sm">
               <div className="flex items-start gap-3.5">
                 <ChefHat className="h-6 w-6 flex-shrink-0 text-amber-600" />
@@ -43,7 +41,6 @@ export default function CustomerLandingPage() {
           </div>
         </section>
 
-        {/* Feature Previews Section */}
         <section className="py-16 sm:py-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <div className="text-center">
@@ -96,7 +93,6 @@ export default function CustomerLandingPage() {
           </div>
         </section>
 
-        {/* Technical Architecture Badge */}
         <section className="border-t border-stone-200/80 bg-stone-100/50 py-12">
           <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
             <h3 className="text-sm font-semibold text-stone-700">Phase 1 Architecture Specifications</h3>

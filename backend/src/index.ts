@@ -8,15 +8,12 @@ import { apiV1Router } from './routes/api';
 
 const app = new Hono<{ Bindings: Env }>();
 
-// Global Middlewares
 app.use('*', requestLogger);
 app.use('*', configureCors());
 
-// Routes
 app.route('/health', healthRouter);
 app.route('/api/v1', apiV1Router);
 
-// Root route for convenience
 app.get('/', (c) => {
   return c.json({
     message: 'Welcome to Cafteria API',
@@ -25,7 +22,6 @@ app.get('/', (c) => {
   });
 });
 
-// Centralized Error and 404 Handlers
 app.notFound(notFoundHandler);
 app.onError(errorHandler);
 
