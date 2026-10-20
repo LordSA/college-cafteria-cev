@@ -2,10 +2,6 @@ import type { Env } from '../../types/env';
 import type {
   IStorageProvider,
   StorageProviderType,
-  UploadAuthParams,
-  UploadAuthResult,
-  DisplayUrlParams,
-  ObjectMetadata,
 } from './types';
 import { SupabaseStorageProvider } from './supabaseProvider';
 import { R2StorageProvider } from './r2Provider';

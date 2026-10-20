@@ -7,10 +7,7 @@ export const adminRouter = new Hono<{
   Variables: AuthContextVariables;
 }>();
 
-adminRouter.use('*', requireAuth);
-adminRouter.use('*', requireAdmin);
-
-adminRouter.get('/me', (c) => {
+adminRouter.get('/me', requireAuth, requireAdmin, (c) => {
   const user = c.get('user');
   const profile = c.get('profile');
 

@@ -134,9 +134,8 @@ describe('Phase 3: Staff Approvals, Menu Management & R2 Uploads Test Suite', ()
       body: JSON.stringify({ name: 'Beverages', sort_order: 2 }),
     });
 
-    const body = await res.json();
-    console.log('DEBUG CATEGORY POST RESPONSE:', res.status, body);
     expect(res.status).toBe(201);
+    const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.name).toBe('Beverages');
   });

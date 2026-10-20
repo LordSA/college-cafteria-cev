@@ -5,6 +5,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
 export type AccountType = 'student' | 'staff';
+export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
 export type AppRole = 'customer' | 'admin';
 
 export interface UserProfile {
@@ -12,6 +13,11 @@ export interface UserProfile {
   display_name: string | null;
   avatar_key: string | null;
   account_type: AccountType;
+  requested_account_type: AccountType;
+  approved_account_type: AccountType;
+  staff_approval_status: StaffApprovalStatus;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
   app_role: AppRole;
   created_at: string;
   updated_at: string;
@@ -39,6 +45,7 @@ interface AuthContextType {
   signIn: (params: SignInParams) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<{ success: boolean; error?: string }>;
+  updateAvatarKey: (avatarKey: string) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -64,24 +71,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        setProfile(data as UserProfile);
+        setProfile({
+          id: data.id,
+          display_name: data.display_name,
+          avatar_key: data.avatar_key,
+          account_type: data.account_type || 'student',
+          requested_account_type: data.requested_account_type || 'student',
+          approved_account_type: data.approved_account_type || 'student',
+          staff_approval_status: data.staff_approval_status || 'not_requested',
+          reviewed_by: data.reviewed_by,
+          reviewed_at: data.reviewed_at,
+          app_role: data.app_role || 'customer',
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        });
       } else {
+        const reqType = userMeta?.account_type === 'staff' ? 'staff' : 'student';
         setProfile({
           id: userId,
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
           avatar_key: null,
-          account_type: userMeta?.account_type === 'staff' ? 'staff' : 'student',
+          account_type: 'student',
+          requested_account_type: reqType,
+          approved_account_type: 'student',
+          staff_approval_status: reqType === 'staff' ? 'pending' : 'not_requested',
           app_role: 'customer',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
       }
-    } catch (err: any) {
+    } catch {
+      const reqType = userMeta?.account_type === 'staff' ? 'staff' : 'student';
       setProfile({
         id: userId,
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
         avatar_key: null,
-        account_type: userMeta?.account_type === 'staff' ? 'staff' : 'student',
+        account_type: 'student',
+        requested_account_type: reqType,
+        approved_account_type: 'student',
+        staff_approval_status: reqType === 'staff' ? 'pending' : 'not_requested',
         app_role: 'customer',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -248,6 +276,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateAvatarKey = async (avatarKey: string) => {
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    try {
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .update({ avatar_key: avatarKey })
+        .eq('id', user.id);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      await refreshProfile();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to update profile avatar' };
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -260,6 +310,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         updateDisplayName,
+        updateAvatarKey,
         refreshProfile,
       }}
     >

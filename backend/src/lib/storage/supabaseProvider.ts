@@ -244,7 +244,7 @@ export class SupabaseStorageProvider implements IStorageProvider {
         key: objectKey,
         size: (found.metadata as any)?.size || 0,
         contentType: (found.metadata as any)?.mimetype,
-        lastModified: found.updated_at || found.created_at,
+        lastModified: found.updated_at || found.created_at || undefined,
       };
     } catch {
       return null;

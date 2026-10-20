@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth, AccountType } from '../../context/AuthContext';
-import { UserPlus, AlertCircle, Loader2, GraduationCap, Briefcase } from 'lucide-react';
+import { UserPlus, AlertCircle, Loader2, GraduationCap, Briefcase, CheckSquare, Square } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -14,7 +14,9 @@ export default function SignUpPage() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('student');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -28,13 +30,23 @@ export default function SignUpPage() {
     e.preventDefault();
     setFormError(null);
 
-    if (!displayName.trim() || !email || !password) {
+    if (!displayName.trim() || !email || !password || !confirmPassword) {
       setFormError('Please complete all required fields');
       return;
     }
 
     if (password.length < 6) {
       setFormError('Password must be at least 6 characters in length');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFormError('Passwords do not match');
+      return;
+    }
+
+    if (!acceptedTerms) {
+      setFormError('You must accept the Canteen Usage Terms to proceed');
       return;
     }
 
@@ -50,7 +62,7 @@ export default function SignUpPage() {
     if (!result.success) {
       setFormError(result.error || 'Registration failed. Please try again.');
     } else {
-      router.push('/profile');
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     }
   };
 
@@ -122,6 +134,22 @@ export default function SignUpPage() {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-stone-700 mb-1" htmlFor="confirmPassword">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
+
+            <div>
               <span className="block text-xs font-semibold text-stone-700 mb-1.5">Campus Account Type</span>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -149,6 +177,25 @@ export default function SignUpPage() {
                   <span>Faculty / Staff</span>
                 </button>
               </div>
+            </div>
+
+            <div className="pt-1">
+              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-600 select-none">
+                <button
+                  type="button"
+                  onClick={() => setAcceptedTerms(!acceptedTerms)}
+                  className="mt-0.5 text-amber-600 focus:outline-none flex-shrink-0"
+                >
+                  {acceptedTerms ? (
+                    <CheckSquare className="h-4 w-4 text-amber-600" />
+                  ) : (
+                    <Square className="h-4 w-4 text-stone-400" />
+                  )}
+                </button>
+                <span>
+                  I accept the Canteen Operating Policies and acknowledge that faculty/staff status requires canteen administrator approval.
+                </span>
+              </label>
             </div>
 
             <button

@@ -139,7 +139,6 @@ uploadsRouter.post(
 );
 
 uploadsRouter.get('/avatar', requireAuth, async (c) => {
-  const user = c.get('user');
   const profile = c.get('profile');
 
   if (!profile.avatar_key) {
