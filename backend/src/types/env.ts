@@ -1,6 +1,7 @@
 export interface Env {
   ENVIRONMENT?: string;
   ALLOWED_ORIGINS?: string;
+  STORAGE_PROVIDER?: 'supabase' | 'r2';
   SUPABASE_URL?: string;
   SUPABASE_ANON_KEY?: string;
   SUPABASE_SERVICE_ROLE_KEY?: string;
@@ -14,6 +15,7 @@ export interface Env {
   RAZORPAY_KEY_SECRET?: string;
 }
 
+export type StorageProviderType = 'supabase' | 'r2';
 export type AccountType = 'student' | 'staff';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
 export type AppRole = 'customer' | 'admin';
