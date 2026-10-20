@@ -1,79 +1,142 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import {
-  ShieldAlert,
-  ClipboardList,
+  ShieldCheck,
+  User,
+  Mail,
+  Calendar,
+  Lock,
   Layers,
-  BarChart3,
   Flame,
-  LockKeyhole,
+  ClipboardList,
+  BarChart3,
+  Loader2,
   CheckCircle2,
-  Server,
 } from 'lucide-react';
 
-export default function AdminLandingPage() {
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const { adminUser, adminProfile, isUnauthorized, loading, signOut } = useAdminAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!adminUser) {
+        router.push('/login');
+      } else if (isUnauthorized) {
+        router.push('/unauthorized');
+      }
+    }
+  }, [adminUser, isUnauthorized, loading, router]);
+
+  if (loading || !adminUser || isUnauthorized) {
+    return (
+      <>
+        <Header />
+        <main className="flex-1 flex items-center justify-center py-20 bg-slate-950">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+            <p className="text-xs font-medium">Verifying administrator authorization...</p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  const displayName = adminProfile?.display_name || adminUser.email?.split('@')[0] || 'Administrator';
+  const email = adminUser.email || '';
+  const appRole = adminProfile?.app_role || 'admin';
+  const accountType = adminProfile?.account_type || 'staff';
+
   return (
     <>
       <Header />
-
-      <main className="flex-1 bg-slate-950 text-slate-100">
-        <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 py-16 sm:py-24">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/50 px-3.5 py-1.5 text-xs font-semibold text-indigo-300 shadow-sm">
-              <Server className="h-3.5 w-3.5 text-indigo-400" />
-              Phase 1: Project Foundation Active
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 text-[11px] font-medium text-emerald-400 mb-2">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Authorized Administrator Session</span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Operations Command Center</h1>
+              <p className="mt-1 text-xs text-slate-400">Canteen kitchen display, catalog management, and dispatch control</p>
             </div>
 
-            <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
-              Cafteria Management Dashboard
-            </h1>
+            <button
+              onClick={signOut}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm"
+            >
+              <Lock className="h-3.5 w-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
 
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
-              The operational headquarters for college canteen administrators, kitchen staff, and cashier desks.
-              Streamlining inventory, real-time ticket dispatch, menu availability, and sales reconciliation.
-            </p>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg backdrop-blur-sm">
+            <h2 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-4">
+              <ShieldCheck className="h-4 w-4 text-indigo-400" />
+              <span>Signed-In Administrator Identity</span>
+            </h2>
 
-            <div className="mx-auto mt-10 max-w-2xl rounded-2xl border border-amber-500/30 bg-amber-950/20 p-6 text-left shadow-lg backdrop-blur-sm">
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                  <ShieldAlert className="h-5 w-5" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                  <User className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>Admin Name</span>
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-amber-200">
-                    Administrative Controls Locked
-                  </h2>
-                  <p className="mt-1 text-xs leading-relaxed text-amber-300/80">
-                    To maintain strict zero-trust security across the platform, no privileged operations (menu mutations, price adjustments, kitchen status transitions, or settlement logs) are exposed in this phase.
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                    All administrative capabilities will be guarded by Supabase Auth with server-side Role-Based Access Control (RBAC) and JWT validation in Phase 2.
-                  </p>
+                <p className="font-semibold text-white truncate">{displayName}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                  <Mail className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>Authenticated Email</span>
                 </div>
+                <p className="font-semibold text-white truncate">{email}</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Verified Role</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 font-semibold text-emerald-400 uppercase tracking-wider text-[11px]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                  <span>{appRole} ({accountType})</span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                  <Calendar className="h-3.5 w-3.5 text-indigo-400" />
+                  <span>Backend Verification</span>
+                </div>
+                <p className="font-semibold text-slate-200">REST /api/v1/admin/me</p>
               </div>
             </div>
           </div>
-        </section>
 
-        <section className="py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-400">Planned Modules</h2>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                Canteen Operations Architecture
-              </p>
-            </div>
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-4">
+              Operational Subsystems (Phases 3 — 6)
+            </h2>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
                   <Flame className="h-5 w-5 text-indigo-400" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Kitchen Display System</h3>
+                <h3 className="mt-4 text-base font-semibold text-white">Kitchen Display (KDS)</h3>
                 <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  Live order ticketing queue with cooking status timers and order fulfillment markers.
+                  Live order dispatch queue with prep timers and fulfillment markers.
                 </p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-500">
-                  <LockKeyhole className="h-3.5 w-3.5" /> Gated: Phase 4
+                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                  <span>Pending Phase 4</span>
                 </div>
               </div>
 
@@ -81,12 +144,12 @@ export default function AdminLandingPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
                   <Layers className="h-5 w-5 text-indigo-400" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Menu & Pricing Engine</h3>
+                <h3 className="mt-4 text-base font-semibold text-white">Menu & Pricing</h3>
                 <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  Instant item stock toggling, daily lunch combos, categories, and meal window rules.
+                  Instant item availability toggles (86), daily specials, and meal windows.
                 </p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-500">
-                  <LockKeyhole className="h-3.5 w-3.5" /> Gated: Phase 3
+                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                  <span>Pending Phase 3</span>
                 </div>
               </div>
 
@@ -94,12 +157,12 @@ export default function AdminLandingPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
                   <ClipboardList className="h-5 w-5 text-indigo-400" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Inventory Tracking</h3>
+                <h3 className="mt-4 text-base font-semibold text-white">Inventory Controls</h3>
                 <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  Raw ingredients and stock replenishment threshold alerts to prevent sold-out orders.
+                  Raw ingredients and low-stock threshold alerts to stop sold-out sales.
                 </p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-500">
-                  <LockKeyhole className="h-3.5 w-3.5" /> Gated: Phase 3
+                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                  <span>Pending Phase 3</span>
                 </div>
               </div>
 
@@ -107,42 +170,18 @@ export default function AdminLandingPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
                   <BarChart3 className="h-5 w-5 text-indigo-400" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Sales & Settlement</h3>
+                <h3 className="mt-4 text-base font-semibold text-white">Sales & Auditing</h3>
                 <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  Daily revenue totals, peak hour traffic analytics, and Razorpay settlement auditing.
+                  Daily turnover totals, peak rush traffic breakdown, and Razorpay auditing.
                 </p>
-                <div className="mt-4 flex items-center gap-1.5 text-xs text-slate-500">
-                  <LockKeyhole className="h-3.5 w-3.5" /> Gated: Phase 6
+                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
+                  <span>Pending Phase 6</span>
                 </div>
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="border-t border-slate-800/80 bg-slate-900/40 py-12">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h3 className="text-sm font-semibold text-slate-300">Phase 1 Architecture Specifications</h3>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 shadow-sm border border-slate-800">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Next.js App Router (Static Export)
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 shadow-sm border border-slate-800">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Strict TypeScript
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 shadow-sm border border-slate-800">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Port 3001 Dedicated Dev Target
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 shadow-sm border border-slate-800">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Cloudflare Pages Target
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 shadow-sm border border-slate-800">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Dedicated REST API (:8787)
-              </span>
-            </div>
-          </div>
-        </section>
+        </div>
       </main>
-
       <Footer />
     </>
   );

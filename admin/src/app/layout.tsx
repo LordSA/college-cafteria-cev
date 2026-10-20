@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AdminAuthProvider } from '../context/AdminAuthContext';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,8 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col antialiased selection:bg-slate-200 selection:text-slate-900">
-        {children}
+      <body className="flex min-h-screen flex-col antialiased selection:bg-slate-200 selection:text-slate-900 bg-slate-950 text-slate-100">
+        <AdminAuthProvider>{children}</AdminAuthProvider>
       </body>
     </html>
   );
