@@ -19,20 +19,7 @@ export const uploadsRouter = new Hono<{
 uploadsRouter.post(
   '/presign',
   requireAuth,
-  zValidator('json', PresignRequestSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: result.error.errors.map((e) => e.message).join(', '),
-          },
-        },
-        400
-      );
-    }
-  }),
+  zValidator('json', PresignRequestSchema),
   async (c) => {
     const user = c.get('user');
     const profile = c.get('profile');
