@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Env, AuthenticatedUser, UserProfile } from '../types/env';
+import type { Env, AuthenticatedUser, UserProfile, AccountType, StaffApprovalStatus, AppRole } from '../types/env';
 
 export function getSupabaseAdminClient(env?: Env): SupabaseClient | null {
   if (!env) {
@@ -85,11 +85,12 @@ export async function verifySupabaseToken(
   const user: AuthenticatedUser = {
     id: userData.user.id,
     email: userData.user.email ?? null,
+    email_confirmed_at: userData.user.email_confirmed_at ?? null,
   };
 
   const { data: profileData, error: profileError } = await adminClient
     .from('profiles')
-    .select('id, display_name, avatar_key, account_type, app_role, created_at, updated_at')
+    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, app_role, created_at, updated_at')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -107,8 +108,15 @@ export async function verifySupabaseToken(
         id: profileData.id,
         display_name: profileData.display_name,
         avatar_key: profileData.avatar_key,
-        account_type: profileData.account_type === 'staff' ? 'staff' : 'student',
-        app_role: profileData.app_role === 'admin' ? 'admin' : 'customer',
+        account_type: (profileData.approved_account_type === 'staff' ? 'staff' : 'student') as AccountType,
+        requested_account_type: (profileData.requested_account_type === 'staff' ? 'staff' : 'student') as AccountType,
+        approved_account_type: (profileData.approved_account_type === 'staff' ? 'staff' : 'student') as AccountType,
+        staff_approval_status: (['not_requested', 'pending', 'approved', 'rejected'].includes(profileData.staff_approval_status)
+          ? profileData.staff_approval_status
+          : 'not_requested') as StaffApprovalStatus,
+        reviewed_by: profileData.reviewed_by ?? null,
+        reviewed_at: profileData.reviewed_at ?? null,
+        app_role: (profileData.app_role === 'admin' ? 'admin' : 'customer') as AppRole,
         created_at: profileData.created_at,
         updated_at: profileData.updated_at,
       }
@@ -116,7 +124,12 @@ export async function verifySupabaseToken(
         id: user.id,
         display_name: (userData.user.user_metadata?.display_name as string) || (user.email ? user.email.split('@')[0] : 'User'),
         avatar_key: null,
-        account_type: userData.user.user_metadata?.account_type === 'staff' ? 'staff' : 'student',
+        account_type: 'student',
+        requested_account_type: (userData.user.user_metadata?.account_type === 'staff' ? 'staff' : 'student') as AccountType,
+        approved_account_type: 'student',
+        staff_approval_status: userData.user.user_metadata?.account_type === 'staff' ? 'pending' : 'not_requested',
+        reviewed_by: null,
+        reviewed_at: null,
         app_role: 'customer',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
