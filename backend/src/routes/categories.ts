@@ -89,20 +89,7 @@ adminCategoriesRouter.get('/', async (c) => {
 
 adminCategoriesRouter.post(
   '/',
-  zValidator('json', CategoryCreateSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: result.error.errors.map((e) => e.message).join(', '),
-          },
-        },
-        400
-      );
-    }
-  }),
+  zValidator('json', CategoryCreateSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
     if (!adminClient) {
@@ -139,20 +126,7 @@ adminCategoriesRouter.post(
 
 adminCategoriesRouter.patch(
   '/:id',
-  zValidator('json', CategoryUpdateSchema, (result, c) => {
-    if (!result.success) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: result.error.errors.map((e) => e.message).join(', '),
-          },
-        },
-        400
-      );
-    }
-  }),
+  zValidator('json', CategoryUpdateSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
     const id = c.req.param('id');
