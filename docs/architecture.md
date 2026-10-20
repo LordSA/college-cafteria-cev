@@ -1,8 +1,8 @@
 # Cafteria Architecture & Technical Specification
 
-> **Phase 1: Project Foundation**
+> **Phase 2: Authentication, Authorization & Database Security Active**
 >
-> Cafteria is a modern, full-stack digital canteen ordering and management platform tailored for college campuses.
+> Cafteria is a modern, full-stack digital canteen ordering and management platform tailored for college campuses. For authentication details, see [docs/authentication.md](authentication.md).
 
 ---
 
@@ -187,20 +187,23 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
 ## 7. Security Constraints & Phased Roadmap
 
-### Current Phase (Phase 1: Project Foundation)
-* [x] Three independent applications with distinct dependency trees.
-* [x] Static exports enabled for both frontends.
-* [x] Port bindings isolated (`3000`, `3001`, `8787`).
-* [x] Sanitized logger preventing credential and cookie leakage in logs.
-* [x] CORS protection with dynamic origin evaluation.
-* [x] Health check operational without third-party services.
-* [x] Zero business logic exposed in Next.js routes.
+### Completed Phases
+* [x] **Phase 1: Project Foundation**
+  - Three independent applications with distinct dependency trees.
+  - Static exports enabled for both frontends.
+  - Port bindings isolated (`3000`, `3001`, `8787`).
+  - Sanitized logger preventing credential and cookie leakage in logs.
+  - CORS protection with dynamic origin evaluation.
+  - Health check operational without third-party services.
+* [x] **Phase 2: Authentication & RBAC (Supabase Auth & RLS)**
+  - Supabase Auth integration for Customer and Admin frontends.
+  - `public.profiles` schema with check constraints and triggers.
+  - Row Level Security (RLS) preventing privilege escalation.
+  - Hono Bearer token verification middleware (`requireAuth`) & admin middleware (`requireAdmin`).
+  - Endpoints: `GET /api/v1/auth/me` and `GET /api/v1/admin/me`.
+  - Comprehensive unit test suite with 12 passing tests.
 
 ### Upcoming Phases
-* **Phase 2: Authentication & RBAC (Supabase Auth)**
-  - Implement Supabase Auth with email/password and college domain magic links.
-  - Role-Based Access Control (`customer`, `canteen_staff`, `admin`).
-  - Hono JWT verification middleware.
 * **Phase 3: Database Models & Catalog Management (Supabase PostgreSQL)**
   - Schema migrations for canteen stalls, menu items, categories, meal slots, and pricing.
   - Zod validation schemas for all CRUD payloads.

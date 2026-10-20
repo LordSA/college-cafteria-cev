@@ -9,6 +9,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+---
+
+## [0.2.0] - 2026-10-20
+
+### Added
+- **Phase 2: Authentication, Authorization & Database Security**:
+  - **Database Migrations (`backend/migrations/0001_create_profiles.sql` & `supabase/migrations/`):**
+    - `public.profiles` table linked to `auth.users` with cascading deletion.
+    - Check constraints for `account_type` (`student`, `staff`) and `app_role` (`customer`, `admin`).
+    - `handle_new_user()` trigger on `auth.users` enforcing safe customer default role.
+    - `protect_profile_roles()` trigger preventing unauthorized updates to `app_role` or `account_type`.
+    - Row Level Security (RLS) policies for user self-view, self-update, and administrator read/write access.
+    - `is_admin()` security definer function avoiding recursive RLS.
+  - **Backend API (`backend/`):**
+    - `@supabase/supabase-js` integration for server-side token verification and profile retrieval.
+    - Reusable `requireAuth` middleware validating Bearer access tokens.
+    - Reusable `requireAdmin` middleware enforcing administrator role.
+    - `GET /api/v1/auth/me` returning authenticated user profile.
+    - `GET /api/v1/admin/me` returning verified administrator identity (returns 403 for customers).
+    - Vitest automated test suite (`backend/tests/auth.test.ts`) covering 12 test cases.
+  - **Customer Web Application (`customer/`):**
+    - `@supabase/supabase-js` browser client singleton.
+    - `AuthProvider` and `useAuth` hook managing Supabase Auth sessions.
+    - `/signup`: User registration with display name, email, password, and student/staff selector.
+    - `/login`: User sign-in with validation and redirect protection.
+    - `/profile`: Protected user account management displaying credentials, role lock indicator, and logout.
+    - Updated `Header` with dynamic user profile link and sign in / sign up actions.
+  - **Admin Operations Application (`admin/`):**
+    - `@supabase/supabase-js` browser client singleton.
+    - `AdminAuthProvider` and `useAdminAuth` hook verifying administrator role against backend API.
+    - `/login`: Restricted administrative login with zero public registration.
+    - `/unauthorized`: 403 Access Denied screen for customers attempting admin access.
+    - `/`: Protected Operations Command Center displaying verified administrator identity and phase placeholders.
+    - Updated `Header` with admin identity and logout action.
+  - **Documentation & Environment Templates:**
+    - `docs/authentication.md`: Complete security specification, RLS policies, admin provisioning guide, and migration steps.
+    - Updated `customer/.env.example`, `admin/.env.example`, `backend/.dev.vars.example`.
+    - Updated `docs/architecture.md`, `project_memory.md`, and root `README.md`.
+
 ### Added
 - Created comprehensive documentation and design system specifications:
   - `AGENTS.md`: Mandatory instructions, Next.js breaking changes warnings, and zero-comment source code rule.

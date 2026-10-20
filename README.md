@@ -1,6 +1,6 @@
 # Cafteria — College Canteen Ordering & Management Platform
 
-[![Phase](https://img.shields.io/badge/Phase-1%20Project%20Foundation-amber.svg)](docs/architecture.md)
+[![Phase](https://img.shields.io/badge/Phase-2%20Auth%20%26%20Security-emerald.svg)](docs/authentication.md)
 [![Customer](https://img.shields.io/badge/Customer-Next.js%20(Port%203000)-blue.svg)](customer)
 [![Admin](https://img.shields.io/badge/Admin-Next.js%20(Port%203001)-indigo.svg)](admin)
 [![Backend](https://img.shields.io/badge/Backend-Hono%20%2B%20Cloudflare%20(Port%208787)-orange.svg)](backend)
@@ -8,6 +8,7 @@
 Cafteria is a modern, full-stack digital canteen platform for college campuses. It enables students and faculty to browse daily food menus, pre-order meals between classes, skip physical queues, and pay securely, while providing canteen staff and management with real-time kitchen displays and inventory tracking.
 
 For deep architectural details, see [docs/architecture.md](docs/architecture.md).
+For authentication, database schema, and RLS policies, see [docs/authentication.md](docs/authentication.md).
 
 ---
 
@@ -149,12 +150,13 @@ npm run dev
 
 ## 5. Verification Commands
 
-Run type-checking and production builds for each project:
+Run type-checking, automated unit tests, and production builds for each project:
 
 ```bash
-# Backend
+# Backend Typecheck & Auth Tests
 cd backend
 npm run typecheck
+npm run test
 
 # Customer (Static Export)
 cd ../customer
@@ -171,15 +173,15 @@ npm run build
 
 ## 6. Phased Implementation Roadmap
 
-* **Phase 1: Project Foundation** *(Current)*
+* **Phase 1: Project Foundation** *(Completed)*
   - Independent app scaffolding, ports (`3000`, `3001`, `8787`), static export setup, Hono backend with logging, CORS, `/health`, `/api/v1`.
-* **Phase 2: Authentication & Authorization**
-  - Supabase Auth integration, JWT verification in Hono, Role-Based Access Control (`customer`, `canteen_staff`, `admin`).
-* **Phase 3: Catalog & Database Engine**
+* **Phase 2: Authentication & Database Security** *(Completed)*
+  - Supabase Auth integration, PostgreSQL `public.profiles` schema with triggers, RLS policies, Hono Bearer token verification middleware (`requireAuth`), admin middleware (`requireAdmin`), customer `/login`, `/signup`, `/profile` pages, admin `/login`, `/unauthorized`, and operations dashboard.
+* **Phase 3: Catalog & Database Engine** *(Upcoming)*
   - Supabase PostgreSQL schema, categories, items, meal slots, Zod validation schemas.
-* **Phase 4: Order Lifecycle & Kitchen Display System (KDS)**
+* **Phase 4: Order Lifecycle & Kitchen Display System (KDS)** *(Upcoming)*
   - State machine order management, token generation, kitchen order queue.
-* **Phase 5: Cloudflare R2 Media Management**
+* **Phase 5: Cloudflare R2 Media Management** *(Upcoming)*
   - Signed image uploads and CDN caching for menu item photos.
-* **Phase 6: Payments & Settlements**
+* **Phase 6: Payments & Settlements** *(Upcoming)*
   - Razorpay order creation, payment signatures, and daily sales auditing.

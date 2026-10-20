@@ -4,9 +4,14 @@
 ENVIRONMENT=development
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# Placeholders for upcoming integration phases (Do NOT put real production credentials here)
-# SUPABASE_URL=https://your-project-id.supabase.co
-# SUPABASE_ANON_KEY=your-supabase-anon-key
-# SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+# Supabase Auth & Database Credentials
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+
+# Optional: Supabase JWT Secret (if verifying tokens locally without JWKS)
+# SUPABASE_JWT_SECRET=your-jwt-secret
+
+# Upcoming Phase Integrations (Phase 5 & 6)
 # RAZORPAY_KEY_ID=rzp_test_placeholder
 # RAZORPAY_KEY_SECRET=placeholder_secret

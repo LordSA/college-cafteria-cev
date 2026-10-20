@@ -54,9 +54,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       if (res.status === 403) {
         return { isAllowed: false, profile: null };
       }
-    } catch {
-      // Backend may be offline in dev, fall back to Supabase client check
-    }
+    } catch {}
 
     try {
       const { data, error: profileErr } = await supabase
@@ -68,9 +66,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       if (!profileErr && data && data.app_role === 'admin') {
         return { isAllowed: true, profile: data as AdminProfile };
       }
-    } catch {
-      // Fallback failed
-    }
+    } catch {}
 
     return { isAllowed: false, profile: null };
   }, []);
@@ -172,9 +168,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-    } catch {
-      // Ignored
-    } finally {
+    } catch {} finally {
       setAdminUser(null);
       setAdminProfile(null);
       setSession(null);
