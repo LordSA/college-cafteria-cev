@@ -34,6 +34,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
     - Security Definer function `review_staff_request()` callable only by verified administrators.
     - Administrative endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject`.
   - **Customer Web Application (`customer/`):**
+    - Overhauled customer landing page (`/`) with live Phase 3 status, prominent "Browse Today's Menu" and "Create Campus Account" CTA buttons, live menu feed highlight card, and canteen service operating windows.
+    - Optimized `ApiHealthBadge` to be fully responsive on mobile smartphones without text wrapping.
     - Registration flow with confirm password, terms acceptance, and redirect to OTP verification.
     - `/verify-email`: 6-digit OTP verification page with resend cooldown timer using `supabase.auth.verifyOtp`.
     - `/forgot-password` and `/reset-password` recovery pages.

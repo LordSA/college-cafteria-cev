@@ -41,26 +41,26 @@ export function ApiHealthBadge() {
   }, []);
 
   return (
-    <div className="inline-flex items-center gap-3 rounded-full border border-stone-200 bg-white/90 px-4 py-2 text-xs backdrop-blur-sm shadow-sm transition-all">
-      <span className="flex items-center gap-1.5 font-medium text-stone-600">
-        <Activity className="h-3.5 w-3.5 text-stone-400" />
-        Backend API:
+    <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-stone-200 bg-white/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs backdrop-blur-sm shadow-sm transition-all">
+      <span className="hidden sm:inline-flex items-center gap-1 font-medium text-stone-600">
+        <Activity className="h-3 w-3 text-stone-400" />
+        <span>API:</span>
       </span>
 
       {loading ? (
         <span className="flex items-center gap-1 text-stone-500">
           <RefreshCw className="h-3 w-3 animate-spin text-amber-500" />
-          Connecting...
+          <span className="hidden sm:inline">Connecting...</span>
         </span>
       ) : error ? (
-        <span className="flex items-center gap-1 text-rose-600" title={`Failed to reach ${apiUrl}/health (${error})`}>
+        <span className="flex items-center gap-1 text-rose-600 font-medium" title={`Failed to reach ${apiUrl}/health (${error})`}>
           <AlertCircle className="h-3 w-3" />
-          Offline ({apiUrl})
+          <span>Offline</span>
         </span>
       ) : (
         <span className="flex items-center gap-1 text-emerald-600 font-medium">
           <CheckCircle2 className="h-3.5 w-3.5" />
-          Online ({data?.service} v{data?.version})
+          <span>Online {data?.version ? `v${data.version}` : ''}</span>
         </span>
       )}
     </div>
