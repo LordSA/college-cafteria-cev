@@ -25,9 +25,9 @@ apiV1Router.get('/', (c) => {
   return c.json(
     {
       name: 'Cafteria REST API',
-      version: '1.2.0',
+      version: '1.3.0',
       status: 'active',
-      phase: 'Phase 3 - Menu Management, Staff Approval & Account Recovery',
+      phase: 'Phase 3 - Menu Management, Staff Approval & Storage',
       endpoints: {
         health: '/health',
         apiV1: '/api/v1',
@@ -39,6 +39,8 @@ apiV1Router.get('/', (c) => {
         menu: '/api/v1/menu',
         adminMenu: '/api/v1/admin/menu',
         presignUpload: '/api/v1/uploads/presign',
+        verifyUpload: '/api/v1/uploads/verify',
+        avatarUrl: '/api/v1/uploads/avatar',
       },
     },
     200

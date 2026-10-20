@@ -4,7 +4,11 @@
 ENVIRONMENT=development
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
-# Supabase Auth & Database Credentials
+# Storage Provider: "supabase" (current active provider) or "r2" (preserved future provider)
+STORAGE_PROVIDER=supabase
+
+# Supabase Auth, Database & Storage Credentials (ACTIVE)
+# Storage Buckets: "food-images" (public), "profile-images" (private)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
@@ -12,6 +16,13 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 # Optional: Supabase JWT Secret (if verifying tokens locally without JWKS)
 # SUPABASE_JWT_SECRET=your-jwt-secret
 
-# Upcoming Phase Integrations (Phase 5 & 6)
+# Cloudflare R2 Storage (PRESERVED FOR FUTURE USE - activate via STORAGE_PROVIDER=r2)
+# R2_ACCOUNT_ID=your-cloudflare-account-id
+# R2_ACCESS_KEY_ID=your-r2-access-key-id
+# R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+# R2_BUCKET_NAME=cafteria-assets
+# R2_PUBLIC_URL=https://images.yourdomain.com
+
+# Upcoming Phase Integrations (Phase 6)
 # RAZORPAY_KEY_ID=rzp_test_placeholder
 # RAZORPAY_KEY_SECRET=placeholder_secret
