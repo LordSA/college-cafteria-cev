@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, User, LogOut } from 'lucide-react';
+import { Shield, User, LogOut, Utensils, Layers, Users } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -11,17 +11,36 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-900/95 text-slate-100 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-500/20">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="text-lg font-bold tracking-tight text-white">Cafteria Admin</span>
-            <span className="ml-2 rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-400 border border-slate-700">
-              Operations Portal
-            </span>
-          </div>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white shadow-sm shadow-indigo-500/20">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-lg font-bold tracking-tight text-white">Cafteria Admin</span>
+              <span className="ml-2 rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-400 border border-slate-700">
+                Operations
+              </span>
+            </div>
+          </Link>
+
+          {!loading && adminUser && adminProfile?.app_role === 'admin' && (
+            <nav className="hidden md:flex items-center gap-4 text-xs font-semibold text-slate-400">
+              <Link href="/menu" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <Utensils className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Menu</span>
+              </Link>
+              <Link href="/categories" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Categories</span>
+              </Link>
+              <Link href="/staff-requests" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <Users className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Staff Requests</span>
+              </Link>
+            </nav>
+          )}
+        </div>
 
         <div className="flex items-center gap-3">
           <ApiHealthBadge />

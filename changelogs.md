@@ -11,6 +11,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.3.0] - 2026-10-20
+
+### Added
+- **Phase 3: Menu Management, Email Verification, Staff Approval & Temporary Supabase Storage**:
+  - **Storage Provider Architecture (`backend/src/lib/storage/`):**
+    - Introduced provider-independent storage interface (`IStorageProvider`).
+    - Implemented `SupabaseStorageProvider` as active temporary provider (`STORAGE_PROVIDER=supabase`).
+    - Preserved `R2StorageProvider` for future Cloudflare R2 activation (`STORAGE_PROVIDER=r2`).
+    - Support for two storage buckets: `food-images` (public read, admin-only upload) and `profile-images` (private by default, short-lived signed URLs).
+    - Added database migrations `backend/migrations/0003_storage_buckets.sql` and `supabase/migrations/20261020000002_storage_buckets.sql` configuring buckets and Storage RLS policies.
+    - Added endpoints: `POST /api/v1/uploads/presign`, `POST /api/v1/uploads/verify`, `GET /api/v1/uploads/avatar`.
+    - Added comprehensive Vitest test suite (`backend/tests/storage.test.ts`) covering 14 test cases.
+  - **Menu & Category Management (`backend/src/routes/`):**
+    - Created `public.categories` and `public.menu_items` tables with integer paise pricing (`backend/migrations/0002_staff_approvals_and_menu.sql`).
+    - Public endpoints: `GET /api/v1/categories`, `GET /api/v1/menu`.
+    - Admin endpoints: `GET`, `POST`, `PATCH` for categories; `GET`, `POST`, `PATCH`, `DELETE` for menu items.
+    - Vitest automated tests covering menu creation, price validation, category ordering, and item archiving.
+  - **Staff Approval Security Workflow:**
+    - Explicit separation of `requested_account_type`, `approved_account_type`, and `staff_approval_status`.
+    - Safe default trigger `handle_new_user()` setting `approved_account_type = 'student'` and `pending` for staff requests.
+    - Security Definer function `review_staff_request()` callable only by verified administrators.
+    - Administrative endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject`.
+  - **Customer Web Application (`customer/`):**
+    - Registration flow with confirm password, terms acceptance, and redirect to OTP verification.
+    - `/verify-email`: 6-digit OTP verification page with resend cooldown timer using `supabase.auth.verifyOtp`.
+    - `/forgot-password` and `/reset-password` recovery pages.
+    - `/menu`: Public canteen catalog browsing with search, category filtering, and ₹ price formatting.
+    - `/profile`: Added email verification status badge, staff review badge, and profile picture upload/display.
+  - **Admin Web Application (`admin/`):**
+    - `/staff-requests`: Operational review board for pending staff account approvals.
+    - `/categories`: Category creation and active toggle controls.
+    - `/menu`: Menu management with 86 availability toggles, soft archiving, and food image upload via presigned URLs.
+    - `/forgot-password` and `/reset-password` administrator recovery pages.
+    - Updated navigation header and dashboard links.
+  - **Documentation:**
+    - `docs/storage.md`: Complete storage provider specification, bucket configuration, Storage RLS policies, and R2 migration steps.
+    - `docs/staff-approval.md`: Zero-trust staff approval workflow specification.
+    - `docs/menu-management.md`: Menu and catalog architecture specification.
+
+---
+
 ## [0.2.0] - 2026-10-20
 
 ### Added
@@ -47,18 +88,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
     - `docs/authentication.md`: Complete security specification, RLS policies, admin provisioning guide, and migration steps.
     - Updated `customer/.env.example`, `admin/.env.example`, `backend/.dev.vars.example`.
     - Updated `docs/architecture.md`, `project_memory.md`, and root `README.md`.
-
-### Added
-- Created comprehensive documentation and design system specifications:
-  - `AGENTS.md`: Mandatory instructions, Next.js breaking changes warnings, and zero-comment source code rule.
-  - `.agents/rules/agent-rules.md`: Antigravity workspace customization rule for agent governance.
-  - `docs/agent_rules.md`: Documentation mirror for developer & agent rules.
-  - `project_memory.md`: Persistent memory of application topology, files, ports, contracts, and roadmap.
-  - `design.md`: Unified design manifesto linking customer and admin design systems.
-  - `docs/design_customer.md`: Complete customer mobile-first design system (warm amber palette, dietary badges, cart flow, touch targets).
-  - `docs/design_admin.md`: Kitchen Display System (KDS) & admin dashboard design system (dark slate palette, WCAG AAA tickets, tabular figures).
-  - `docs/api.md`: Hono REST API specification for Cloudflare Workers (CORS, health, logging sanitization, error envelopes).
-  - `changelogs.md`: Repository changelog tracking all changes.
 
 ---
 

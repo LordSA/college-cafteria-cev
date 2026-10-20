@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { useAdminAuth } from '../context/AdminAuthContext';
@@ -17,6 +18,9 @@ import {
   BarChart3,
   Loader2,
   CheckCircle2,
+  Utensils,
+  Users,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
@@ -123,59 +127,103 @@ export default function AdminDashboardPage() {
 
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-4">
-              Operational Subsystems (Phases 3 — 6)
+              Operations Management Subsystems
             </h2>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
-                  <Flame className="h-5 w-5 text-indigo-400" />
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <Link
+                href="/menu"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                    <Utensils className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Menu & Catalog</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Manage food items, pricing in paise, storage uploads, and instant 86 availability toggles.
+                  </p>
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Kitchen Display (KDS)</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Manage Menu</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <Link
+                href="/categories"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Menu Categories</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Create meal sections (Hot Breakfast, Rice Bowls, Beverages) and set sorting orders.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Manage Categories</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <Link
+                href="/staff-requests"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Staff Verification</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Review faculty and staff registration requests with authoritative approval workflows.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Review Requests</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                  <Flame className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-slate-300">Kitchen Display (KDS)</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Live order dispatch queue with prep timers and fulfillment markers.
                 </p>
                 <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Pending Phase 4</span>
+                  <span>Phase 4</span>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
-                  <Layers className="h-5 w-5 text-indigo-400" />
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                  <ClipboardList className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Menu & Pricing</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                  Instant item availability toggles (86), daily specials, and meal windows.
-                </p>
-                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Pending Phase 3</span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
-                  <ClipboardList className="h-5 w-5 text-indigo-400" />
-                </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Inventory Controls</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                <h3 className="mt-4 text-base font-semibold text-slate-300">Inventory Controls</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Raw ingredients and low-stock threshold alerts to stop sold-out sales.
                 </p>
                 <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Pending Phase 3</span>
+                  <span>Phase 4</span>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700">
-                  <BarChart3 className="h-5 w-5 text-indigo-400" />
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                  <BarChart3 className="h-5 w-5" />
                 </div>
-                <h3 className="mt-4 text-base font-semibold text-white">Sales & Auditing</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                <h3 className="mt-4 text-base font-semibold text-slate-300">Sales & Auditing</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Daily turnover totals, peak rush traffic breakdown, and Razorpay auditing.
                 </p>
                 <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Pending Phase 6</span>
+                  <span>Phase 6</span>
                 </div>
               </div>
             </div>

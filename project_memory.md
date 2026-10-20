@@ -1,6 +1,6 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 2 (Authentication & Database Security) Complete  
+> **Status:** Phase 3 (Menu Management, Staff Approval, Email Verification & Storage Provider Architecture) Complete  
 > **Last Updated:** 2026-10-20  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
@@ -19,6 +19,7 @@ college-canteen-cev/
 ├── admin/                    # Port 3001: Next.js 14 App Router (Staff & Kitchen Management)
 ├── backend/                  # Port 8787: Hono REST API on Cloudflare Workers
 ├── docs/                     # Technical specifications, design systems & rules
+├── supabase/migrations/      # Supabase CLI-compatible SQL migration files
 ├── AGENTS.md                 # Strict operating rules for automated agents & developers
 ├── design.md                 # Unified design system index & cross-app guidelines
 ├── changelogs.md             # Chronological record of codebase modifications
@@ -32,47 +33,52 @@ college-canteen-cev/
 
 ### 2.1 Customer Application (`customer/`)
 * **Role:** Student and faculty ordering portal.
-* **Stack:** Next.js 14.2.24 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`.
+* **Stack:** Next.js 14.2.35 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3000` (`http://localhost:3000`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` wrapper.
   - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
-  - `src/app/page.tsx`: Landing page showcasing platform value, phase status, and upcoming ordering preview.
-  - `src/app/login/page.tsx`: Customer sign-in page with validation and redirect protection.
-  - `src/app/signup/page.tsx`: Registration page with student/staff selector and safe customer default role.
-  - `src/app/profile/page.tsx`: Protected profile management with server-enforced role locking.
-  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes.
+  - `src/app/page.tsx`: Landing page showcasing platform value and ordering highlights.
+  - `src/app/login/page.tsx`: Customer sign-in page with validation and forgot password link.
+  - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
+  - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
+  - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
+  - `src/app/reset-password/page.tsx`: New password submission page.
+  - `src/app/menu/page.tsx`: Public menu browsing page with search, category filters, and ₹ pricing.
+  - `src/app/profile/page.tsx`: Account profile with email confirmation status, staff approval state, and avatar upload/display.
+  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes with profile refresh.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Navigation header with auth identity state and live API health indicator.
+  - `src/components/Header.tsx`: Navigation header with auth identity state, menu link, and live API health indicator.
   - `src/components/Footer.tsx`: Minimal footer with status and campus copyright.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
-  - `tailwind.config.ts`: Configured with the warm amber food palette (`brand` color scale).
-  - `next.config.mjs`: Configured with `output: 'export'`, trailing slashes, and unoptimized images.
 
 ### 2.2 Admin Application (`admin/`)
-* **Role:** Management, kitchen order dispatch queue (KDS), cashier operations, and inventory reconciliation.
-* **Stack:** Next.js 14.2.24 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`.
+* **Role:** Management, kitchen order dispatch queue (KDS), cashier operations, staff approvals, and menu catalog.
+* **Stack:** Next.js 14.2.35 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider`.
   - `src/app/globals.css`: Dark slate base styling.
-  - `src/app/page.tsx`: Protected Operations Command Center displaying verified administrator identity.
-  - `src/app/login/page.tsx`: Restricted admin sign-in (no public registration).
-  - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts with redirect options.
-  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me` and database.
+  - `src/app/page.tsx`: Protected Operations Command Center displaying verified administrator identity and subsystem links.
+  - `src/app/login/page.tsx`: Restricted admin sign-in with password recovery link.
+  - `src/app/forgot-password/page.tsx`: Administrator password recovery request.
+  - `src/app/reset-password/page.tsx`: Administrator password reset submission.
+  - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals.
+  - `src/app/categories/page.tsx`: Category management (list, add, active toggle).
+  - `src/app/menu/page.tsx`: Menu item catalog management (list, add with presigned food image upload, toggle availability, archive).
+  - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
+  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me`.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Dark admin header with admin name badge, logout action, and API status.
+  - `src/components/Header.tsx`: Dark admin header with menu, category, staff requests navigation, identity badge, and logout.
   - `src/components/Footer.tsx`: Admin-level audit footer.
   - `src/components/ApiHealthBadge.tsx`: Health check polling badge against Cloudflare Worker API.
-  - `tailwind.config.ts`: Configured with cool slate/indigo admin tokens (`admin` color scale).
-  - `next.config.mjs`: Configured with `output: 'export'`, trailing slashes, and unoptimized images.
 
 ### 2.3 Backend API (`backend/`)
-* **Role:** Single source of truth for database operations, authentication, orders, and payment integrations.
+* **Role:** Single source of truth for database operations, authentication, uploads, menu catalog, and business logic.
 * **Stack:** Hono framework, TypeScript (Strict), Cloudflare Workers, Wrangler, Zod, Vitest.
 * **Target:** Cloudflare Workers (Global Edge Network).
 * **Dev Port:** `8787` (`http://localhost:8787`).
@@ -84,13 +90,26 @@ college-canteen-cev/
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
   - `src/lib/supabase.ts`: Token verification and database profile retrieval via Supabase Admin/User clients.
+  - `src/lib/storage/`: Provider-independent storage service:
+    - `types.ts`: `IStorageProvider`, `UploadAuthParams`, `UploadAuthResult`, `DisplayUrlParams`.
+    - `supabaseProvider.ts`: Active temporary provider managing `food-images` and `profile-images` buckets.
+    - `r2Provider.ts`: Preserved future provider using S3-compatible client and presigned URLs.
+    - `index.ts`: Provider factory `getStorageProvider(env)` and backward-compatible helpers (`generatePresignedUploadUrl`, `getPublicImageUrl`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
-  - `src/routes/api.ts`: `/api/v1` router mounting auth and admin endpoints.
+  - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.
   - `src/routes/auth.ts`: `GET /api/v1/auth/me` returning authenticated user profile.
   - `src/routes/admin.ts`: `GET /api/v1/admin/me` admin-only test endpoint returning verified admin identity.
-  - `src/types/env.ts`: TypeScript environment and profile interfaces (`Env`, `UserProfile`, `AuthContextVariables`).
-  - `tests/auth.test.ts`: Vitest suite covering 12 authentication, authorization, and role tampering test cases.
-  - `migrations/0001_create_profiles.sql`: SQL migration for `public.profiles`, triggers, and RLS policies.
+  - `src/routes/staffRequests.ts`: Admin endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject`.
+  - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
+  - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
+  - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
+  - `src/types/env.ts`: TypeScript environment and profile interfaces.
+  - `tests/auth.test.ts`: 12 automated auth and RBAC test cases.
+  - `tests/phase3.test.ts`: 12 automated menu, category, and staff approval test cases.
+  - `tests/storage.test.ts`: 14 automated storage provider and upload security test cases.
+  - `migrations/0001_create_profiles.sql`: Initial profile schema and RBAC triggers.
+  - `migrations/0002_staff_approvals_and_menu.sql`: Categories, menu items, and staff approval state fields.
+  - `migrations/0003_storage_buckets.sql`: Storage buckets and Storage RLS policies.
 
 ---
 
@@ -102,7 +121,7 @@ college-canteen-cev/
    - Error: `{ "success": false, "error": { "code": "...", "message": "..." }, "timestamp": "..." }`
 3. **Dynamic CORS:** Only origins listed in `ALLOWED_ORIGINS` (comma-separated, e.g. `http://localhost:3000,http://localhost:3001`) are granted `Access-Control-Allow-Origin`.
 4. **Log Sanitization:** Sensitive headers (`Authorization`, `Cookie`, `X-Api-Key`, `X-Webhook-Signature`) are systematically replaced with `[REDACTED]` before printing.
-5. **Zero-Trust Role Enforcement:** Roles are resolved exclusively from the verified database record; browser metadata is ignored.
+5. **Zero-Trust Role Enforcement:** Roles and classifications are resolved exclusively from the verified database record; browser metadata is ignored.
 
 ---
 
@@ -112,9 +131,9 @@ college-canteen-cev/
 |---|---|---|---|
 | **Phase 1** | Project Foundation | **Completed** | Decoupled client scaffolding, static exports, Hono Worker API, CORS, logging, health probes. |
 | **Phase 2** | Authentication & RBAC | **Completed** | Supabase Auth, `public.profiles` schema, RLS policies, Hono `requireAuth` & `requireAdmin`, customer login/signup/profile, admin login/unauthorized/dashboard. |
-| **Phase 3** | Menu & Catalog Engine | Planned | PostgreSQL schema, categories, items, availability toggles, meal slot filters. |
+| **Phase 3** | Menu Engine, Staff Approval & Storage | **Completed** | Categories, menu items, integer paise pricing, availability toggles, staff approval review board, OTP email verification, password recovery, temporary Supabase Storage provider with preserved R2 support. |
 | **Phase 4** | Order Lifecycle & KDS | Planned | State machine order pipeline, token generation, kitchen live ticket board. |
-| **Phase 5** | Media Management | Planned | Cloudflare R2 bucket integration, pre-signed upload URLs, CDN caching. |
+| **Phase 5** | Production Media Migration | Planned | Re-evaluating Cloudflare R2 activation once account issues are resolved. |
 | **Phase 6** | Payments & Settlement | Planned | Razorpay checkout, webhook signature validation, daily financial reconciliation. |
 
 ---
