@@ -1,8 +1,7 @@
 import type { ErrorHandler, NotFoundHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import type { Env } from '../types/env';
 
-export const errorHandler: ErrorHandler<{ Bindings: Env }> = (err, c) => {
+export const errorHandler: ErrorHandler<any> = (err, c) => {
   const isDev = (c.env?.ENVIRONMENT ?? 'development') === 'development';
 
   if (err instanceof HTTPException) {
@@ -35,7 +34,7 @@ export const errorHandler: ErrorHandler<{ Bindings: Env }> = (err, c) => {
   );
 };
 
-export const notFoundHandler: NotFoundHandler<{ Bindings: Env }> = (c) => {
+export const notFoundHandler: NotFoundHandler<any> = (c) => {
   return c.json(
     {
       success: false,

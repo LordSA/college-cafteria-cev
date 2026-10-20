@@ -1,12 +1,15 @@
 import { Hono } from 'hono';
-import type { Env } from './types/env';
+import type { Env, AuthContextVariables } from './types/env';
 import { requestLogger } from './middleware/logger';
 import { configureCors } from './middleware/cors';
 import { errorHandler, notFoundHandler } from './middleware/error';
 import { healthRouter } from './routes/health';
 import { apiV1Router } from './routes/api';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{
+  Bindings: Env;
+  Variables: AuthContextVariables;
+}>();
 
 app.use('*', requestLogger);
 app.use('*', configureCors());
