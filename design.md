@@ -62,8 +62,29 @@ For full color scales, component anatomy, layout grids, and interactive states:
 
 ---
 
-## 4. Subsystem Behavioral Guides
+## 4. Phase 4.1 Subsystem Design Guidelines
+
+### 4.1 Testing Wallet & Demo Credit Notices
+- **Disclaimer Badges:** All testing wallet interfaces (customer wallet dashboard, checkout payment selector, header balance indicator, admin wallet controls) must prominently display:
+  `"Testing Wallet — Demo Credits Only. No Real Money."`
+- **Color Codes:** Amber/Yellow styling (`bg-amber-500/10 text-amber-500 border-amber-500/30`) to emphasize simulated test tokens and prevent user confusion with real financial instruments.
+- **Ledger Records:** Green (`+₹X.XX`, `text-emerald-600` / `text-emerald-400`) for credits/adjustments, Red (`-₹X.XX`, `text-rose-600` / `text-rose-400`) for debits and checkout payments.
+
+### 4.2 High-Contrast QR Code Pass & Verification
+- **Token Format:** Cryptographically generated token format `#CAF-QR-XXXXXX`, displayed in bold monospace font (`font-mono text-lg font-bold`).
+- **QR SVG Rendering:** Pure SVG client rendering (`qrcode` library) with dark module contrast (`#0f172a` or `#000000`) on high-contrast white card container with rounded corners and `p-4` padding, optimized for handheld optical camera recognition.
+- **Scanner Viewfinder:** Responsive video viewport with optical scan guide overlay and instant manual token input fallback.
+
+### 4.3 Printable Receipts (`@media print`)
+- **Monochrome & High Contrast:** Pure black-on-white typography (`#000000` text on `#ffffff` background) designed for standard 80mm POS thermal printers or office inkjet/laser printers.
+- **CSS Print Media Queries:** Strict `@media print` rules hiding headers, footers, breadcrumbs, action buttons, and navigation elements (`.no-print { display: none !important; }`), ensuring crisp zero-margin page output (`@page { margin: 8mm; }`).
+
+---
+
+## 5. Subsystem Behavioral Guides
 
 - [docs/orders.md](docs/orders.md): Order status progression, token format (`#CAF-YYMMDD-XXXX`), and concurrency locking.
 - [docs/inventory.md](docs/inventory.md): Stock tracking, threshold warning states, and cancellation restoration rules.
 - [docs/cart-and-checkout.md](docs/cart-and-checkout.md): Shopping cart persistence, review flow, and unpaid development state.
+- [docs/testing-wallet.md](docs/testing-wallet.md): Non-monetary testing wallet, integer paise, auditable transaction ledger, and admin adjustments.
+- [docs/qr-verification.md](docs/qr-verification.md): QR verification tokens, camera scanner, counter collection state transitions, and printable receipts.

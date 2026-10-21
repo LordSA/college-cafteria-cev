@@ -1,11 +1,11 @@
 # Cafteria — College Canteen Ordering & Management Platform
 
-[![Phase](https://img.shields.io/badge/Phase-4%20Cart%2C%20Orders%20%26%20Inventory-emerald.svg)](docs/orders.md)
+[![Phase](https://img.shields.io/badge/Phase-4.1%20Testing%20Wallet%20%26%20QR%20Verification-emerald.svg)](docs/testing-wallet.md)
 [![Customer](https://img.shields.io/badge/Customer-Next.js%20(Port%203000)-blue.svg)](customer)
 [![Admin](https://img.shields.io/badge/Admin-Next.js%20(Port%203001)-indigo.svg)](admin)
 [![Backend](https://img.shields.io/badge/Backend-Hono%20%2B%20Cloudflare%20(Port%208787)-orange.svg)](backend)
 
-Cafteria is a modern, full-stack digital canteen platform for college campuses. It enables students and faculty to browse daily food menus, pre-order meals between classes, skip physical queues, and pay securely, while providing canteen staff and management with real-time kitchen displays, inventory tracking, and staff verification.
+Cafteria is a modern, full-stack digital canteen platform for college campuses. It enables students and faculty to browse daily food menus, pre-order meals between classes, skip physical queues, and pay securely, while providing canteen staff and management with real-time kitchen displays, inventory tracking, staff verification, testing wallets, and QR collection passes.
 
 For deep architectural details, see [docs/architecture.md](docs/architecture.md).  
 For authentication and RLS policies, see [docs/authentication.md](docs/authentication.md).  
@@ -15,6 +15,8 @@ For storage provider architecture and Cloudflare R2 migration, see [docs/storage
 For order lifecycle, state machine, and concurrency control, see [docs/orders.md](docs/orders.md).  
 For inventory depletion, threshold alerts, and cancellation restoration, see [docs/inventory.md](docs/inventory.md).  
 For shopping cart persistence and checkout boundaries, see [docs/cart-and-checkout.md](docs/cart-and-checkout.md).  
+For testing wallet demo credits and auditable transactions, see [docs/testing-wallet.md](docs/testing-wallet.md).  
+For QR order verification, counter collection, and receipts, see [docs/qr-verification.md](docs/qr-verification.md).  
 
 ---
 
@@ -133,6 +135,8 @@ npm run dev
 * Local URL: [http://localhost:3000](http://localhost:3000)
 * Menu & Cart: [http://localhost:3000/menu](http://localhost:3000/menu)
 * Cart: [http://localhost:3000/cart](http://localhost:3000/cart)
+* Checkout: [http://localhost:3000/checkout](http://localhost:3000/checkout)
+* Testing Wallet: [http://localhost:3000/wallet](http://localhost:3000/wallet)
 * Orders Record: [http://localhost:3000/orders](http://localhost:3000/orders)
 
 #### 3. Admin Dashboard (Port 3001)
@@ -142,6 +146,8 @@ npm run dev
 ```
 * Local URL: [http://localhost:3001](http://localhost:3001)
 * Orders Queue: [http://localhost:3001/orders](http://localhost:3001/orders)
+* QR Scanner & Collection: [http://localhost:3001/scan](http://localhost:3001/scan)
+* Testing Wallets: [http://localhost:3001/wallets](http://localhost:3001/wallets)
 * Inventory: [http://localhost:3001/inventory](http://localhost:3001/inventory)
 * Menu Management: [http://localhost:3001/menu](http://localhost:3001/menu)
 * Staff Requests: [http://localhost:3001/staff-requests](http://localhost:3001/staff-requests)
@@ -153,17 +159,17 @@ npm run dev
 Run type-checking, automated unit tests, and production builds for each project:
 
 ```bash
-# Backend Typecheck & Tests (50 Passing Tests)
+# Backend Typecheck & Tests (63 Passing Tests)
 cd backend
 npm run typecheck
 npm run test
 
-# Customer (Static Export - 15/15 Pages)
+# Customer (Static Export - 18/18 Pages)
 cd ../customer
 npm run typecheck
 npm run build
 
-# Admin (Static Export - 13/13 Pages)
+# Admin (Static Export - 16/16 Pages)
 cd ../admin
 npm run typecheck
 npm run build
@@ -181,6 +187,8 @@ npm run build
   - Categories, menu items, integer paise pricing, availability toggles (86), staff approval review board, OTP email verification, password recovery, temporary Supabase Storage provider with preserved Cloudflare R2 support.
 * **Phase 4: Cart, Order Management & Inventory Control** *(Completed)*
   - Client-side persistent cart (`localStorage`), server-authoritative order placement, human-readable order numbers, atomic PostgreSQL inventory deduction & cancellation restoration, live status progression (`pending` -> `confirmed` -> `preparing` -> `ready_for_pickup` -> `completed`), kitchen order dispatch dashboard, inventory management with low-stock alerts and 86 toggles.
+* **Phase 4.1: Testing Wallet, QR Order Verification & Bill Printing** *(Completed)*
+  - Non-monetary testing wallet with auditable ledger for demo credits (strictly labeled: "Testing Wallet — Demo Credits Only. No Real Money."). Admin-controlled demo credit/debit adjustments with mandatory audit reason and negative balance prevention. Cryptographically secure QR verification tokens (`CAF-QR-XXXXXX`) generated upon payment. Counter pickup SVG QR pass on customer success and tracking screens. Admin camera scanner and manual fallback (`/scan`) with 1-click atomic order collection. High-contrast, thermal/inkjet print-ready receipts (`@media print`) on customer and admin apps.
 * **Phase 5: Payments & Settlements** *(Upcoming)*
   - Razorpay checkout integration, webhook signature validation, unpaid -> paid status transition.
 * **Phase 6: Auditing & Financial Analytics** *(Upcoming)*
