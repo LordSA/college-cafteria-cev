@@ -16,7 +16,6 @@ import {
   XCircle,
   Flame,
   PackageCheck,
-  AlertTriangle,
 } from 'lucide-react';
 
 interface OrderItem {

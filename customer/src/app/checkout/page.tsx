@@ -43,7 +43,9 @@ export default function CheckoutPage() {
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.data)) {
-            const menuMap = new Map(json.data.map((m: any) => [m.id, m]));
+            const menuMap = new Map<string, { id: string; name: string; is_available: boolean; is_archived: boolean }>(
+              json.data.map((m: any) => [m.id, m])
+            );
             const unavailable: string[] = [];
 
             for (const item of items) {
@@ -106,7 +108,7 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-      router.push(`/orders/${data.data.id}`);
+      router.push(`/orders/track/?id=${data.data.id}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'An error occurred while placing order';
       setError(msg);

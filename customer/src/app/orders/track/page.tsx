@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
@@ -16,9 +16,7 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  ShoppingBag,
   ShieldAlert,
-  AlertTriangle,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -49,10 +47,9 @@ interface OrderDetail {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 function OrderTrackerContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
-  const { user, session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
 
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);

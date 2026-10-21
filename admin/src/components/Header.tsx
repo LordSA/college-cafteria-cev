@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, User, LogOut, LogIn, Utensils, Layers, Users } from 'lucide-react';
+import { Shield, User, LogOut, LogIn, Utensils, Layers, Users, ReceiptText, ClipboardList } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -26,6 +26,14 @@ export function Header() {
 
           {!loading && adminUser && adminProfile?.app_role === 'admin' && (
             <nav className="hidden md:flex items-center gap-4 text-xs font-semibold text-slate-400">
+              <Link href="/orders" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <ReceiptText className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Orders</span>
+              </Link>
+              <Link href="/inventory" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <ClipboardList className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Inventory</span>
+              </Link>
               <Link href="/menu" className="inline-flex items-center gap-1.5 hover:text-white transition">
                 <Utensils className="h-3.5 w-3.5 text-indigo-400" />
                 <span>Menu</span>
