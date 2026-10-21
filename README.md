@@ -1,6 +1,6 @@
 # Cafteria — College Canteen Ordering & Management Platform
 
-[![Phase](https://img.shields.io/badge/Phase-4.1%20Testing%20Wallet%20%26%20QR%20Verification-emerald.svg)](docs/testing-wallet.md)
+[![Phase](https://img.shields.io/badge/Phase-4.2%20Strict%20Order%20Stages%20%26%20QR%20Lifecycle-emerald.svg)](docs/order-lifecycle.md)
 [![Customer](https://img.shields.io/badge/Customer-Next.js%20(Port%203000)-blue.svg)](customer)
 [![Admin](https://img.shields.io/badge/Admin-Next.js%20(Port%203001)-indigo.svg)](admin)
 [![Backend](https://img.shields.io/badge/Backend-Hono%20%2B%20Cloudflare%20(Port%208787)-orange.svg)](backend)
@@ -12,6 +12,7 @@ For authentication and RLS policies, see [docs/authentication.md](docs/authentic
 For staff verification workflows, see [docs/staff-approval.md](docs/staff-approval.md).  
 For menu management and pricing, see [docs/menu-management.md](docs/menu-management.md).  
 For storage provider architecture and Cloudflare R2 migration, see [docs/storage.md](docs/storage.md).  
+For strict 3-stage order lifecycle, QR invalidation, and verification walkthrough, see [docs/order-lifecycle.md](docs/order-lifecycle.md).  
 For order lifecycle, state machine, and concurrency control, see [docs/orders.md](docs/orders.md).  
 For inventory depletion, threshold alerts, and cancellation restoration, see [docs/inventory.md](docs/inventory.md).  
 For shopping cart persistence and checkout boundaries, see [docs/cart-and-checkout.md](docs/cart-and-checkout.md).  
@@ -159,7 +160,7 @@ npm run dev
 Run type-checking, automated unit tests, and production builds for each project:
 
 ```bash
-# Backend Typecheck & Tests (63 Passing Tests)
+# Backend Typecheck & Tests (76 Passing Tests)
 cd backend
 npm run typecheck
 npm run test
@@ -189,6 +190,8 @@ npm run build
   - Client-side persistent cart (`localStorage`), server-authoritative order placement, human-readable order numbers, atomic PostgreSQL inventory deduction & cancellation restoration, live status progression (`pending` -> `confirmed` -> `preparing` -> `ready_for_pickup` -> `completed`), kitchen order dispatch dashboard, inventory management with low-stock alerts and 86 toggles.
 * **Phase 4.1: Testing Wallet, QR Order Verification & Bill Printing** *(Completed)*
   - Non-monetary testing wallet with auditable ledger for demo credits (strictly labeled: "Testing Wallet — Demo Credits Only. No Real Money."). Admin-controlled demo credit/debit adjustments with mandatory audit reason and negative balance prevention. Cryptographically secure QR verification tokens (`CAF-QR-XXXXXX`) generated upon payment. Counter pickup SVG QR pass on customer success and tracking screens. Admin camera scanner and manual fallback (`/scan`) with 1-click atomic order collection. High-contrast, thermal/inkjet print-ready receipts (`@media print`) on customer and admin apps.
+* **Phase 4.2: Strict Order Stages, QR Lifecycle & Collection Flow** *(Completed)*
+  - Strict 3-stage order progression (`ORDER_PLACED` -> `READY_TO_PICK` -> `COLLECTED`). Non-mutating pre-flight verification on QR scan returning stage eligibility and ineligibility reasons (`"Order is not ready for pickup yet"` or `"Order already collected"`). Explicit admin confirmation required before collection. Atomic collection updating `qr_consumed_at = now()`, permanently expiring QR tokens and preventing duplicate collections. Customer tracking and receipt UI with stage-based QR invalidation.
 * **Phase 5: Payments & Settlements** *(Upcoming)*
   - Razorpay checkout integration, webhook signature validation, unpaid -> paid status transition.
 * **Phase 6: Auditing & Financial Analytics** *(Upcoming)*

@@ -79,10 +79,24 @@ For full color scales, component anatomy, layout grids, and interactive states:
 - **Monochrome & High Contrast:** Pure black-on-white typography (`#000000` text on `#ffffff` background) designed for standard 80mm POS thermal printers or office inkjet/laser printers.
 - **CSS Print Media Queries:** Strict `@media print` rules hiding headers, footers, breadcrumbs, action buttons, and navigation elements (`.no-print { display: none !important; }`), ensuring crisp zero-margin page output (`@page { margin: 8mm; }`).
 
+### 4.4 Strict 3-Stage Order Lifecycles & Collection UX (Phase 4.2)
+- **Canonical 3 Stages:**
+  - `ORDER_PLACED`: Amber status badge (`bg-amber-100 text-amber-800`), neutral waiting state.
+  - `READY_TO_PICK`: Emerald status badge (`bg-emerald-100 text-emerald-800 animate-pulse ring-2 ring-emerald-500/20`), prominent green alert banner notifying customer that food is ready for counter pickup.
+  - `COLLECTED`: Neutral slate badge (`bg-stone-100 text-stone-700`), permanently expired QR state.
+- **Scanner Pre-flight Safety UX:**
+  - Scanning a QR code displays full customer details and order item checklist without mutating state.
+  - If scanned in `ORDER_PLACED`, displays amber caution: `"Order is not ready for pickup yet"` with a 1-click `"Mark Ready to Pick"` action.
+  - If scanned in `READY_TO_PICK`, displays green ready check and enables the explicit `"Confirm Order Collection"` button.
+  - If scanned in `COLLECTED`, displays a permanent red/stone notice: `"Order already collected"` with collection timestamp and all action buttons disabled.
+- **Customer QR Invalidation:**
+  - When in `COLLECTED` stage, customer tracking and receipt pages replace the scannable SVG QR code with an `"Order Already Collected"` badge to prevent confusion or double pickup attempts.
+
 ---
 
 ## 5. Subsystem Behavioral Guides
 
+- [docs/order-lifecycle.md](docs/order-lifecycle.md): Strict 3-stage order lifecycle (`ORDER_PLACED` -> `READY_TO_PICK` -> `COLLECTED`), QR invalidation, atomic collection, and 5-step verification guide.
 - [docs/orders.md](docs/orders.md): Order status progression, token format (`#CAF-YYMMDD-XXXX`), and concurrency locking.
 - [docs/inventory.md](docs/inventory.md): Stock tracking, threshold warning states, and cancellation restoration rules.
 - [docs/cart-and-checkout.md](docs/cart-and-checkout.md): Shopping cart persistence, review flow, and unpaid development state.

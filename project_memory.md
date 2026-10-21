@@ -1,6 +1,6 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 4.1 (Testing Wallet, QR Order Verification & Bill Printing) Complete  
+> **Status:** Phase 4.2 (Strict Order Stages, QR Lifecycle & Collection Flow) Complete  
 > **Last Updated:** 2026-10-22  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
@@ -114,23 +114,25 @@ college-canteen-cev/
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
-  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`), `GET /api/v1/orders/me`, `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
-  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders`, `GET /:id`, `PATCH /:id/status`, `POST /verify-qr`, `POST /:id/collect`, `GET /:id/receipt`.
+  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`, initializes `ORDER_PLACED`), `GET /api/v1/orders/me` (returns `order_stage`), `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
+  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (strict stage filtering via `?stage=`), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (non-mutating pre-flight returning stage eligibility), `POST /:id/collect` (atomic collection, sets `qr_consumed_at`), `GET /:id/receipt`.
   - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId`.
   - `src/routes/wallet.ts`: Customer endpoints `GET /api/v1/wallet/me`, `GET /api/v1/wallet/transactions`.
   - `src/routes/adminWallet.ts`: Admin endpoints `GET /api/v1/admin/wallets`, `GET /:customerId`, `POST /:customerId/adjust`.
-  - `src/types/env.ts`: TypeScript environment, profile, order, inventory, and wallet interfaces.
+  - `src/types/env.ts`: TypeScript environment, profile, `OrderStage = 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED'`, order, inventory, and wallet interfaces.
   - `tests/auth.test.ts`: 12 automated auth and RBAC test cases.
   - `tests/phase3.test.ts`: 12 automated menu, category, and staff approval test cases.
   - `tests/storage.test.ts`: 14 automated storage provider and upload security test cases.
   - `tests/phase4.test.ts`: 12 automated order creation, inventory deduction, idempotency, and status transition test cases.
   - `tests/phase4_1.test.ts`: 13 automated wallet credit/debit, negative balance prevention, QR verification, collection, and receipt test cases.
+  - `tests/phase4_2.test.ts`: 13 automated strict order stages, QR invalidation, duplicate prevention, and collection flow test cases (76/76 passing total).
   - `migrations/0001_create_profiles.sql`: Initial profile schema and RBAC triggers.
   - `migrations/0002_staff_approvals_and_menu.sql`: Categories, menu items, and staff approval state fields.
   - `migrations/0003_storage_buckets.sql`: Storage buckets and Storage RLS policies.
   - `migrations/0004_orders_and_inventory.sql`: Orders, order items, inventory movement logs, RLS, and transactional stored procedures.
   - `migrations/0005_wallet_and_qr_verification.sql`: Wallets, ledger transactions, orders QR verification fields, and PL/pgSQL stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`, `verify_qr_token`, `collect_order`).
   - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
+  - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict `order_stage` constraint, `qr_consumed_at` column, and stage-aware `mark_order_ready`, `verify_qr_token`, and `collect_order` stored procedures.
 
 ---
 

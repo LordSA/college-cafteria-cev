@@ -18,6 +18,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.2] - 2026-10-22
+
+### Added
+- **Phase 4.2: Strict Order Stages, QR Lifecycle & Collection Flow**:
+  - **Database Migrations (`backend/migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql` & `supabase/migrations/20261022000001_phase4_2_order_stages_and_qr_lifecycle.sql`):**
+    - Added `order_stage text NOT NULL DEFAULT 'ORDER_PLACED' CHECK (order_stage IN ('ORDER_PLACED', 'READY_TO_PICK', 'COLLECTED'))` to `public.orders`.
+    - Added `qr_consumed_at timestamptz` to `public.orders` to permanently expire QR verification tokens upon collection.
+    - Added stored procedure `mark_order_ready(p_order_id UUID)` to atomically transition paid orders from `ORDER_PLACED` to `READY_TO_PICK`.
+    - Updated stored procedure `verify_qr_token(p_qr_token TEXT)` with stage-aware evaluation returning `is_eligible_for_collection` (true only if `READY_TO_PICK`) and distinct `ineligibility_reason` messages (`"Order is not ready for pickup yet"` or `"Order already collected"`).
+    - Updated stored procedure `collect_order(p_order_id UUID, p_operator_id UUID)` to enforce `order_stage = 'READY_TO_PICK'`, transition to `COLLECTED`, set `qr_consumed_at = now()`, and prevent duplicate collections.
+    - Updated `pay_order_with_wallet` to initialize orders with `order_stage = 'ORDER_PLACED'`.
+    - Appended migrations and procedures to `supabase/complete_setup.sql`.
+  - **Backend REST API Endpoints (`backend/src/routes/`):**
+    - `POST /api/v1/admin/orders/:id/ready`: Transitions order from `ORDER_PLACED` to `READY_TO_PICK` with payment checks.
+    - `POST /api/v1/admin/orders/verify-qr`: Non-mutating QR pre-flight verification endpoint returning stage eligibility and ineligibility reasons without auto-collecting.
+    - `POST /api/v1/admin/orders/:id/collect`: Atomic collection endpoint enforcing `READY_TO_PICK`, recording operator ID, and expiring QR token.
+    - `GET /api/v1/admin/orders?stage={all|ORDER_PLACED|READY_TO_PICK|COLLECTED}`: Filter admin queue by the 3 strict stages.
+    - `GET /api/v1/orders/me` & `GET /api/v1/orders/:id`: Return authoritative `order_stage`.
+    - Added 13 automated Vitest tests (`backend/tests/phase4_2.test.ts`), bringing total passing test suite to 76/76 tests.
+  - **Customer Web Application (`customer/`):**
+    - `/orders`: Updated order status badges to show strict 3 stages (`ORDER_PLACED`, `READY_TO_PICK`, `COLLECTED`).
+    - `/orders/track`: Simplified timeline to the 3 canonical stages, added prominent "Ready to Pick Up!" alert banner, and conditionally disabled QR SVG with an "Order Already Collected" card when collected.
+    - `/checkout/success`: Updated confirmation view to indicate `ORDER_PLACED` stage.
+    - `/orders/receipt`: Added `order_stage` to bill metadata and rendered "Order Collected" stamp when fulfilled.
+  - **Admin Web Application (`admin/`):**
+    - `/orders`: Restructured queue into strict 3 tabs (`Order Placed`, `Ready to Pick`, `Collected`), added `Mark Ready to Pick` button for stage 1, and `Scan QR / Collect Order` quick link for stage 2.
+    - `/scan`: Integrated stage pre-flight evaluation; shows `"Order is not ready for pickup yet"` warning with 1-click `"Mark Ready to Pick"` action; shows `"Order already collected"` banner with disabled actions; enables `"Confirm Order Collection"` only when `READY_TO_PICK`.
+    - Operations Command Center (`admin/src/app/page.tsx`): Updated active order count to check strict order stage.
+  - **Documentation:**
+    - `docs/order-lifecycle.md`: Comprehensive lifecycle state diagram, API reference, stored procedures, error table, and 5-step curl verification walkthrough.
+
+---
+
 ## [0.4.1] - 2026-10-22
 
 ### Added
