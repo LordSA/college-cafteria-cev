@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
+import { QRCodeSvg } from '../../../components/QRCodeSvg';
 import {
   Clock,
   CheckCircle2,
@@ -17,6 +18,8 @@ import {
   AlertCircle,
   RefreshCw,
   ShieldAlert,
+  Printer,
+  QrCode,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -32,6 +35,8 @@ interface OrderDetail {
   order_number: string;
   order_status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
   payment_status: string;
+  payment_method?: string;
+  qr_verification_token?: string | null;
   subtotal: number;
   total: number;
   cancellation_reason?: string | null;
@@ -306,9 +311,18 @@ function OrderTrackerContent() {
       </div>
 
       <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
-        <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
-          Campus Fulfillment Details
-        </h2>
+        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+          <h2 className="text-sm font-bold text-stone-900">
+            Campus Fulfillment Details
+          </h2>
+          <Link
+            href={`/orders/receipt/?id=${order.id}`}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 transition"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Print Receipt</span>
+          </Link>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2 text-xs">
           <div>
@@ -317,9 +331,18 @@ function OrderTrackerContent() {
           </div>
           <div>
             <span className="text-stone-500">Payment Status</span>
-            <p className="font-semibold text-stone-900 uppercase tracking-wider text-[11px] text-amber-700">
-              {order.payment_status} (Phase 4 development flow)
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                order.payment_status === 'paid'
+                  ? 'bg-emerald-100 text-emerald-800'
+                  : 'bg-amber-100 text-amber-800'
+              }`}>
+                {order.payment_status}
+              </span>
+              <span className="text-[11px] text-stone-500">
+                via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Counter Cash'}
+              </span>
+            </div>
           </div>
           <div>
             <span className="text-stone-500">Order Reference</span>
@@ -330,6 +353,22 @@ function OrderTrackerContent() {
             <p className="font-mono font-extrabold text-amber-700">{order.order_number}</p>
           </div>
         </div>
+
+        {order.qr_verification_token && order.payment_status === 'paid' && order.order_status !== 'cancelled' && (
+          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
+            <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
+              <QrCode className="h-4 w-4 text-amber-600" />
+              <span>Counter Pickup QR Pass</span>
+            </div>
+            <div className="flex justify-center">
+              <QRCodeSvg value={order.qr_verification_token} size={150} />
+            </div>
+            <div>
+              <span className="text-[10px] text-stone-400">Manual Verification:</span>
+              <p className="font-mono text-xs font-bold text-stone-700">{order.qr_verification_token}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {canCancel && !isCancelled && (
