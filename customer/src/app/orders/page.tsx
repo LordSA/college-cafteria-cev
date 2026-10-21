@@ -14,7 +14,6 @@ import {
   Utensils,
   CheckCircle2,
   XCircle,
-  Flame,
   PackageCheck,
 } from 'lucide-react';
 
@@ -29,7 +28,8 @@ interface OrderItem {
 interface Order {
   id: string;
   order_number: string;
-  order_status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+  order_status?: string;
+  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
   payment_status: string;
   subtotal: number;
   total: number;
@@ -82,44 +82,37 @@ export default function CustomerOrdersPage() {
     }
   }, [session, authLoading]);
 
-  const renderStatusBadge = (status: Order['order_status']) => {
-    switch (status) {
-      case 'pending':
+  const renderStatusBadge = (order: Order) => {
+    const stage = order.order_stage || (
+      order.order_status === 'completed' ? 'COLLECTED' :
+      order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
+      order.order_status === 'cancelled' ? 'CANCELLED' :
+      'ORDER_PLACED'
+    );
+
+    switch (stage) {
+      case 'ORDER_PLACED':
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
             <Clock className="h-3 w-3" />
             <span>Order Placed</span>
           </span>
         );
-      case 'confirmed':
+      case 'READY_TO_PICK':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-bold text-blue-800">
-            <CheckCircle2 className="h-3 w-3" />
-            <span>Kitchen Confirmed</span>
-          </span>
-        );
-      case 'preparing':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-800 animate-pulse">
-            <Flame className="h-3 w-3" />
-            <span>Cooking in Progress</span>
-          </span>
-        );
-      case 'ready_for_pickup':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 animate-pulse ring-2 ring-emerald-500/20">
             <PackageCheck className="h-3 w-3" />
-            <span>Ready for Pickup</span>
+            <span>Ready to Pick Up</span>
           </span>
         );
-      case 'completed':
+      case 'COLLECTED':
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
             <CheckCircle2 className="h-3 w-3" />
-            <span>Completed</span>
+            <span>Collected</span>
           </span>
         );
-      case 'cancelled':
+      case 'CANCELLED':
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
             <XCircle className="h-3 w-3" />
@@ -208,7 +201,7 @@ export default function CustomerOrdersPage() {
                         <span className="font-mono text-sm font-extrabold text-stone-900">
                           {order.order_number}
                         </span>
-                        {renderStatusBadge(order.order_status)}
+                        {renderStatusBadge(order)}
                       </div>
 
                       <p className="text-xs text-stone-500 flex items-center gap-1.5">

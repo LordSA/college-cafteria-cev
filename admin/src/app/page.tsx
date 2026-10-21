@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
           const ordersData = await ordersRes.json();
           if (ordersData.success && Array.isArray(ordersData.data)) {
             activeOrdersCount = ordersData.data.filter((o: any) =>
-              ['pending', 'confirmed', 'preparing', 'ready_for_pickup'].includes(o.order_status)
+              ['ORDER_PLACED', 'READY_TO_PICK', 'pending', 'confirmed', 'preparing', 'ready_for_pickup'].includes(o.order_stage || o.order_status)
             ).length;
           }
         }

@@ -11,7 +11,6 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  Flame,
   PackageCheck,
   ArrowLeft,
   Loader2,
@@ -33,7 +32,11 @@ interface OrderItem {
 interface OrderDetail {
   id: string;
   order_number: string;
-  order_status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+  order_status?: string;
+  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  qr_consumed_at?: string | null;
+  collected_at?: string | null;
+  collected_by?: string | null;
   payment_status: string;
   payment_method?: string;
   qr_verification_token?: string | null;
@@ -172,18 +175,22 @@ function OrderTrackerContent() {
     );
   }
 
+  const effectiveStage: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED' = order.order_stage || (
+    order.order_status === 'completed' ? 'COLLECTED' :
+    order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
+    'ORDER_PLACED'
+  );
+
   const steps = [
-    { key: 'pending', label: 'Order Placed', icon: Clock },
-    { key: 'confirmed', label: 'Kitchen Confirmed', icon: CheckCircle2 },
-    { key: 'preparing', label: 'Cooking', icon: Flame },
-    { key: 'ready_for_pickup', label: 'Ready for Pickup', icon: PackageCheck },
-    { key: 'completed', label: 'Collected', icon: CheckCircle2 },
+    { key: 'ORDER_PLACED', label: 'Order Placed', icon: Clock },
+    { key: 'READY_TO_PICK', label: 'Ready to Pick', icon: PackageCheck },
+    { key: 'COLLECTED', label: 'Collected', icon: CheckCircle2 },
   ];
 
-  const statusOrder = ['pending', 'confirmed', 'preparing', 'ready_for_pickup', 'completed'];
-  const currentIndex = statusOrder.indexOf(order.order_status);
+  const stageOrder = ['ORDER_PLACED', 'READY_TO_PICK', 'COLLECTED'];
+  const currentIndex = stageOrder.indexOf(effectiveStage);
   const isCancelled = order.order_status === 'cancelled';
-  const canCancel = ['pending', 'confirmed'].includes(order.order_status);
+  const canCancel = effectiveStage === 'ORDER_PLACED' && !isCancelled;
 
   return (
     <div className="space-y-8">
@@ -278,6 +285,20 @@ function OrderTrackerContent() {
         )}
       </div>
 
+      {effectiveStage === 'READY_TO_PICK' && !isCancelled && (
+        <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-5 shadow-xs flex items-center gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+            <PackageCheck className="h-6 w-6 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-emerald-950">Ready to Pick Up!</h3>
+            <p className="text-xs text-emerald-800 mt-0.5">
+              Your food is ready at Campus Canteen — Dispatch Station 1. Present your Counter Pickup QR Pass below to collect.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
         <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
           Ordered Dishes
@@ -354,20 +375,46 @@ function OrderTrackerContent() {
           </div>
         </div>
 
-        {order.qr_verification_token && order.payment_status === 'paid' && order.order_status !== 'cancelled' && (
-          <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
-            <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
-              <QrCode className="h-4 w-4 text-amber-600" />
-              <span>Counter Pickup QR Pass</span>
+        {order.qr_verification_token && order.payment_status === 'paid' && !isCancelled && (
+          effectiveStage === 'COLLECTED' || order.qr_consumed_at ? (
+            <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-6 text-center space-y-2">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stone-200 text-stone-600">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <p className="text-sm font-bold text-stone-900">Order Already Collected</p>
+              <p className="text-xs text-stone-500">
+                This order has been fulfilled. The counter pickup QR pass is now permanently expired.
+              </p>
+              {order.collected_at && (
+                <p className="font-mono text-[11px] text-stone-400">
+                  Collected on: {new Date(order.collected_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                </p>
+              )}
             </div>
-            <div className="flex justify-center">
-              <QRCodeSvg value={order.qr_verification_token} size={150} />
+          ) : (
+            <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
+                <QrCode className="h-4 w-4 text-amber-600" />
+                <span>Counter Pickup QR Pass</span>
+              </div>
+              <div className="flex justify-center">
+                <QRCodeSvg value={order.qr_verification_token} size={150} />
+              </div>
+              <div>
+                <span className="text-[10px] text-stone-400">Manual Verification:</span>
+                <p className="font-mono text-xs font-bold text-stone-700">{order.qr_verification_token}</p>
+              </div>
+              {effectiveStage === 'ORDER_PLACED' ? (
+                <p className="text-[11px] text-amber-700 font-medium">
+                  Order Placed — your QR code will be ready for pickup collection once marked ready.
+                </p>
+              ) : (
+                <p className="text-[11px] text-emerald-700 font-semibold">
+                  Present this QR code to the canteen staff at Dispatch Station 1.
+                </p>
+              )}
             </div>
-            <div>
-              <span className="text-[10px] text-stone-400">Manual Verification:</span>
-              <p className="font-mono text-xs font-bold text-stone-700">{order.qr_verification_token}</p>
-            </div>
-          </div>
+          )
         )}
       </div>
 

@@ -29,7 +29,8 @@ interface OrderItem {
 interface OrderDetail {
   id: string;
   order_number: string;
-  order_status: string;
+  order_status?: string;
+  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
   payment_status: string;
   payment_method: string;
   qr_verification_token: string | null;
@@ -115,9 +116,14 @@ function CheckoutSuccessContent() {
         </div>
 
         <div>
-          <span className="rounded-md bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-            Payment Confirmed • Testing Wallet
-          </span>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span className="rounded-md bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+              Payment Confirmed • Testing Wallet
+            </span>
+            <span className="rounded-md bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+              Stage: ORDER PLACED
+            </span>
+          </div>
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
             Order Sent to Kitchen!
           </h1>
@@ -145,7 +151,7 @@ function CheckoutSuccessContent() {
               Counter Verification Pass
             </span>
             <p className="text-[11px] text-stone-500">
-              Show this QR code at Canteen Dispatch Station 1 to verify and collect your food.
+              Your order has entered <strong>ORDER_PLACED</strong>. Show this QR pass at Canteen Dispatch Station 1 once your order is marked Ready to Pick.
             </p>
 
             <div className="flex justify-center pt-1">

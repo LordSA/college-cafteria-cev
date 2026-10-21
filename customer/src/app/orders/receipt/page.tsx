@@ -30,7 +30,8 @@ interface ReceiptData {
   paid_at: string | null;
   payment_method: string;
   payment_status: string;
-  order_status: string;
+  order_status?: string;
+  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
   subtotal: number;
   total: number;
   qr_verification_token: string | null;
@@ -190,14 +191,19 @@ function ReceiptContent() {
 
           <div className="text-right">
             <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
-              Payment Method & Status
+              Payment & Order Stage
             </span>
             <p className="font-bold text-emerald-700 uppercase">
-              {receipt.payment_status} • {receipt.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Counter Cash'}
+              {receipt.payment_status} • {receipt.order_stage || receipt.order_status || 'ORDER_PLACED'}
             </p>
             {receipt.paid_at && (
               <p className="text-[10px] text-stone-400">
                 Paid: {new Date(receipt.paid_at).toLocaleTimeString('en-IN')}
+              </p>
+            )}
+            {receipt.collected_at && (
+              <p className="text-[10px] font-semibold text-stone-600">
+                Collected: {new Date(receipt.collected_at).toLocaleTimeString('en-IN')}
               </p>
             )}
           </div>
@@ -252,20 +258,36 @@ function ReceiptContent() {
         </div>
 
         {receipt.qr_verification_token && (
-          <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-3">
-            <p className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
-              Counter Verification Pickup Ticket
-            </p>
-            <div className="flex justify-center">
-              <QRCodeSvg value={receipt.qr_verification_token} size={150} />
-            </div>
-            <div>
-              <span className="text-[10px] text-stone-400">Token String:</span>
-              <p className="font-mono text-xs font-extrabold text-stone-800 tracking-wider">
-                {receipt.qr_verification_token}
+          receipt.order_stage === 'COLLECTED' || receipt.collected_at ? (
+            <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-2">
+              <div className="inline-block rounded-xl border-2 border-stone-800 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-stone-900">
+                Order Collected
+              </div>
+              <p className="text-[11px] text-stone-500">
+                This receipt has been collected and the QR verification token is permanently expired.
               </p>
+              {receipt.collected_at && (
+                <p className="font-mono text-[10px] text-stone-400">
+                  Collected on: {new Date(receipt.collected_at).toLocaleString('en-IN')}
+                </p>
+              )}
             </div>
-          </div>
+          ) : (
+            <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-3">
+              <p className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+                Counter Verification Pickup Ticket
+              </p>
+              <div className="flex justify-center">
+                <QRCodeSvg value={receipt.qr_verification_token} size={150} />
+              </div>
+              <div>
+                <span className="text-[10px] text-stone-400">Token String:</span>
+                <p className="font-mono text-xs font-extrabold text-stone-800 tracking-wider">
+                  {receipt.qr_verification_token}
+                </p>
+              </div>
+            </div>
+          )
         )}
 
         <div className="border-t border-stone-200 pt-4 text-center space-y-1 text-[10px] text-stone-500">

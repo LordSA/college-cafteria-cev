@@ -12,9 +12,8 @@ import {
   RefreshCw,
   Clock,
   CheckCircle2,
-  XCircle,
-  Flame,
   PackageCheck,
+  QrCode,
   Loader2,
   AlertCircle,
   ChevronDown,
@@ -33,11 +32,14 @@ interface OrderItem {
 interface AdminOrder {
   id: string;
   order_number: string;
-  order_status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_status: string;
   payment_status: string;
   payment_method?: string;
   qr_verification_token?: string | null;
   collected_at?: string | null;
+  collected_by?: string | null;
+  ready_at?: string | null;
   subtotal: number;
   total: number;
   cancellation_reason?: string | null;
@@ -80,7 +82,7 @@ export default function AdminOrdersPage() {
     try {
       const url = new URL(`${API_BASE_URL}/api/v1/admin/orders`);
       if (statusFilter !== 'all') {
-        url.searchParams.set('status', statusFilter);
+        url.searchParams.set('stage', statusFilter);
       }
       if (searchQuery.trim()) {
         url.searchParams.set('search', searchQuery.trim());
@@ -121,98 +123,78 @@ export default function AdminOrdersPage() {
     });
   };
 
-  const updateOrderStatus = async (orderId: string, nextStatus: AdminOrder['order_status']) => {
+  const getOrderStage = (order: AdminOrder): 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED' => {
+    if (order.order_stage) return order.order_stage;
+    if (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK') return 'READY_TO_PICK';
+    if (order.order_status === 'completed' || order.order_status === 'COLLECTED') return 'COLLECTED';
+    return 'ORDER_PLACED';
+  };
+
+  const handleMarkReady = async (orderId: string) => {
     if (!session?.access_token) return;
 
     setUpdatingOrderId(orderId);
     setError(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${orderId}/ready`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({
-          status: nextStatus,
-          cancellation_reason: nextStatus === 'cancelled' ? 'Cancelled by kitchen supervisor' : undefined,
-        }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error?.message || 'Failed to update order status');
+        throw new Error(data.error?.message || 'Failed to mark order as ready');
       }
 
       setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, order_status: nextStatus } : o))
+        prev.map((o) =>
+          o.id === orderId
+            ? { ...o, order_stage: 'READY_TO_PICK', order_status: 'READY_TO_PICK' }
+            : o
+        )
       );
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Status transition failed';
+      const msg = err instanceof Error ? err.message : 'Failed to mark order as ready';
       setError(msg);
     } finally {
       setUpdatingOrderId(null);
     }
   };
 
-  const renderStatusBadge = (status: AdminOrder['order_status']) => {
-    switch (status) {
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/60 border border-amber-800/60 px-2.5 py-0.5 text-[11px] font-bold text-amber-400">
-            <Clock className="h-3 w-3" />
-            <span>Queued</span>
-          </span>
-        );
-      case 'confirmed':
+  const renderStageBadge = (stage: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED') => {
+    switch (stage) {
+      case 'ORDER_PLACED':
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-blue-950/60 border border-blue-800/60 px-2.5 py-0.5 text-[11px] font-bold text-blue-400">
-            <CheckCircle2 className="h-3 w-3" />
-            <span>Confirmed</span>
+            <Clock className="h-3 w-3" />
+            <span>Order Placed</span>
           </span>
         );
-      case 'preparing':
+      case 'READY_TO_PICK':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-purple-950/60 border border-purple-800/60 px-2.5 py-0.5 text-[11px] font-bold text-purple-400 animate-pulse">
-            <Flame className="h-3 w-3" />
-            <span>Cooking</span>
-          </span>
-        );
-      case 'ready_for_pickup':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 animate-pulse">
             <PackageCheck className="h-3 w-3" />
-            <span>Ready</span>
+            <span>Ready to Pick</span>
           </span>
         );
-      case 'completed':
+      case 'COLLECTED':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-bold text-slate-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-bold text-slate-300">
             <CheckCircle2 className="h-3 w-3" />
-            <span>Completed</span>
+            <span>Collected</span>
           </span>
         );
-      case 'cancelled':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-950/60 border border-rose-800/60 px-2.5 py-0.5 text-[11px] font-bold text-rose-400">
-            <XCircle className="h-3 w-3" />
-            <span>Cancelled</span>
-          </span>
-        );
-      default:
-        return null;
     }
   };
 
-  const statusTabs = [
+  const stageTabs = [
     { key: 'all', label: 'All Orders' },
-    { key: 'pending', label: 'Queued' },
-    { key: 'confirmed', label: 'Confirmed' },
-    { key: 'preparing', label: 'Cooking' },
-    { key: 'ready_for_pickup', label: 'Ready' },
-    { key: 'completed', label: 'Completed' },
-    { key: 'cancelled', label: 'Cancelled' },
+    { key: 'ORDER_PLACED', label: 'Order Placed' },
+    { key: 'READY_TO_PICK', label: 'Ready to Pick' },
+    { key: 'COLLECTED', label: 'Collected' },
   ];
 
   return (
@@ -251,7 +233,7 @@ export default function AdminOrdersPage() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-              {statusTabs.map((tab) => (
+              {stageTabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setStatusFilter(tab.key)}
@@ -300,6 +282,7 @@ export default function AdminOrdersPage() {
               {orders.map((order) => {
                 const isExpanded = expandedOrders.has(order.id);
                 const isUpdating = updatingOrderId === order.id;
+                const stage = getOrderStage(order);
 
                 return (
                   <div
@@ -312,7 +295,7 @@ export default function AdminOrdersPage() {
                           <span className="font-mono text-base font-extrabold text-white">
                             {order.order_number}
                           </span>
-                          {renderStatusBadge(order.order_status)}
+                          {renderStageBadge(stage)}
                           <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                             order.payment_status === 'paid'
                               ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
@@ -371,93 +354,33 @@ export default function AdminOrdersPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/70">
-                      {order.order_status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'confirmed')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            <span>Confirm Order</span>
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-900/60 transition disabled:opacity-50"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            <span>Cancel</span>
-                          </button>
-                        </>
+                      {stage === 'ORDER_PLACED' && (
+                        <button
+                          onClick={() => handleMarkReady(order.id)}
+                          disabled={isUpdating}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition disabled:opacity-50"
+                        >
+                          <PackageCheck className="h-3.5 w-3.5" />
+                          <span>Mark Ready to Pick</span>
+                        </button>
                       )}
 
-                      {order.order_status === 'confirmed' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'preparing')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-500 transition disabled:opacity-50"
-                          >
-                            <Flame className="h-3.5 w-3.5" />
-                            <span>Start Cooking</span>
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-900/60 transition disabled:opacity-50"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            <span>Cancel</span>
-                          </button>
-                        </>
+                      {stage === 'READY_TO_PICK' && (
+                        <Link
+                          href={`/scan?token=${encodeURIComponent(order.qr_verification_token || '')}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-xs"
+                        >
+                          <QrCode className="h-3.5 w-3.5" />
+                          <span>Scan QR / Collect Order</span>
+                        </Link>
                       )}
 
-                      {order.order_status === 'preparing' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'ready_for_pickup')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition disabled:opacity-50"
-                          >
-                            <PackageCheck className="h-3.5 w-3.5" />
-                            <span>Mark Ready for Pickup</span>
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-900/60 transition disabled:opacity-50"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            <span>Cancel</span>
-                          </button>
-                        </>
-                      )}
-
-                      {order.order_status === 'ready_for_pickup' && (
-                        <>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'completed')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition disabled:opacity-50"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            <span>Mark Completed / Collected</span>
-                          </button>
-                          <button
-                            onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                            disabled={isUpdating}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-800/60 bg-rose-950/40 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-900/60 transition disabled:opacity-50"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                            <span>Cancel</span>
-                          </button>
-                        </>
-                      )}
-
-                      {(order.order_status === 'completed' || order.order_status === 'cancelled') && (
-                        <span className="text-[11px] text-slate-500 font-medium">
-                          Terminal state • No further transitions permitted
+                      {stage === 'COLLECTED' && (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-slate-500" />
+                          <span>
+                            Collected {order.collected_at ? `at ${new Date(order.collected_at).toLocaleTimeString()}` : ''}
+                          </span>
                         </span>
                       )}
 
