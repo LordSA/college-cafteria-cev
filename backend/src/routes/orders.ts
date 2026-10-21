@@ -13,6 +13,7 @@ const OrderItemInputSchema = z.object({
 const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
+  payment_method: z.enum(['testing_wallet', 'counter_cash']).optional().default('testing_wallet'),
 });
 
 const OrderCancelSchema = z.object({
@@ -66,60 +67,125 @@ customerOrdersRouter.post(
       }
     }
 
-    try {
-      const { data: rpcResult, error: rpcError } = await adminClient.rpc('place_order', {
-        p_customer_id: user.id,
-        p_items: payload.items,
-        p_idempotency_key: idempotencyKey,
-      });
+    const paymentMethod = payload.payment_method || 'testing_wallet';
 
-      if (!rpcError && rpcResult) {
-        const orderId = rpcResult.id;
-        const { data: items } = await adminClient
-          .from('order_items')
-          .select('*')
-          .eq('order_id', orderId);
+    if (paymentMethod === 'testing_wallet') {
+      try {
+        const { data: rpcResult, error: rpcError } = await adminClient.rpc('pay_order_with_wallet', {
+          p_customer_id: user.id,
+          p_items: payload.items,
+          p_idempotency_key: idempotencyKey,
+        });
 
-        return c.json(
-          {
-            success: true,
-            data: {
-              ...rpcResult,
-              items: items || [],
+        if (!rpcError && rpcResult) {
+          const orderId = rpcResult.id;
+          const { data: items } = await adminClient
+            .from('order_items')
+            .select('*')
+            .eq('order_id', orderId);
+
+          return c.json(
+            {
+              success: true,
+              data: {
+                ...rpcResult,
+                items: items || [],
+              },
             },
-          },
-          rpcResult.is_idempotent_replay ? 200 : 201
-        );
-      }
+            rpcResult.is_idempotent_replay ? 200 : 201
+          );
+        }
 
-      if (rpcError) {
-        const errMsg = rpcError.message || '';
-        if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
+        if (rpcError) {
+          const errMsg = rpcError.message || '';
+          if (errMsg.includes('ERR_INSUFFICIENT_FUNDS')) {
+            return c.json(
+              { success: false, error: { code: 'INSUFFICIENT_FUNDS', message: errMsg } },
+              400
+            );
+          }
+          if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
+            return c.json(
+              { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
+              400
+            );
+          }
+          if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
+            return c.json(
+              { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
+              400
+            );
+          }
+          if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
+            return c.json(
+              { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
+              404
+            );
+          }
+          if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
+            return c.json(
+              { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
+              400
+            );
+          }
+        }
+      } catch {}
+    } else {
+      try {
+        const { data: rpcResult, error: rpcError } = await adminClient.rpc('place_order', {
+          p_customer_id: user.id,
+          p_items: payload.items,
+          p_idempotency_key: idempotencyKey,
+        });
+
+        if (!rpcError && rpcResult) {
+          const orderId = rpcResult.id;
+          const { data: items } = await adminClient
+            .from('order_items')
+            .select('*')
+            .eq('order_id', orderId);
+
           return c.json(
-            { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
-            400
+            {
+              success: true,
+              data: {
+                ...rpcResult,
+                items: items || [],
+              },
+            },
+            rpcResult.is_idempotent_replay ? 200 : 201
           );
         }
-        if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
-          return c.json(
-            { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
-            400
-          );
+
+        if (rpcError) {
+          const errMsg = rpcError.message || '';
+          if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
+            return c.json(
+              { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
+              400
+            );
+          }
+          if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
+            return c.json(
+              { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
+              400
+            );
+          }
+          if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
+            return c.json(
+              { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
+              404
+            );
+          }
+          if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
+            return c.json(
+              { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
+              400
+            );
+          }
         }
-        if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
-          return c.json(
-            { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
-            404
-          );
-        }
-        if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
-          return c.json(
-            { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
-            400
-          );
-        }
-      }
-    } catch {}
+      } catch {}
+    }
 
     const itemIds = payload.items.map((i) => i.menu_item_id);
     const { data: menuItems, error: menuErr } = await adminClient

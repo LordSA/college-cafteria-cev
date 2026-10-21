@@ -76,6 +76,7 @@ export interface MenuItem {
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
+export type PaymentMethod = 'testing_wallet' | 'counter_cash' | 'razorpay';
 
 export interface OrderItem {
   id: string;
@@ -94,6 +95,11 @@ export interface Order {
   order_number: string;
   order_status: OrderStatus;
   payment_status: PaymentStatus;
+  payment_method?: PaymentMethod;
+  paid_at?: string | null;
+  qr_verification_token?: string | null;
+  collected_at?: string | null;
+  collected_by?: string | null;
   subtotal: number;
   total: number;
   idempotency_key?: string | null;
@@ -114,6 +120,29 @@ export interface InventoryLog {
   menu_item_id: string;
   quantity_change: number;
   reason: 'order_placed' | 'order_cancelled' | 'manual_adjustment' | 'restock';
+  order_id?: string | null;
+  actor_id?: string | null;
+  created_at: string;
+}
+
+export interface Wallet {
+  id: string;
+  customer_id: string;
+  balance: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type WalletTransactionType = 'credit' | 'debit';
+
+export interface WalletTransaction {
+  id: string;
+  wallet_id: string;
+  customer_id: string;
+  amount: number;
+  transaction_type: WalletTransactionType;
+  balance_after: number;
+  reason: string;
   order_id?: string | null;
   actor_id?: string | null;
   created_at: string;
