@@ -6,6 +6,9 @@ import { staffRequestsRouter } from './staffRequests';
 import { publicCategoriesRouter, adminCategoriesRouter } from './categories';
 import { publicMenuRouter, adminMenuRouter } from './menu';
 import { uploadsRouter } from './uploads';
+import { customerOrdersRouter } from './orders';
+import { adminOrdersRouter } from './adminOrders';
+import { adminInventoryRouter } from './adminInventory';
 
 export const apiV1Router = new Hono<{
   Bindings: Env;
@@ -20,14 +23,17 @@ apiV1Router.route('/admin/categories', adminCategoriesRouter);
 apiV1Router.route('/menu', publicMenuRouter);
 apiV1Router.route('/admin/menu', adminMenuRouter);
 apiV1Router.route('/uploads', uploadsRouter);
+apiV1Router.route('/orders', customerOrdersRouter);
+apiV1Router.route('/admin/orders', adminOrdersRouter);
+apiV1Router.route('/admin/inventory', adminInventoryRouter);
 
 apiV1Router.get('/', (c) => {
   return c.json(
     {
       name: 'Cafteria REST API',
-      version: '1.3.0',
+      version: '1.4.0',
       status: 'active',
-      phase: 'Phase 3 - Menu Management, Staff Approval & Storage',
+      phase: 'Phase 4 - Cart, Order Management & Inventory Control',
       endpoints: {
         health: '/health',
         apiV1: '/api/v1',
@@ -41,6 +47,10 @@ apiV1Router.get('/', (c) => {
         presignUpload: '/api/v1/uploads/presign',
         verifyUpload: '/api/v1/uploads/verify',
         avatarUrl: '/api/v1/uploads/avatar',
+        orders: '/api/v1/orders',
+        ordersMe: '/api/v1/orders/me',
+        adminOrders: '/api/v1/admin/orders',
+        adminInventory: '/api/v1/admin/inventory',
       },
     },
     200

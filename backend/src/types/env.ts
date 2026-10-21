@@ -67,6 +67,54 @@ export interface MenuItem {
   image_url?: string | null;
   is_available: boolean;
   is_archived: boolean;
+  track_inventory: boolean;
+  stock_quantity: number;
+  low_stock_threshold: number;
   created_at: string;
   updated_at: string;
+}
+
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  menu_item_id: string | null;
+  item_name: string;
+  unit_price: number;
+  quantity: number;
+  line_total: number;
+  created_at: string;
+}
+
+export interface Order {
+  id: string;
+  customer_id: string;
+  order_number: string;
+  order_status: OrderStatus;
+  payment_status: PaymentStatus;
+  subtotal: number;
+  total: number;
+  idempotency_key?: string | null;
+  cancellation_reason?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
+  confirmed_at?: string | null;
+  preparing_at?: string | null;
+  ready_at?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  items?: OrderItem[];
+}
+
+export interface InventoryLog {
+  id: string;
+  menu_item_id: string;
+  quantity_change: number;
+  reason: 'order_placed' | 'order_cancelled' | 'manual_adjustment' | 'restock';
+  order_id?: string | null;
+  actor_id?: string | null;
+  created_at: string;
 }
