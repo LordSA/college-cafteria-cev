@@ -11,6 +11,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.1] - 2026-10-22
+
+### Added
+- **Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing**:
+  - **Database Migrations (`backend/migrations/0005_wallet_and_qr_verification.sql` & `supabase/migrations/20261021000001_wallet_and_qr_verification.sql`):**
+    - Created `public.wallets` with integer `balance >= 0` in paise and customer foreign key.
+    - Created `public.wallet_transactions` storing immutable ledger audit history (`credit`, `debit`, balance after, reason, order reference, actor ID).
+    - Altered `public.orders` to include `payment_method` (`testing_wallet`, `counter_cash`, `razorpay`), `paid_at`, `qr_verification_token` (unique), `collected_at`, and `collected_by`.
+    - Added RLS policies isolating customer wallet records and restricting modifications to verified administrators.
+    - Implemented atomic PL/pgSQL stored procedures:
+      - `adjust_wallet_balance`: Prevents negative balances, locks wallet row with `FOR UPDATE`, and records auditable ledger transaction.
+      - `pay_order_with_wallet`: Atomically validates stock, decrements inventory, checks wallet balance, debits wallet, creates paid order, and generates secure opaque QR verification token.
+      - `verify_qr_token`: Admin verification procedure checking QR token validity and collection eligibility.
+      - `collect_order`: Prevents duplicate collection, validates paid status, and records operator ID and timestamp.
+    - Updated `supabase/complete_setup.sql` with Phase 4.1 tables, columns, indexes, and stored procedures.
+  - **Backend REST API Endpoints (`backend/src/routes/`):**
+    - `GET /api/v1/wallet/me`: Returns customer testing wallet balance in paise and formatted string.
+    - `GET /api/v1/wallet/transactions`: Returns customer transaction ledger history.
+    - `GET /api/v1/admin/wallets`: Admin customer wallet search and balance overview.
+    - `GET /api/v1/admin/wallets/:customerId`: Admin customer detail with recent transactions.
+    - `POST /api/v1/admin/wallets/:customerId/adjust`: Admin demo credit adjustment with mandatory audit reason.
+    - Extended `POST /api/v1/orders`: Supports `payment_method: 'testing_wallet'` with atomic wallet deduction and fallback logic.
+    - `POST /api/v1/admin/orders/verify-qr`: Admin QR pass verification endpoint returning item checklist and collection eligibility.
+    - `POST /api/v1/admin/orders/:id/collect`: Admin order collection endpoint updating terminal `completed` state.
+    - `GET /api/v1/orders/:id/receipt`: Customer receipt snapshot retrieval endpoint.
+    - `GET /api/v1/admin/orders/:id/receipt`: Cashier register receipt retrieval endpoint.
+    - Added 13 automated Vitest tests (`backend/tests/phase4_1.test.ts`), bringing total passing test suite to 63/63 tests.
+  - **Customer Web Application (`customer/`):**
+    - `QRCodeSvg.tsx`: Zero-dependency SVG vector QR code rendering component.
+    - `Header.tsx`: Added Testing Wallet balance indicator chip linking directly to `/wallet`.
+    - `/wallet`: Customer Testing Wallet page displaying current demo balance, non-monetary disclaimer ("Testing Wallet — Demo Credits Only. No Real Money"), and transaction history ledger.
+    - `/checkout`: Added payment method selector ("Testing Wallet — Demo Credits" vs "Pay at Counter"), real-time balance validation, and direct wallet checkout.
+    - `/checkout/success`: Order confirmation page featuring pickup token, SVG QR pass for counter verification, and receipt printing action.
+    - `/orders/track`: Updated with live pickup QR pass on paid orders and receipt navigation.
+    - `/orders/receipt`: Print-friendly (`@media print`) receipt layout with Cafteria branding, itemized charges, and verification QR code.
+  - **Admin Web Application (`admin/`):**
+    - `QRCodeSvg.tsx`: Zero-dependency SVG QR code rendering component.
+    - `Header.tsx`: Added "Wallets" and "QR Scanner" navigation links.
+    - `/wallets`: Customer wallet management panel with search, balance adjustment modal (credit/debit with mandatory reason), and customer ledger audit dialog.
+    - `/scan`: Counter QR scanner with camera view, manual token fallback, order verification display, and 1-click "Confirm Order Collection" action.
+    - `/orders`: Updated queue with payment method badges, collected status timestamps, and receipt buttons.
+    - `/orders/receipt`: Printable cashier register bill layout (`@media print`).
+    - Operations Command Center (`admin/src/app/page.tsx`): Added "QR Scanner & Collection" and "Testing Wallets" subsystem action cards.
+  - **Documentation:**
+    - `docs/testing-wallet.md`: Testing wallet architecture, security boundaries, non-negative balance prevention, and API contracts.
+    - `docs/qr-verification.md`: Cryptographic QR order verification, collection eligibility state machine, and print stylesheets.
+
+---
+
 ## [0.4.0] - 2026-10-21
 
 ### Added
