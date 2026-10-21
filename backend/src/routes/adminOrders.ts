@@ -45,9 +45,7 @@ adminOrdersRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('orders')
-    .select('*, order_items(*)')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .select('*, order_items(*)');
 
   if (stageFilter !== 'all') {
     if (stageFilter === 'ORDER_PLACED') {
@@ -65,7 +63,9 @@ adminOrdersRouter.get('/', async (c) => {
     query = query.ilike('order_number', `%${search}%`);
   }
 
-  const { data: orders, error } = await query;
+  const { data: orders, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (error) {
     return c.json(

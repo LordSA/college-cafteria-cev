@@ -15,7 +15,6 @@ import {
   Clock,
   Printer,
   PackageCheck,
-  Shield,
   Loader2,
 } from 'lucide-react';
 
@@ -58,7 +57,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 function AdminScanContent() {
   const searchParams = useSearchParams();
   const tokenParam = searchParams.get('token');
-  const { session, loading: authLoading } = useAdminAuth();
+  const { session } = useAdminAuth();
 
   const [manualToken, setManualToken] = useState(tokenParam || '');
   const [verifying, setVerifying] = useState(false);
