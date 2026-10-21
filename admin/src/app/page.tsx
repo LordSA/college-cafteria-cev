@@ -25,6 +25,8 @@ import {
   Server,
   AlertTriangle,
   ReceiptText,
+  Wallet,
+  QrCode,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -573,6 +575,54 @@ export default function AdminDashboardPage() {
             </h2>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <Link
+                href="/scan"
+                className="group rounded-2xl border border-indigo-900/60 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 p-6 shadow-sm hover:border-indigo-500/80 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
+                      <QrCode className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-emerald-950/80 border border-emerald-700/60 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300">
+                      Live Dispatch
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">QR Scanner & Collection</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Scan customer pickup QR tickets with camera or token entry to verify and collect orders.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Launch Scanner</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <Link
+                href="/wallets"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <Wallet className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
+                      Demo Credits
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Testing Wallets</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Allocate demo balances to student/staff profiles, audit transactions, and correct ledgers.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Manage Wallets</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
               <Link
                 href="/orders"
                 className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"

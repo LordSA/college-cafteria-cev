@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -18,6 +19,7 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
+  Printer,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -33,6 +35,9 @@ interface AdminOrder {
   order_number: string;
   order_status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
   payment_status: string;
+  payment_method?: string;
+  qr_verification_token?: string | null;
+  collected_at?: string | null;
   subtotal: number;
   total: number;
   cancellation_reason?: string | null;
@@ -308,17 +313,44 @@ export default function AdminOrdersPage() {
                             {order.order_number}
                           </span>
                           {renderStatusBadge(order.order_status)}
+                          <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                            order.payment_status === 'paid'
+                              ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+                              : 'bg-amber-950 text-amber-300 border-amber-800'
+                          }`}>
+                            {order.payment_status}
+                          </span>
                           <span className="rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 border border-slate-700">
                             {order.customer_name} ({order.customer_account_type})
                           </span>
+                          {order.payment_method && (
+                            <span className="text-[10px] text-slate-400">
+                              via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Counter Cash'}
+                            </span>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-400">
-                          Placed: {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} •{' '}
-                          {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                        </p>
+                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                          <span>
+                            Placed: {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} •{' '}
+                            {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          </span>
+                          {order.collected_at && (
+                            <span className="text-emerald-400 font-semibold text-[11px]">
+                              • Collected at {new Date(order.collected_at).toLocaleTimeString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-3 self-end sm:self-auto">
+                        <Link
+                          href={`/orders/receipt/?id=${order.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                          title="Print bill receipt"
+                        >
+                          <Printer className="h-3 w-3 text-indigo-400" />
+                          <span>Receipt</span>
+                        </Link>
                         <div className="text-right">
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
                             Total

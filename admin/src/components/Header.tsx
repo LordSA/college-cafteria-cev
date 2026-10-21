@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, User, LogOut, LogIn, Utensils, Layers, Users, ReceiptText, ClipboardList } from 'lucide-react';
+import { Shield, User, LogOut, LogIn, Utensils, Layers, Users, ReceiptText, ClipboardList, Wallet, QrCode } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -29,6 +29,14 @@ export function Header() {
               <Link href="/orders" className="inline-flex items-center gap-1.5 hover:text-white transition">
                 <ReceiptText className="h-3.5 w-3.5 text-indigo-400" />
                 <span>Orders</span>
+              </Link>
+              <Link href="/scan" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <QrCode className="h-3.5 w-3.5 text-indigo-400" />
+                <span>QR Scanner</span>
+              </Link>
+              <Link href="/wallets" className="inline-flex items-center gap-1.5 hover:text-white transition">
+                <Wallet className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Wallets</span>
               </Link>
               <Link href="/inventory" className="inline-flex items-center gap-1.5 hover:text-white transition">
                 <ClipboardList className="h-3.5 w-3.5 text-indigo-400" />
