@@ -13,7 +13,7 @@ const OrderItemInputSchema = z.object({
 const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
-  payment_method: z.enum(['testing_wallet', 'counter_cash']).optional().default('testing_wallet'),
+  payment_method: z.enum(['testing_wallet', 'counter_cash']).optional().default('counter_cash'),
 });
 
 const OrderCancelSchema = z.object({
@@ -247,20 +247,53 @@ customerOrdersRouter.post(
       });
     }
 
+    let walletRecord: any = null;
+    if (paymentMethod === 'testing_wallet') {
+      const { data: wallet } = await adminClient
+        .from('wallets')
+        .select('*')
+        .eq('customer_id', user.id)
+        .maybeSingle();
+
+      const currentBalance = wallet ? wallet.balance : 0;
+      if (currentBalance < calculatedTotal) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'INSUFFICIENT_FUNDS',
+              message: `Wallet balance (₹${(currentBalance / 100).toFixed(2)}) is insufficient for total ₹${(calculatedTotal / 100).toFixed(2)}`,
+            },
+          },
+          400
+        );
+      }
+      walletRecord = wallet;
+    }
+
     const datePrefix = `CAF-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-`;
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const orderNumber = `${datePrefix}${randomSuffix}`;
+
+    const isWalletPaid = paymentMethod === 'testing_wallet';
+    const qrVerificationToken = isWalletPaid
+      ? `CAF-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}${Date.now().toString(36).slice(-4).toUpperCase()}`
+      : null;
 
     const { data: createdOrder, error: orderErr } = await adminClient
       .from('orders')
       .insert({
         customer_id: user.id,
         order_number: orderNumber,
-        order_status: 'pending',
-        payment_status: 'unpaid',
+        order_status: isWalletPaid ? 'confirmed' : 'pending',
+        payment_status: isWalletPaid ? 'paid' : 'unpaid',
+        payment_method: paymentMethod,
+        paid_at: isWalletPaid ? new Date().toISOString() : null,
+        qr_verification_token: qrVerificationToken,
         subtotal: calculatedTotal,
         total: calculatedTotal,
         idempotency_key: idempotencyKey,
+        confirmed_at: isWalletPaid ? new Date().toISOString() : null,
       })
       .select('*')
       .single();
@@ -311,6 +344,25 @@ customerOrdersRouter.post(
           actor_id: user.id,
         });
       }
+    }
+
+    if (isWalletPaid && walletRecord) {
+      const newBalance = walletRecord.balance - calculatedTotal;
+      await adminClient
+        .from('wallets')
+        .update({ balance: newBalance, updated_at: new Date().toISOString() })
+        .eq('id', walletRecord.id);
+
+      await adminClient.from('wallet_transactions').insert({
+        wallet_id: walletRecord.id,
+        customer_id: user.id,
+        amount: calculatedTotal,
+        transaction_type: 'debit',
+        balance_after: newBalance,
+        reason: `Order payment: ${orderNumber}`,
+        order_id: createdOrder.id,
+        actor_id: user.id,
+      });
     }
 
     return c.json(
@@ -560,3 +612,67 @@ customerOrdersRouter.post(
     });
   }
 );
+
+customerOrdersRouter.get('/:id/receipt', async (c) => {
+  const user = c.get('user');
+  const profile = c.get('profile');
+  const orderId = c.req.param('id');
+  const adminClient = getSupabaseAdminClient(c.env);
+
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const { data: order, error: orderErr } = await adminClient
+    .from('orders')
+    .select('*, order_items(*)')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (orderErr || !order) {
+    return c.json(
+      { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
+      404
+    );
+  }
+
+  if (order.customer_id !== user.id && profile.app_role !== 'admin') {
+    return c.json(
+      { success: false, error: { code: 'FORBIDDEN', message: 'Access denied: You do not own this order' } },
+      403
+    );
+  }
+
+  return c.json({
+    success: true,
+    data: {
+      id: order.id,
+      order_number: order.order_number,
+      created_at: order.created_at,
+      paid_at: order.paid_at,
+      payment_method: order.payment_method || 'testing_wallet',
+      payment_status: order.payment_status,
+      order_status: order.order_status,
+      subtotal: order.subtotal,
+      total: order.total,
+      qr_verification_token: order.qr_verification_token,
+      collected_at: order.collected_at,
+      customer: {
+        id: user.id,
+        display_name: profile.display_name || 'Customer',
+        email: user.email,
+        account_type: profile.account_type || 'student',
+      },
+      items: order.order_items || [],
+      canteen: {
+        name: 'Cafteria College Canteen',
+        campus: 'Campus Main Facility',
+        address: 'Student Centre, Food Court Level 1',
+        notice: 'Testing Wallet Receipt — Demo Credits Only. No Real Money.',
+      },
+    },
+  });
+});
