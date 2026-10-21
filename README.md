@@ -1,6 +1,6 @@
 # Cafteria — College Canteen Ordering & Management Platform
 
-[![Phase](https://img.shields.io/badge/Phase-3%20Menu%2C%20Staff%20%26%20Storage-emerald.svg)](docs/storage.md)
+[![Phase](https://img.shields.io/badge/Phase-4%20Cart%2C%20Orders%20%26%20Inventory-emerald.svg)](docs/orders.md)
 [![Customer](https://img.shields.io/badge/Customer-Next.js%20(Port%203000)-blue.svg)](customer)
 [![Admin](https://img.shields.io/badge/Admin-Next.js%20(Port%203001)-indigo.svg)](admin)
 [![Backend](https://img.shields.io/badge/Backend-Hono%20%2B%20Cloudflare%20(Port%208787)-orange.svg)](backend)
@@ -12,6 +12,9 @@ For authentication and RLS policies, see [docs/authentication.md](docs/authentic
 For staff verification workflows, see [docs/staff-approval.md](docs/staff-approval.md).  
 For menu management and pricing, see [docs/menu-management.md](docs/menu-management.md).  
 For storage provider architecture and Cloudflare R2 migration, see [docs/storage.md](docs/storage.md).  
+For order lifecycle, state machine, and concurrency control, see [docs/orders.md](docs/orders.md).  
+For inventory depletion, threshold alerts, and cancellation restoration, see [docs/inventory.md](docs/inventory.md).  
+For shopping cart persistence and checkout boundaries, see [docs/cart-and-checkout.md](docs/cart-and-checkout.md).  
 
 ---
 

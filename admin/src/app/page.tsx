@@ -13,7 +13,6 @@ import {
   Calendar,
   Lock,
   Layers,
-  Flame,
   ClipboardList,
   BarChart3,
   Loader2,
@@ -25,6 +24,7 @@ import {
   Sparkles,
   Server,
   AlertTriangle,
+  ReceiptText,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -32,6 +32,8 @@ interface OperationalStats {
   availableMenu: number;
   totalCategories: number;
   pendingStaff: number;
+  activeOrders: number;
+  lowStockCount: number;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
@@ -45,6 +47,8 @@ export default function AdminDashboardPage() {
     availableMenu: 0,
     totalCategories: 0,
     pendingStaff: 0,
+    activeOrders: 0,
+    lowStockCount: 0,
   });
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -63,16 +67,20 @@ export default function AdminDashboardPage() {
           Authorization: `Bearer ${session?.access_token}`,
         };
 
-        const [menuRes, catRes, staffRes] = await Promise.all([
+        const [menuRes, catRes, staffRes, ordersRes, invRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/v1/admin/menu`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/categories`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/staff-requests?status=pending`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/v1/admin/orders`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/v1/admin/inventory?low_stock_only=true`, { headers }).catch(() => null),
         ]);
 
         let menuCount = 0;
         let availableCount = 0;
         let catCount = 0;
         let pendingStaffCount = 0;
+        let activeOrdersCount = 0;
+        let lowStockTotal = 0;
 
         if (menuRes && menuRes.ok) {
           const menuData = await menuRes.json();
@@ -96,12 +104,30 @@ export default function AdminDashboardPage() {
           }
         }
 
+        if (ordersRes && ordersRes.ok) {
+          const ordersData = await ordersRes.json();
+          if (ordersData.success && Array.isArray(ordersData.data)) {
+            activeOrdersCount = ordersData.data.filter((o: any) =>
+              ['pending', 'confirmed', 'preparing', 'ready_for_pickup'].includes(o.order_status)
+            ).length;
+          }
+        }
+
+        if (invRes && invRes.ok) {
+          const invData = await invRes.json();
+          if (invData.success && Array.isArray(invData.data)) {
+            lowStockTotal = invData.data.length;
+          }
+        }
+
         if (isMounted) {
           setStats({
             totalMenu: menuCount,
             availableMenu: availableCount,
             totalCategories: catCount,
             pendingStaff: pendingStaffCount,
+            activeOrders: activeOrdersCount,
+            lowStockCount: lowStockTotal,
           });
         }
       } catch (err: unknown) {
@@ -197,7 +223,7 @@ export default function AdminDashboardPage() {
             <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
               <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/60 px-3.5 py-1.5 text-xs font-semibold text-indigo-300 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-                <span>Cafteria Operations Center • Phase 3 Live</span>
+                <span>Cafteria Operations Center • Phase 4 Live</span>
               </div>
 
               <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
@@ -238,7 +264,7 @@ export default function AdminDashboardPage() {
                       Zero-Trust Role-Based Access Control
                     </h2>
                     <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                      Access is restricted to authorized college canteen operators, culinary supervisors, and faculty managers. All catalog updates and availability state changes are cryptographically authenticated via Cloudflare Edge API and Supabase Auth.
+                      Access is restricted to authorized college canteen operators, culinary supervisors, and faculty managers. All catalog updates, stock adjustments, and order state transitions are cryptographically authenticated via Cloudflare Edge API and Supabase Auth.
                     </p>
                   </div>
                 </div>
@@ -259,6 +285,40 @@ export default function AdminDashboardPage() {
                 <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
                   <div>
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <ReceiptText className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-white">Orders Queue</h3>
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        Phase 4 Live
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                      Live kitchen ticket dispatch queue with status transitions: Queued, Confirmed, Cooking, Ready, and Completed.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-white">Inventory Controls</h3>
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        Phase 4 Live
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                      Atomic stock tracking, low-inventory threshold alerts, automated depletion on order placement, and 1-click 86 toggles.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
                       <Utensils className="h-5 w-5" />
                     </div>
                     <div className="mt-4 flex items-center justify-between">
@@ -268,7 +328,7 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                      Manage food items, configure pricing in paise, upload dish photos to secure storage, and toggle instant 86 availability during stock shortages.
+                      Manage food items, configure pricing in paise, upload dish photos to secure storage, and manage categories.
                     </p>
                   </div>
                 </div>
@@ -285,7 +345,7 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                      Group dishes into meal sections (Hot Breakfast, Rice Bowls, Beverages) and set custom sort orders for student menu rendering.
+                      Group dishes into meal sections (Hot Breakfast, Rice Bowls, Beverages) and set custom sort orders.
                     </p>
                   </div>
                 </div>
@@ -302,41 +362,7 @@ export default function AdminDashboardPage() {
                       </span>
                     </div>
                     <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                      Review registered campus faculty and employee accounts with authoritative one-click approval workflows for subsidized campus rates.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-75">
-                  <div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
-                      <Flame className="h-5 w-5" />
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-slate-300">Kitchen Display (KDS)</h3>
-                      <span className="rounded-full bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] font-medium text-amber-400">
-                        Phase 4
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                      High-contrast 10-foot legibility order dispatch queue with prep countdown timers, station routing, and collection markers.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-75">
-                  <div>
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
-                      <ClipboardList className="h-5 w-5" />
-                    </div>
-                    <div className="mt-4 flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-slate-300">Inventory & Thresholds</h3>
-                      <span className="rounded-full bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] font-medium text-amber-400">
-                        Phase 4
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                      Automated ingredient depletion and critical threshold alerts preventing order placement when items are exhausted.
+                      Review registered campus faculty and employee accounts with authoritative one-click approval workflows.
                     </p>
                   </div>
                 </div>
@@ -410,8 +436,28 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
               <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-medium">Menu Catalog</span>
-                <Utensils className="h-4 w-4 text-indigo-400" />
+                <span className="text-xs font-medium">Active Kitchen Orders</span>
+                <ReceiptText className="h-4 w-4 text-indigo-400" />
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
+                ) : (
+                  <>
+                    <span className="text-2xl font-extrabold text-white">{stats.activeOrders}</span>
+                    <span className="text-xs text-slate-400">tickets</span>
+                  </>
+                )}
+              </div>
+              <div className="mt-2 text-[11px] text-indigo-400">
+                <span>Queued, cooking, or ready</span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-medium">Inventory Health</span>
+                <ClipboardList className="h-4 w-4 text-emerald-400" />
               </div>
               <div className="mt-3 flex items-baseline gap-2">
                 {statsLoading ? (
@@ -423,29 +469,12 @@ export default function AdminDashboardPage() {
                   </>
                 )}
               </div>
-              <div className="mt-2 text-[11px] text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                <span>{stats.availableMenu} in-stock right now</span>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="text-xs font-medium">Active Categories</span>
-                <Layers className="h-4 w-4 text-indigo-400" />
-              </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                {statsLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
+              <div className="mt-2 text-[11px]">
+                {stats.lowStockCount > 0 ? (
+                  <span className="text-amber-400 font-medium">{stats.lowStockCount} items low stock</span>
                 ) : (
-                  <>
-                    <span className="text-2xl font-extrabold text-white">{stats.totalCategories}</span>
-                    <span className="text-xs text-slate-400">sections</span>
-                  </>
+                  <span className="text-emerald-400">All stocks healthy</span>
                 )}
-              </div>
-              <div className="mt-2 text-[11px] text-slate-400">
-                <span>Organized meal groups</span>
               </div>
             </div>
 
@@ -482,7 +511,7 @@ export default function AdminDashboardPage() {
                 <span className="text-2xl font-extrabold text-emerald-400">Live</span>
               </div>
               <div className="mt-2 text-[11px] text-slate-400 truncate">
-                <span>Hono / Cloudflare Workers</span>
+                <span>Phase 4 Cart & Orders Active</span>
               </div>
             </div>
           </div>
@@ -545,6 +574,60 @@ export default function AdminDashboardPage() {
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <Link
+                href="/orders"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <ReceiptText className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-300">
+                      {stats.activeOrders} active
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Orders & Kitchen Queue</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Process live canteen orders, update preparation stages, and dispatch meals at the counter.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Manage Orders</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <Link
+                href="/inventory"
+                className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+                    {stats.lowStockCount > 0 ? (
+                      <span className="rounded-full bg-amber-950/60 border border-amber-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300 animate-pulse">
+                        {stats.lowStockCount} low stock
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                        Healthy
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mt-4 text-base font-semibold text-white">Inventory Controls</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                    Adjust ingredient counts, configure threshold warnings, and toggle 86 item availability.
+                  </p>
+                </div>
+                <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
+                  <span>Manage Inventory</span>
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
+                </div>
+              </Link>
+
+              <Link
                 href="/menu"
                 className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
               >
@@ -559,7 +642,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-white">Menu & Catalog</h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-400">
-                    Manage food items, pricing in paise, storage uploads, and instant 86 availability toggles.
+                    Add food items, update pricing in paise, and upload dish pictures to cloud storage.
                   </p>
                 </div>
                 <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/60 text-xs font-semibold text-indigo-400">
@@ -621,32 +704,6 @@ export default function AdminDashboardPage() {
                   <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition" />
                 </div>
               </Link>
-
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
-                  <Flame className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 text-base font-semibold text-slate-300">Kitchen Display (KDS)</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                  Live order dispatch queue with prep timers and fulfillment markers.
-                </p>
-                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Phase 4</span>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
-                  <ClipboardList className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 text-base font-semibold text-slate-300">Inventory Controls</h3>
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                  Raw ingredients and low-stock threshold alerts to stop sold-out sales.
-                </p>
-                <div className="mt-4 inline-flex items-center gap-1 text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/40">
-                  <span>Phase 4</span>
-                </div>
-              </div>
 
               <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-70">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">

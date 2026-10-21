@@ -9,6 +9,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+---
+
+## [0.4.0] - 2026-10-21
+
+### Added
+- **Phase 4: Cart, Order Management & Inventory Control**:
+  - **Database Migrations (`backend/migrations/0004_orders_and_inventory.sql` & `supabase/migrations/20261021000000_orders_and_inventory.sql`):**
+    - Extended `public.menu_items` with `track_inventory` (boolean), `stock_quantity` (integer >= 0), and `low_stock_threshold` (integer >= 0).
+    - Created `public.orders` with human-readable order number, customer foreign key, order status (`pending`, `confirmed`, `preparing`, `ready_for_pickup`, `completed`, `cancelled`), payment status (`unpaid`, `pending`, `paid`, `failed`, `refunded`), integer subtotal/total in paise, idempotency key constraint, and fulfillment timestamps.
+    - Created `public.order_items` storing item name snapshot, unit price snapshot in paise, quantity, and line total in paise.
+    - Created `public.inventory_logs` recording movement quantity deltas, reason codes (`order_placed`, `order_cancelled`, `manual_adjustment`, `restock`), order reference, and acting user ID.
+    - Implemented PostgreSQL Row Level Security (RLS) policies isolating customer order visibility and granting management permissions exclusively to verified admins.
+    - Implemented stored procedures `place_order` (with `FOR UPDATE` row locks, atomic stock deduction, idempotency verification, and total calculation) and `cancel_order` (with terminal status protection, atomic stock restoration, and audit logging).
+  - **Backend REST API Endpoints (`backend/src/routes/`):**
+    - `POST /api/v1/orders`: Server-authoritative order placement with Zod validation, token verification, and idempotency protection.
+    - `GET /api/v1/orders/me`: Customer order history listing.
+    - `GET /api/v1/orders/:id`: Customer single order details with ownership enforcement.
+    - `POST /api/v1/orders/:id/cancel`: Customer cancellation endpoint validating permitted states and restoring inventory.
+    - `GET /api/v1/admin/orders`: Operations order listing with status filtering (`pending`, `confirmed`, etc.), order number search, and pagination.
+    - `PATCH /api/v1/admin/orders/:id/status`: Admin status transition endpoint enforcing the lifecycle state machine and updating audit timestamps.
+    - `GET /api/v1/admin/inventory`: Inventory catalog with `low_stock_only` filtering.
+    - `PATCH /api/v1/admin/inventory/:menuItemId`: Stock adjustment, threshold setting, inventory tracking toggle, and 86 availability toggle.
+    - Added 12 new automated Vitest tests (`backend/tests/phase4.test.ts`), bringing total passing tests to 50/50.
+  - **Customer Web Application (`customer/`):**
+    - `CartContext.tsx`: Client-side persistent cart in `localStorage` (`cafteria_customer_cart`) with item add, quantity stepper, clear, and totals computation.
+    - `/cart`: Full shopping cart page with line item breakdown, price formatting in ₹, and clear cart option.
+    - `/checkout`: Order review page with live server availability validation, idempotency key generation, and unpaid development flow notice.
+    - `/orders`: Customer order record board displaying status badges, creation timestamps, and links to live trackers.
+    - `/orders/track`: Dedicated live order tracking page with visual fulfillment steps (`pending` -> `confirmed` -> `preparing` -> `ready_for_pickup` -> `completed`), order items breakdown, and self-cancellation button.
+    - Floating bottom cart bar on `/menu` with active dish counter and total amount in ₹.
+  - **Admin Web Application (`admin/`):**
+    - `/orders`: Operational kitchen dispatch queue with status tab filters, order number search, expandable item checklists, and transition controls.
+    - `/inventory`: Pantry inventory table with low-stock warnings, stock adjustment modal, and 1-click 86 availability toggles.
+    - Operations Command Center (`admin/src/app/page.tsx`): Updated live metric counters for active kitchen orders and inventory alerts.
+  - **Documentation:**
+    - `docs/orders.md`: Detailed order lifecycle, state machine, idempotency key strategy, and payment boundary handoff.
+    - `docs/inventory.md`: Inventory tracking model, concurrency locking (`FOR UPDATE`), depletion and restoration rules, and movement audit schema.
+    - `docs/cart-and-checkout.md`: Client-side cart persistence, server validation boundary, and Phase 5 payment handoff.
+
 ### Added
 - **Admin Operations Command Center Enhancement (`admin/src/app/page.tsx` & `admin/src/components/Header.tsx`):**
   - Upgraded unauthenticated landing experience to present a full dark-theme Cafteria Operations command center with prominent "Sign In to Operations" CTA, subsystem previews (Menu, Categories, Staff Approvals, KDS, Inventory, Audits), and customer app crossover link.

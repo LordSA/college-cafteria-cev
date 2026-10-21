@@ -1,7 +1,7 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 3 (Menu Management, Staff Approval, Email Verification & Storage Provider Architecture) Complete  
-> **Last Updated:** 2026-10-20  
+> **Status:** Phase 4 (Cart, Order Management & Inventory Control) Complete  
+> **Last Updated:** 2026-10-21  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
 ---
@@ -38,7 +38,7 @@ college-canteen-cev/
 * **Dev Port:** `3000` (`http://localhost:3000`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
-  - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` wrapper.
+  - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` and `CartProvider` wrappers.
   - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
   - `src/app/page.tsx`: Landing page showcasing platform value and ordering highlights.
   - `src/app/login/page.tsx`: Customer sign-in page with validation and forgot password link.
@@ -46,11 +46,16 @@ college-canteen-cev/
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
-  - `src/app/menu/page.tsx`: Public menu browsing page with search, category filters, and ₹ pricing.
+  - `src/app/menu/page.tsx`: Public menu browsing page with search, category filters, ₹ pricing, quantity steppers, and floating bottom cart bar.
+  - `src/app/cart/page.tsx`: Full shopping cart management page with line items, line totals, and clear cart control.
+  - `src/app/checkout/page.tsx`: Order review page with live server availability verification, customer details, and unpaid placement CTA.
+  - `src/app/orders/page.tsx`: Customer order record list with status badges and links to trackers.
+  - `src/app/orders/track/page.tsx`: Dedicated live order tracking page with visual step timeline, breakdown, and self-cancellation button.
   - `src/app/profile/page.tsx`: Account profile with email confirmation status, staff approval state, and avatar upload/display.
   - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes with profile refresh.
+  - `src/context/CartContext.tsx`: Client-side persistent cart in `localStorage` (`cafteria_customer_cart`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Navigation header with auth identity state, menu link, and live API health indicator.
+  - `src/components/Header.tsx`: Navigation header with auth identity state, cart button with badge counter, orders link, and live API health indicator.
   - `src/components/Footer.tsx`: Minimal footer with status and campus copyright.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
 
@@ -63,7 +68,9 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider`.
   - `src/app/globals.css`: Dark slate base styling.
-  - `src/app/page.tsx`: Dual-state Operations Command Center providing an informative public landing view with "Sign In to Operations" CTA for unauthenticated visitors, and live metrics (dishes, in-stock count, categories, pending staff reviews), identity badges, and subsystem action cards for verified administrators.
+  - `src/app/page.tsx`: Dual-state Operations Command Center providing an informative public landing view with "Sign In to Operations" CTA for unauthenticated visitors, and live metrics (dishes, in-stock count, categories, pending staff reviews, active orders, low stock items), identity badges, and subsystem action cards for verified administrators.
+  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab filters, search, and state transitions.
+  - `src/app/inventory/page.tsx`: Pantry inventory management table with low-stock alerts, stock quantity editing, and 1-click 86 toggles.
   - `src/app/login/page.tsx`: Restricted admin sign-in with password recovery link.
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission.
@@ -73,7 +80,7 @@ college-canteen-cev/
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me`.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Dark admin header with menu, category, staff requests navigation, identity badge, unauthenticated sign-in CTA, and logout.
+  - `src/components/Header.tsx`: Dark admin header with orders, inventory, menu, category, staff requests navigation, identity badge, and logout.
   - `src/components/Footer.tsx`: Admin-level audit footer.
   - `src/components/ApiHealthBadge.tsx`: Health check polling badge against Cloudflare Worker API.
 
@@ -90,11 +97,7 @@ college-canteen-cev/
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
   - `src/lib/supabase.ts`: Token verification and database profile retrieval via Supabase Admin/User clients.
-  - `src/lib/storage/`: Provider-independent storage service:
-    - `types.ts`: `IStorageProvider`, `UploadAuthParams`, `UploadAuthResult`, `DisplayUrlParams`.
-    - `supabaseProvider.ts`: Active temporary provider managing `food-images` and `profile-images` buckets.
-    - `r2Provider.ts`: Preserved future provider using S3-compatible client and presigned URLs.
-    - `index.ts`: Provider factory `getStorageProvider(env)` and backward-compatible helpers (`generatePresignedUploadUrl`, `getPublicImageUrl`).
+  - `src/lib/storage/`: Provider-independent storage service (`types.ts`, `supabaseProvider.ts`, `r2Provider.ts`, `index.ts`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
   - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.
   - `src/routes/auth.ts`: `GET /api/v1/auth/me` returning authenticated user profile.
@@ -103,13 +106,18 @@ college-canteen-cev/
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
-  - `src/types/env.ts`: TypeScript environment and profile interfaces.
+  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders`, `GET /api/v1/orders/me`, `GET /:id`, `POST /:id/cancel`.
+  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders`, `GET /:id`, `PATCH /:id/status`.
+  - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId`.
+  - `src/types/env.ts`: TypeScript environment, profile, order, and inventory interfaces.
   - `tests/auth.test.ts`: 12 automated auth and RBAC test cases.
   - `tests/phase3.test.ts`: 12 automated menu, category, and staff approval test cases.
   - `tests/storage.test.ts`: 14 automated storage provider and upload security test cases.
+  - `tests/phase4.test.ts`: 12 automated order creation, inventory deduction, idempotency, and status transition test cases.
   - `migrations/0001_create_profiles.sql`: Initial profile schema and RBAC triggers.
   - `migrations/0002_staff_approvals_and_menu.sql`: Categories, menu items, and staff approval state fields.
   - `migrations/0003_storage_buckets.sql`: Storage buckets and Storage RLS policies.
+  - `migrations/0004_orders_and_inventory.sql`: Orders, order items, inventory movement logs, RLS, and transactional stored procedures (`place_order`, `cancel_order`, `update_inventory_stock`).
 
 ---
 
