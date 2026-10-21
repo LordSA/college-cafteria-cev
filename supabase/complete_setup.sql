@@ -1540,3 +1540,244 @@ END $$;
 
 NOTIFY pgrst, 'reload schema';
 
+-- -----------------------------------------------------------------------------
+-- PHASE 4.2: STRICT ORDER STAGES (ORDER_PLACED, READY_TO_PICK, COLLECTED) & QR LIFECYCLE
+-- -----------------------------------------------------------------------------
+
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS order_stage text NOT NULL DEFAULT 'ORDER_PLACED'
+  CHECK (order_stage IN ('ORDER_PLACED', 'READY_TO_PICK', 'COLLECTED'));
+
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS qr_consumed_at timestamptz;
+
+UPDATE public.orders
+SET order_stage = CASE
+  WHEN order_status = 'ready_for_pickup' THEN 'READY_TO_PICK'
+  WHEN order_status = 'completed' THEN 'COLLECTED'
+  ELSE 'ORDER_PLACED'
+END,
+qr_consumed_at = CASE
+  WHEN order_status = 'completed' THEN COALESCE(collected_at, completed_at, now())
+  ELSE NULL
+END
+WHERE order_stage IS NULL OR order_stage = 'ORDER_PLACED';
+
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_order_status_check;
+ALTER TABLE public.orders
+  ADD CONSTRAINT orders_order_status_check
+  CHECK (order_status IN ('ORDER_PLACED', 'READY_TO_PICK', 'COLLECTED', 'pending', 'confirmed', 'preparing', 'ready_for_pickup', 'completed', 'cancelled'));
+
+CREATE INDEX IF NOT EXISTS idx_orders_stage ON public.orders(order_stage, created_at DESC);
+
+CREATE OR REPLACE FUNCTION public.mark_order_ready(
+  p_order_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_order record;
+BEGIN
+  SELECT * INTO v_order
+  FROM public.orders
+  WHERE id = p_order_id
+  FOR UPDATE;
+
+  IF v_order.id IS NULL THEN
+    RAISE EXCEPTION 'ERR_ORDER_NOT_FOUND: Order % not found', p_order_id;
+  END IF;
+
+  IF v_order.order_stage = 'COLLECTED' THEN
+    RAISE EXCEPTION 'ERR_ALREADY_COLLECTED: Order % has already been collected', v_order.order_number;
+  END IF;
+
+  IF v_order.order_stage = 'READY_TO_PICK' THEN
+    RETURN jsonb_build_object(
+      'order_id', v_order.id,
+      'order_number', v_order.order_number,
+      'order_stage', 'READY_TO_PICK',
+      'order_status', 'READY_TO_PICK',
+      'ready_at', v_order.ready_at
+    );
+  END IF;
+
+  IF v_order.payment_status != 'paid' THEN
+    RAISE EXCEPTION 'ERR_ORDER_UNPAID: Cannot mark unpaid order % as ready to pick', v_order.order_number;
+  END IF;
+
+  UPDATE public.orders
+  SET order_stage = 'READY_TO_PICK',
+      order_status = 'READY_TO_PICK',
+      ready_at = now(),
+      updated_at = now()
+  WHERE id = p_order_id;
+
+  RETURN jsonb_build_object(
+    'order_id', v_order.id,
+    'order_number', v_order.order_number,
+    'order_stage', 'READY_TO_PICK',
+    'order_status', 'READY_TO_PICK',
+    'ready_at', now()
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.verify_qr_token(
+  p_qr_token text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_order record;
+  v_customer record;
+  v_items jsonb;
+  v_is_eligible boolean;
+  v_ineligibility_reason text;
+BEGIN
+  IF p_qr_token IS NULL OR trim(p_qr_token) = '' THEN
+    RAISE EXCEPTION 'ERR_INVALID_QR_TOKEN: QR verification token is required';
+  END IF;
+
+  SELECT * INTO v_order
+  FROM public.orders
+  WHERE qr_verification_token = trim(p_qr_token);
+
+  IF v_order.id IS NULL THEN
+    RAISE EXCEPTION 'ERR_INVALID_QR_TOKEN: Order with provided QR verification token was not found';
+  END IF;
+
+  SELECT id, display_name, account_type INTO v_customer
+  FROM public.profiles
+  WHERE id = v_order.customer_id;
+
+  SELECT jsonb_agg(
+    jsonb_build_object(
+      'id', oi.id,
+      'item_name', oi.item_name,
+      'unit_price', oi.unit_price,
+      'quantity', oi.quantity,
+      'line_total', oi.line_total
+    )
+  ) INTO v_items
+  FROM public.order_items oi
+  WHERE oi.order_id = v_order.id;
+
+  IF v_order.payment_status != 'paid' THEN
+    v_is_eligible := false;
+    v_ineligibility_reason := 'Order has not been paid yet';
+  ELSIF v_order.order_stage = 'COLLECTED' OR v_order.qr_consumed_at IS NOT NULL THEN
+    v_is_eligible := false;
+    v_ineligibility_reason := 'Order already collected';
+  ELSIF v_order.order_stage = 'ORDER_PLACED' THEN
+    v_is_eligible := false;
+    v_ineligibility_reason := 'Order is not ready for pickup yet';
+  ELSIF v_order.order_stage = 'READY_TO_PICK' THEN
+    v_is_eligible := true;
+    v_ineligibility_reason := NULL;
+  ELSE
+    v_is_eligible := false;
+    v_ineligibility_reason := 'Order is not eligible for collection';
+  END IF;
+
+  RETURN jsonb_build_object(
+    'order_id', v_order.id,
+    'order_number', v_order.order_number,
+    'order_stage', COALESCE(v_order.order_stage, 'ORDER_PLACED'),
+    'order_status', v_order.order_status,
+    'payment_status', v_order.payment_status,
+    'payment_method', v_order.payment_method,
+    'total', v_order.total,
+    'subtotal', v_order.subtotal,
+    'paid_at', v_order.paid_at,
+    'ready_at', v_order.ready_at,
+    'collected_at', v_order.collected_at,
+    'collected_by', v_order.collected_by,
+    'qr_verification_token', v_order.qr_verification_token,
+    'qr_consumed_at', v_order.qr_consumed_at,
+    'created_at', v_order.created_at,
+    'customer', jsonb_build_object(
+      'id', v_order.customer_id,
+      'display_name', COALESCE(v_customer.display_name, 'Customer'),
+      'account_type', COALESCE(v_customer.account_type, 'student')
+    ),
+    'items', COALESCE(v_items, '[]'::jsonb),
+    'is_eligible_for_collection', v_is_eligible,
+    'ineligibility_reason', v_ineligibility_reason
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.collect_order(
+  p_order_id uuid,
+  p_operator_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_order record;
+BEGIN
+  IF p_order_id IS NULL THEN
+    RAISE EXCEPTION 'ERR_INVALID_INPUT: Order ID is required';
+  END IF;
+
+  IF p_operator_id IS NULL THEN
+    RAISE EXCEPTION 'ERR_INVALID_INPUT: Operator ID is required';
+  END IF;
+
+  SELECT * INTO v_order
+  FROM public.orders
+  WHERE id = p_order_id
+  FOR UPDATE;
+
+  IF v_order.id IS NULL THEN
+    RAISE EXCEPTION 'ERR_ORDER_NOT_FOUND: Order % not found', p_order_id;
+  END IF;
+
+  IF v_order.order_stage = 'COLLECTED' OR v_order.qr_consumed_at IS NOT NULL THEN
+    RAISE EXCEPTION 'ERR_ALREADY_COLLECTED: Order % has already been collected at %', v_order.order_number, v_order.collected_at;
+  END IF;
+
+  IF v_order.payment_status != 'paid' THEN
+    RAISE EXCEPTION 'ERR_ORDER_UNPAID: Cannot collect order % because payment status is "%"', v_order.order_number, v_order.payment_status;
+  END IF;
+
+  IF v_order.order_stage = 'ORDER_PLACED' THEN
+    RAISE EXCEPTION 'ERR_ORDER_NOT_READY: Order % is not ready for pickup yet', v_order.order_number;
+  END IF;
+
+  IF v_order.order_stage != 'READY_TO_PICK' THEN
+    RAISE EXCEPTION 'ERR_INVALID_STAGE: Order % must be in READY_TO_PICK stage to collect (current: %)', v_order.order_number, v_order.order_stage;
+  END IF;
+
+  UPDATE public.orders
+  SET order_stage = 'COLLECTED',
+      order_status = 'COLLECTED',
+      qr_consumed_at = now(),
+      collected_at = now(),
+      collected_by = p_operator_id,
+      completed_at = now(),
+      updated_at = now()
+  WHERE id = p_order_id;
+
+  RETURN jsonb_build_object(
+    'order_id', v_order.id,
+    'order_number', v_order.order_number,
+    'order_stage', 'COLLECTED',
+    'order_status', 'COLLECTED',
+    'payment_status', v_order.payment_status,
+    'qr_consumed_at', now(),
+    'collected_at', now(),
+    'collected_by', p_operator_id
+  );
+END;
+$$;
+
