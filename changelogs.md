@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Admin Operations Command Center Enhancement (`admin/src/app/page.tsx` & `admin/src/components/Header.tsx`):**
+  - Upgraded unauthenticated landing experience to present a full dark-theme Cafteria Operations command center with prominent "Sign In to Operations" CTA, subsystem previews (Menu, Categories, Staff Approvals, KDS, Inventory, Audits), and customer app crossover link.
+  - Implemented live operational metrics for authenticated administrators fetching real-time dish count, in-stock count, active category count, and pending staff requests queue from `/api/v1/admin/*` edge endpoints.
+  - Added quick-access command cards with dynamic badge counters and roadmap indicators for upcoming modules.
+  - Added inline 403 unauthorized handler allowing instant account switching without infinite spinner locks.
+  - Added unauthenticated "Sign In" button in `Header.tsx` to streamline administrator access from any page.
+  - Verified static HTML export compatibility (`11/11` static pages generated) and zero comments compliance.
+
 ---
 
 ## [0.3.0] - 2026-10-20

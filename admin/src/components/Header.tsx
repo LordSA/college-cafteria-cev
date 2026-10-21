@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Shield, User, LogOut, Utensils, Layers, Users } from 'lucide-react';
+import { Shield, User, LogOut, LogIn, Utensils, Layers, Users } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -44,6 +44,16 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <ApiHealthBadge />
+
+          {!loading && !adminUser && (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-sm"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span>Sign In</span>
+            </Link>
+          )}
 
           {!loading && adminUser && (
             <div className="flex items-center gap-2">

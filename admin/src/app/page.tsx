@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import {
   ShieldCheck,
+  ShieldAlert,
   User,
   Mail,
   Calendar,
@@ -21,31 +21,345 @@ import {
   Utensils,
   Users,
   ArrowRight,
+  ExternalLink,
+  Sparkles,
+  Server,
+  AlertTriangle,
 } from 'lucide-react';
 
+interface OperationalStats {
+  totalMenu: number;
+  availableMenu: number;
+  totalCategories: number;
+  pendingStaff: number;
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
+
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const { adminUser, adminProfile, isUnauthorized, loading, signOut } = useAdminAuth();
+  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut } = useAdminAuth();
+
+  const [stats, setStats] = useState<OperationalStats>({
+    totalMenu: 0,
+    availableMenu: 0,
+    totalCategories: 0,
+    pendingStaff: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading) {
-      if (!adminUser) {
-        router.push('/login');
-      } else if (isUnauthorized) {
-        router.push('/unauthorized');
+    if (!session?.access_token || !adminUser || isUnauthorized) return;
+
+    let isMounted = true;
+
+    async function fetchStats() {
+      setStatsLoading(true);
+      setStatsError(null);
+
+      try {
+        const headers = {
+          Authorization: `Bearer ${session?.access_token}`,
+        };
+
+        const [menuRes, catRes, staffRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/admin/menu`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/v1/admin/categories`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/v1/admin/staff-requests?status=pending`, { headers }).catch(() => null),
+        ]);
+
+        let menuCount = 0;
+        let availableCount = 0;
+        let catCount = 0;
+        let pendingStaffCount = 0;
+
+        if (menuRes && menuRes.ok) {
+          const menuData = await menuRes.json();
+          if (menuData.success && Array.isArray(menuData.data)) {
+            menuCount = menuData.data.length;
+            availableCount = menuData.data.filter((i: { is_available: boolean; is_archived: boolean }) => i.is_available && !i.is_archived).length;
+          }
+        }
+
+        if (catRes && catRes.ok) {
+          const catData = await catRes.json();
+          if (catData.success && Array.isArray(catData.data)) {
+            catCount = catData.data.length;
+          }
+        }
+
+        if (staffRes && staffRes.ok) {
+          const staffData = await staffRes.json();
+          if (staffData.success && Array.isArray(staffData.data)) {
+            pendingStaffCount = staffData.data.length;
+          }
+        }
+
+        if (isMounted) {
+          setStats({
+            totalMenu: menuCount,
+            availableMenu: availableCount,
+            totalCategories: catCount,
+            pendingStaff: pendingStaffCount,
+          });
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : 'Failed to retrieve operational metrics';
+          setStatsError(msg);
+        }
+      } finally {
+        if (isMounted) {
+          setStatsLoading(false);
+        }
       }
     }
-  }, [adminUser, isUnauthorized, loading, router]);
 
-  if (loading || !adminUser || isUnauthorized) {
+    fetchStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session?.access_token, adminUser, isUnauthorized]);
+
+  if (loading) {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20 bg-slate-950">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
+        <main className="flex-1 flex items-center justify-center py-24 bg-slate-950">
+          <div className="flex flex-col items-center gap-3.5 text-slate-400">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-xs font-medium">Verifying administrator authorization...</p>
+            <p className="text-xs font-semibold tracking-wide uppercase text-slate-300">
+              Verifying Cafteria Operations Session...
+            </p>
           </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (adminUser && isUnauthorized) {
+    return (
+      <>
+        <Header />
+        <main className="flex-1 flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-slate-950">
+          <div className="w-full max-w-lg space-y-6 bg-slate-900 p-8 rounded-2xl border border-rose-500/30 text-center shadow-xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-500/30">
+              <ShieldAlert className="h-8 w-8" />
+            </div>
+
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">403 — Unauthorized Access</h1>
+              <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                Your account (<span className="text-slate-200 font-medium">{adminUser.email}</span>) does not possess administrator privileges.
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-slate-950 p-4 border border-slate-800 text-left">
+              <h2 className="text-xs font-semibold text-slate-300 mb-1">Zero-Trust Role Enforcement</h2>
+              <p className="text-[11px] leading-relaxed text-slate-400">
+                A standard university customer or student login cannot access the canteen management dashboard. Administrative credentials are authenticated through server-verified role-based access control (RBAC).
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <a
+                href={CUSTOMER_URL}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition border border-slate-700"
+              >
+                <span>Return to Customer Portal</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+
+              <button
+                onClick={signOut}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-sm"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span>Sign Out & Switch Account</span>
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (!adminUser) {
+    return (
+      <>
+        <Header />
+        <main className="flex-1 bg-slate-950 text-slate-100">
+          <section className="relative overflow-hidden border-b border-slate-800/80 bg-gradient-to-b from-indigo-950/40 via-slate-950 to-slate-950 py-16 sm:py-24">
+            <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/60 px-3.5 py-1.5 text-xs font-semibold text-indigo-300 shadow-sm">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                <span>Cafteria Operations Center • Phase 3 Live</span>
+              </div>
+
+              <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
+                Mission Control for <br className="hidden sm:inline" />
+                <span className="text-indigo-400">Campus Canteen Operations.</span>
+              </h1>
+
+              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
+                Manage live dish availability, update category listings, review staff discount requests, and monitor kitchen prep queues in real time.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+                <Link
+                  href="/login"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500 transition active:scale-95"
+                >
+                  <Lock className="h-4 w-4" />
+                  <span>Sign In to Operations</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+
+                <a
+                  href={CUSTOMER_URL}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-6 py-3.5 text-sm font-bold text-slate-200 shadow-sm hover:bg-slate-800 hover:text-white transition active:scale-95"
+                >
+                  <ExternalLink className="h-4 w-4 text-indigo-400" />
+                  <span>Open Customer App</span>
+                </a>
+              </div>
+
+              <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-left shadow-lg backdrop-blur-sm">
+                <div className="flex items-start gap-3.5">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-white">
+                      Zero-Trust Role-Based Access Control
+                    </h2>
+                    <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                      Access is restricted to authorized college canteen operators, culinary supervisors, and faculty managers. All catalog updates and availability state changes are cryptographically authenticated via Cloudflare Edge API and Supabase Auth.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="py-16 sm:py-20">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+              <div className="text-center">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-400">Operations Architecture</h2>
+                <p className="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  Engineered for high-volume campus kitchens
+                </p>
+              </div>
+
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <Utensils className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-white">Menu & Catalog</h3>
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        Phase 3 Live
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                      Manage food items, configure pricing in paise, upload dish photos to secure storage, and toggle instant 86 availability during stock shortages.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <Layers className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-white">Category Ordering</h3>
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        Phase 3 Live
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                      Group dishes into meal sections (Hot Breakfast, Rice Bowls, Beverages) and set custom sort orders for student menu rendering.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm transition hover:border-slate-700">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-white">Staff Verification</h3>
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 text-[10px] font-semibold text-emerald-400">
+                        Phase 3 Live
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-400">
+                      Review registered campus faculty and employee accounts with authoritative one-click approval workflows for subsidized campus rates.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-75">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                      <Flame className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-slate-300">Kitchen Display (KDS)</h3>
+                      <span className="rounded-full bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                        Phase 4
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                      High-contrast 10-foot legibility order dispatch queue with prep countdown timers, station routing, and collection markers.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-75">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-slate-300">Inventory & Thresholds</h3>
+                      <span className="rounded-full bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                        Phase 4
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                      Automated ingredient depletion and critical threshold alerts preventing order placement when items are exhausted.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-6 shadow-sm opacity-75">
+                  <div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+                      <BarChart3 className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-between">
+                      <h3 className="text-base font-semibold text-slate-300">Sales & Auditing</h3>
+                      <span className="rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-medium text-slate-400">
+                        Phase 6
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                      End-of-day financial reconciliation, peak rush traffic heatmaps, and payment gateway settlement auditing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </main>
         <Footer />
       </>
@@ -72,14 +386,113 @@ export default function AdminDashboardPage() {
               <p className="mt-1 text-xs text-slate-400">Canteen kitchen display, catalog management, and dispatch control</p>
             </div>
 
-            <button
-              onClick={signOut}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm"
-            >
-              <Lock className="h-3.5 w-3.5" />
-              <span>Sign Out</span>
-            </button>
+            <div className="flex items-center gap-2.5">
+              <a
+                href={CUSTOMER_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition shadow-sm"
+              >
+                <ExternalLink className="h-3.5 w-3.5 text-indigo-400" />
+                <span className="hidden sm:inline">Customer App</span>
+              </a>
+
+              <button
+                onClick={signOut}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-medium">Menu Catalog</span>
+                <Utensils className="h-4 w-4 text-indigo-400" />
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
+                ) : (
+                  <>
+                    <span className="text-2xl font-extrabold text-white">{stats.totalMenu}</span>
+                    <span className="text-xs text-slate-400">items</span>
+                  </>
+                )}
+              </div>
+              <div className="mt-2 text-[11px] text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                <span>{stats.availableMenu} in-stock right now</span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-medium">Active Categories</span>
+                <Layers className="h-4 w-4 text-indigo-400" />
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
+                ) : (
+                  <>
+                    <span className="text-2xl font-extrabold text-white">{stats.totalCategories}</span>
+                    <span className="text-xs text-slate-400">sections</span>
+                  </>
+                )}
+              </div>
+              <div className="mt-2 text-[11px] text-slate-400">
+                <span>Organized meal groups</span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-medium">Staff Verifications</span>
+                <Users className="h-4 w-4 text-amber-400" />
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                {statsLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
+                ) : (
+                  <>
+                    <span className="text-2xl font-extrabold text-white">{stats.pendingStaff}</span>
+                    <span className="text-xs text-slate-400">pending</span>
+                  </>
+                )}
+              </div>
+              <div className="mt-2 text-[11px]">
+                {stats.pendingStaff > 0 ? (
+                  <span className="text-amber-400 font-medium">Requires admin review</span>
+                ) : (
+                  <span className="text-emerald-400">Queue is clear</span>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm">
+              <div className="flex items-center justify-between text-slate-400">
+                <span className="text-xs font-medium">Edge API Runtime</span>
+                <Server className="h-4 w-4 text-emerald-400" />
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-extrabold text-emerald-400">Live</span>
+              </div>
+              <div className="mt-2 text-[11px] text-slate-400 truncate">
+                <span>Hono / Cloudflare Workers</span>
+              </div>
+            </div>
+          </div>
+
+          {statsError && (
+            <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-xs text-rose-300 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-rose-400" />
+              <span>Notice: {statsError}</span>
+            </div>
+          )}
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-lg backdrop-blur-sm">
             <h2 className="text-sm font-bold text-slate-200 flex items-center gap-2 mb-4">
@@ -136,8 +549,13 @@ export default function AdminDashboardPage() {
                 className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
-                    <Utensils className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <Utensils className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-300">
+                      {stats.totalMenu} items
+                    </span>
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-white">Menu & Catalog</h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-400">
@@ -155,8 +573,13 @@ export default function AdminDashboardPage() {
                 className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
-                    <Layers className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <Layers className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-300">
+                      {stats.totalCategories} sections
+                    </span>
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-white">Menu Categories</h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-400">
@@ -174,8 +597,19 @@ export default function AdminDashboardPage() {
                 className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-sm hover:border-indigo-500/50 hover:bg-slate-900 transition flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
-                    <Users className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-300 border border-slate-700 group-hover:bg-indigo-600 group-hover:text-white transition">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    {stats.pendingStaff > 0 ? (
+                      <span className="rounded-full bg-amber-950/60 border border-amber-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300 animate-pulse">
+                        {stats.pendingStaff} pending
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                        Clear
+                      </span>
+                    )}
                   </div>
                   <h3 className="mt-4 text-base font-semibold text-white">Staff Verification</h3>
                   <p className="mt-2 text-xs leading-relaxed text-slate-400">

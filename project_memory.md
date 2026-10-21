@@ -63,7 +63,7 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider`.
   - `src/app/globals.css`: Dark slate base styling.
-  - `src/app/page.tsx`: Protected Operations Command Center displaying verified administrator identity and subsystem links.
+  - `src/app/page.tsx`: Dual-state Operations Command Center providing an informative public landing view with "Sign In to Operations" CTA for unauthenticated visitors, and live metrics (dishes, in-stock count, categories, pending staff reviews), identity badges, and subsystem action cards for verified administrators.
   - `src/app/login/page.tsx`: Restricted admin sign-in with password recovery link.
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission.
@@ -73,7 +73,7 @@ college-canteen-cev/
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me`.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Dark admin header with menu, category, staff requests navigation, identity badge, and logout.
+  - `src/components/Header.tsx`: Dark admin header with menu, category, staff requests navigation, identity badge, unauthenticated sign-in CTA, and logout.
   - `src/components/Footer.tsx`: Admin-level audit footer.
   - `src/components/ApiHealthBadge.tsx`: Health check polling badge against Cloudflare Worker API.
 
