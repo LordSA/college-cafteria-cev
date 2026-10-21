@@ -74,7 +74,8 @@ export interface MenuItem {
   updated_at: string;
 }
 
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+export type OrderStage = 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+export type OrderStatus = OrderStage | 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
 export type PaymentMethod = 'testing_wallet' | 'counter_cash' | 'razorpay';
 
@@ -93,11 +94,13 @@ export interface Order {
   id: string;
   customer_id: string;
   order_number: string;
+  order_stage: OrderStage;
   order_status: OrderStatus;
   payment_status: PaymentStatus;
   payment_method?: PaymentMethod;
   paid_at?: string | null;
   qr_verification_token?: string | null;
+  qr_consumed_at?: string | null;
   collected_at?: string | null;
   collected_by?: string | null;
   subtotal: number;

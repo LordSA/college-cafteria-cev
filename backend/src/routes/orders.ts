@@ -285,7 +285,8 @@ customerOrdersRouter.post(
       .insert({
         customer_id: user.id,
         order_number: orderNumber,
-        order_status: isWalletPaid ? 'confirmed' : 'pending',
+        order_stage: 'ORDER_PLACED',
+        order_status: isWalletPaid ? 'ORDER_PLACED' : 'pending',
         payment_status: isWalletPaid ? 'paid' : 'unpaid',
         payment_method: paymentMethod,
         paid_at: isWalletPaid ? new Date().toISOString() : null,
@@ -405,6 +406,7 @@ customerOrdersRouter.get('/me', async (c) => {
 
   const formatted = (orders || []).map((o: any) => ({
     ...o,
+    order_stage: o.order_stage || (o.order_status === 'ready_for_pickup' || o.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : o.order_status === 'completed' || o.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED'),
     items: o.order_items || [],
   }));
 
@@ -447,6 +449,7 @@ customerOrdersRouter.get('/:id', async (c) => {
     success: true,
     data: {
       ...order,
+      order_stage: order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED'),
       items: order.order_items || [],
     },
   });
@@ -655,6 +658,7 @@ customerOrdersRouter.get('/:id/receipt', async (c) => {
       paid_at: order.paid_at,
       payment_method: order.payment_method || 'testing_wallet',
       payment_status: order.payment_status,
+      order_stage: order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED'),
       order_status: order.order_status,
       subtotal: order.subtotal,
       total: order.total,
