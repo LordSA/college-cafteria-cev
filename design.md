@@ -59,3 +59,11 @@ For full color scales, component anatomy, layout grids, and interactive states:
   - Kitchen Display System (KDS) 10-foot legibility specs
   - High-density inventory tables with 1-click availability ("86") toggles
   - Audio and visual alarm states
+
+---
+
+## 4. Subsystem Behavioral Guides
+
+- [docs/orders.md](docs/orders.md): Order status progression, token format (`#CAF-YYMMDD-XXXX`), and concurrency locking.
+- [docs/inventory.md](docs/inventory.md): Stock tracking, threshold warning states, and cancellation restoration rules.
+- [docs/cart-and-checkout.md](docs/cart-and-checkout.md): Shopping cart persistence, review flow, and unpaid development state.

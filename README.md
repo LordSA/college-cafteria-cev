@@ -131,7 +131,9 @@ cd customer
 npm run dev
 ```
 * Local URL: [http://localhost:3000](http://localhost:3000)
-* Menu: [http://localhost:3000/menu](http://localhost:3000/menu)
+* Menu & Cart: [http://localhost:3000/menu](http://localhost:3000/menu)
+* Cart: [http://localhost:3000/cart](http://localhost:3000/cart)
+* Orders Record: [http://localhost:3000/orders](http://localhost:3000/orders)
 
 #### 3. Admin Dashboard (Port 3001)
 ```bash
@@ -139,6 +141,8 @@ cd admin
 npm run dev
 ```
 * Local URL: [http://localhost:3001](http://localhost:3001)
+* Orders Queue: [http://localhost:3001/orders](http://localhost:3001/orders)
+* Inventory: [http://localhost:3001/inventory](http://localhost:3001/inventory)
 * Menu Management: [http://localhost:3001/menu](http://localhost:3001/menu)
 * Staff Requests: [http://localhost:3001/staff-requests](http://localhost:3001/staff-requests)
 
@@ -149,17 +153,17 @@ npm run dev
 Run type-checking, automated unit tests, and production builds for each project:
 
 ```bash
-# Backend Typecheck & Tests (38 Passing Tests)
+# Backend Typecheck & Tests (50 Passing Tests)
 cd backend
 npm run typecheck
 npm run test
 
-# Customer (Static Export)
+# Customer (Static Export - 15/15 Pages)
 cd ../customer
 npm run typecheck
 npm run build
 
-# Admin (Static Export)
+# Admin (Static Export - 13/13 Pages)
 cd ../admin
 npm run typecheck
 npm run build
@@ -175,9 +179,9 @@ npm run build
   - Supabase Auth integration, PostgreSQL `public.profiles` schema with triggers, RLS policies, Hono Bearer token verification middleware (`requireAuth`), admin middleware (`requireAdmin`), customer `/login`, `/signup`, `/profile` pages, admin `/login`, `/unauthorized`, and operations dashboard.
 * **Phase 3: Menu Engine, Staff Approval & Storage** *(Completed)*
   - Categories, menu items, integer paise pricing, availability toggles (86), staff approval review board, OTP email verification, password recovery, temporary Supabase Storage provider with preserved Cloudflare R2 support.
-* **Phase 4: Order Lifecycle & Kitchen Display System (KDS)** *(Upcoming)*
-  - State machine order management, token generation, kitchen order queue.
-* **Phase 5: Production Media Migration** *(Upcoming)*
-  - Re-evaluating Cloudflare R2 activation once account issues are resolved.
-* **Phase 6: Payments & Settlements** *(Upcoming)*
-  - Razorpay checkout integration, webhook signature validation, daily financial reconciliation.
+* **Phase 4: Cart, Order Management & Inventory Control** *(Completed)*
+  - Client-side persistent cart (`localStorage`), server-authoritative order placement, human-readable order numbers, atomic PostgreSQL inventory deduction & cancellation restoration, live status progression (`pending` -> `confirmed` -> `preparing` -> `ready_for_pickup` -> `completed`), kitchen order dispatch dashboard, inventory management with low-stock alerts and 86 toggles.
+* **Phase 5: Payments & Settlements** *(Upcoming)*
+  - Razorpay checkout integration, webhook signature validation, unpaid -> paid status transition.
+* **Phase 6: Auditing & Financial Analytics** *(Upcoming)*
+  - End-of-day financial reconciliation, peak rush traffic heatmaps, and payout settlement auditing.
