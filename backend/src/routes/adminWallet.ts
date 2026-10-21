@@ -35,7 +35,7 @@ adminWalletRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('wallets')
-    .select('*, profiles:customer_id(display_name, account_type)')
+    .select('*')
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -48,16 +48,35 @@ adminWalletRouter.get('/', async (c) => {
     );
   }
 
-  let formatted = (wallets || []).map((w: any) => ({
-    id: w.id,
-    customer_id: w.customer_id,
-    balance: w.balance,
-    formatted_balance: `₹${(w.balance / 100).toFixed(2)}`,
-    customer_name: w.profiles?.display_name || 'Customer',
-    customer_account_type: w.profiles?.account_type || 'student',
-    created_at: w.created_at,
-    updated_at: w.updated_at,
-  }));
+  const customerIds = Array.from(
+    new Set((wallets || []).map((w: any) => w.customer_id).filter(Boolean))
+  );
+
+  const profilesMap = new Map<string, { display_name?: string; account_type?: string }>();
+  if (customerIds.length > 0) {
+    const { data: profiles } = await adminClient
+      .from('profiles')
+      .select('id, display_name, account_type')
+      .in('id', customerIds);
+
+    (profiles || []).forEach((p: any) => {
+      profilesMap.set(p.id, p);
+    });
+  }
+
+  let formatted = (wallets || []).map((w: any) => {
+    const profile = profilesMap.get(w.customer_id);
+    return {
+      id: w.id,
+      customer_id: w.customer_id,
+      balance: w.balance,
+      formatted_balance: `₹${(w.balance / 100).toFixed(2)}`,
+      customer_name: profile?.display_name || 'Customer',
+      customer_account_type: profile?.account_type || 'student',
+      created_at: w.created_at,
+      updated_at: w.updated_at,
+    };
+  });
 
   if (search) {
     const s = search.toLowerCase();
@@ -92,34 +111,31 @@ adminWalletRouter.get('/:customerId', async (c) => {
 
   let { data: wallet } = await adminClient
     .from('wallets')
-    .select('*, profiles:customer_id(display_name, account_type)')
+    .select('*')
     .eq('customer_id', customerId)
     .maybeSingle();
 
-  if (!wallet) {
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('display_name, account_type')
-      .eq('id', customerId)
-      .maybeSingle();
+  const { data: profile } = await adminClient
+    .from('profiles')
+    .select('display_name, account_type')
+    .eq('id', customerId)
+    .maybeSingle();
 
-    if (!profile) {
-      return c.json(
-        { success: false, error: { code: 'CUSTOMER_NOT_FOUND', message: 'Customer not found' } },
-        404
-      );
-    }
+  if (!wallet && !profile) {
+    return c.json(
+      { success: false, error: { code: 'CUSTOMER_NOT_FOUND', message: 'Customer not found' } },
+      404
+    );
+  }
 
+  if (!wallet && profile) {
     const { data: created } = await adminClient
       .from('wallets')
       .insert({ customer_id: customerId, balance: 0 })
       .select('*')
       .single();
 
-    wallet = {
-      ...created,
-      profiles: profile,
-    };
+    wallet = created;
   }
 
   const { data: transactions } = await adminClient
@@ -132,14 +148,14 @@ adminWalletRouter.get('/:customerId', async (c) => {
   return c.json({
     success: true,
     data: {
-      id: wallet.id,
-      customer_id: wallet.customer_id,
-      balance: wallet.balance,
-      formatted_balance: `₹${(wallet.balance / 100).toFixed(2)}`,
-      customer_name: wallet.profiles?.display_name || 'Customer',
-      customer_account_type: wallet.profiles?.account_type || 'student',
-      created_at: wallet.created_at,
-      updated_at: wallet.updated_at,
+      id: wallet?.id,
+      customer_id: customerId,
+      balance: wallet?.balance ?? 0,
+      formatted_balance: `₹${(((wallet?.balance ?? 0)) / 100).toFixed(2)}`,
+      customer_name: profile?.display_name || 'Customer',
+      customer_account_type: profile?.account_type || 'student',
+      created_at: wallet?.created_at,
+      updated_at: wallet?.updated_at,
       transactions: transactions || [],
     },
   });

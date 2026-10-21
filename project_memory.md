@@ -130,6 +130,7 @@ college-canteen-cev/
   - `migrations/0003_storage_buckets.sql`: Storage buckets and Storage RLS policies.
   - `migrations/0004_orders_and_inventory.sql`: Orders, order items, inventory movement logs, RLS, and transactional stored procedures.
   - `migrations/0005_wallet_and_qr_verification.sql`: Wallets, ledger transactions, orders QR verification fields, and PL/pgSQL stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`, `verify_qr_token`, `collect_order`).
+  - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
 
 ---
 

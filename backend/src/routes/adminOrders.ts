@@ -42,7 +42,7 @@ adminOrdersRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('orders')
-    .select('*, order_items(*), profiles:customer_id(display_name, account_type)')
+    .select('*, order_items(*)')
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
@@ -63,12 +63,31 @@ adminOrdersRouter.get('/', async (c) => {
     );
   }
 
-  const formatted = (orders || []).map((o: any) => ({
-    ...o,
-    items: o.order_items || [],
-    customer_name: o.profiles?.display_name || 'Customer',
-    customer_account_type: o.profiles?.account_type || 'student',
-  }));
+  const customerIds = Array.from(
+    new Set((orders || []).map((o: any) => o.customer_id).filter(Boolean))
+  );
+
+  const profilesMap = new Map<string, { display_name?: string; account_type?: string }>();
+  if (customerIds.length > 0) {
+    const { data: profiles } = await adminClient
+      .from('profiles')
+      .select('id, display_name, account_type')
+      .in('id', customerIds);
+
+    (profiles || []).forEach((p: any) => {
+      profilesMap.set(p.id, p);
+    });
+  }
+
+  const formatted = (orders || []).map((o: any) => {
+    const profile = profilesMap.get(o.customer_id);
+    return {
+      ...o,
+      items: o.order_items || [],
+      customer_name: profile?.display_name || 'Customer',
+      customer_account_type: profile?.account_type || 'student',
+    };
+  });
 
   return c.json({
     success: true,
@@ -94,7 +113,7 @@ adminOrdersRouter.get('/:id', async (c) => {
 
   const { data: order, error } = await adminClient
     .from('orders')
-    .select('*, order_items(*), profiles:customer_id(display_name, account_type)')
+    .select('*, order_items(*)')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -105,13 +124,23 @@ adminOrdersRouter.get('/:id', async (c) => {
     );
   }
 
+  let customerProfile: { display_name?: string; account_type?: string } | null = null;
+  if (order.customer_id) {
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('display_name, account_type')
+      .eq('id', order.customer_id)
+      .maybeSingle();
+    customerProfile = profile;
+  }
+
   return c.json({
     success: true,
     data: {
       ...order,
       items: order.order_items || [],
-      customer_name: order.profiles?.display_name || 'Customer',
-      customer_account_type: order.profiles?.account_type || 'student',
+      customer_name: customerProfile?.display_name || 'Customer',
+      customer_account_type: customerProfile?.account_type || 'student',
     },
   });
 });
@@ -297,7 +326,7 @@ adminOrdersRouter.post(
 
     const { data: order, error: orderErr } = await adminClient
       .from('orders')
-      .select('*, order_items(*), profiles:customer_id(display_name, account_type)')
+      .select('*, order_items(*)')
       .eq('qr_verification_token', qr_token)
       .maybeSingle();
 
@@ -306,6 +335,16 @@ adminOrdersRouter.post(
         { success: false, error: { code: 'INVALID_QR_TOKEN', message: 'Order with this QR token was not found' } },
         404
       );
+    }
+
+    let customerProfile: { display_name?: string; account_type?: string } | null = null;
+    if (order.customer_id) {
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('display_name, account_type')
+        .eq('id', order.customer_id)
+        .maybeSingle();
+      customerProfile = profile;
     }
 
     const isEligible = order.payment_status === 'paid' && order.order_status !== 'completed' && order.order_status !== 'cancelled';
@@ -327,8 +366,8 @@ adminOrdersRouter.post(
         created_at: order.created_at,
         customer: {
           id: order.customer_id,
-          display_name: order.profiles?.display_name || 'Customer',
-          account_type: order.profiles?.account_type || 'student',
+          display_name: customerProfile?.display_name || 'Customer',
+          account_type: customerProfile?.account_type || 'student',
         },
         items: order.order_items || [],
         is_eligible_for_collection: isEligible,
@@ -491,7 +530,7 @@ adminOrdersRouter.get('/:id/receipt', async (c) => {
 
   const { data: order, error: orderErr } = await adminClient
     .from('orders')
-    .select('*, order_items(*), profiles:customer_id(display_name, account_type)')
+    .select('*, order_items(*)')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -500,6 +539,16 @@ adminOrdersRouter.get('/:id/receipt', async (c) => {
       { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
       404
     );
+  }
+
+  let customerProfile: { display_name?: string; account_type?: string } | null = null;
+  if (order.customer_id) {
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('display_name, account_type')
+      .eq('id', order.customer_id)
+      .maybeSingle();
+    customerProfile = profile;
   }
 
   return c.json({
@@ -519,8 +568,8 @@ adminOrdersRouter.get('/:id/receipt', async (c) => {
       collected_by: order.collected_by,
       customer: {
         id: order.customer_id,
-        display_name: order.profiles?.display_name || 'Customer',
-        account_type: order.profiles?.account_type || 'student',
+        display_name: customerProfile?.display_name || 'Customer',
+        account_type: customerProfile?.account_type || 'student',
       },
       items: order.order_items || [],
       canteen: {

@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **PostgREST Schema Cache & Profile Relational Queries**:
+  - Resolved `Could not find a relationship between 'orders' and 'customer_id' in the schema cache` error in `backend/src/routes/adminOrders.ts` and `backend/src/routes/adminWallet.ts`.
+  - Migrated embedded relation syntax (`profiles:customer_id(...)`) to resilient, decoupled batch profile lookups (`in('id', customerIds)` against `public.profiles`).
+  - Added additive migration `0006_foreign_keys_profiles.sql` (`supabase/migrations/20261022000000_foreign_keys_profiles.sql`) establishing explicit foreign key constraints (`fk_orders_customer_profile`, `fk_wallets_customer_profile`, `fk_wallet_tx_customer_profile`) from `public.orders`, `public.wallets`, and `public.wallet_transactions` to `public.profiles(id)` with PostgREST schema cache reload signal (`NOTIFY pgrst, 'reload schema'`).
+  - Appended migration to `supabase/complete_setup.sql`.
+
 ---
 
 ## [0.4.1] - 2026-10-22

@@ -1488,3 +1488,55 @@ BEGIN
   );
 END;
 $$;
+
+-- -----------------------------------------------------------------------------
+-- EXPLICIT FOREIGN KEYS FOR POSTGREST SCHEMA CACHE (PROFILES RELATIONSHIPS)
+-- -----------------------------------------------------------------------------
+
+INSERT INTO public.profiles (id, display_name, account_type, app_role)
+SELECT DISTINCT o.customer_id, 'Customer', 'student', 'customer'
+FROM public.orders o
+WHERE NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = o.customer_id)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.profiles (id, display_name, account_type, app_role)
+SELECT DISTINCT w.customer_id, 'Customer', 'student', 'customer'
+FROM public.wallets w
+WHERE NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = w.customer_id)
+ON CONFLICT (id) DO NOTHING;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_orders_customer_profile'
+  ) THEN
+    ALTER TABLE public.orders
+      ADD CONSTRAINT fk_orders_customer_profile
+      FOREIGN KEY (customer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_wallets_customer_profile'
+  ) THEN
+    ALTER TABLE public.wallets
+      ADD CONSTRAINT fk_wallets_customer_profile
+      FOREIGN KEY (customer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_wallet_tx_customer_profile'
+  ) THEN
+    ALTER TABLE public.wallet_transactions
+      ADD CONSTRAINT fk_wallet_tx_customer_profile
+      FOREIGN KEY (customer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+
+NOTIFY pgrst, 'reload schema';
+
