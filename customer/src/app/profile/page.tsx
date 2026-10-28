@@ -11,7 +11,6 @@ import {
   Shield,
   GraduationCap,
   Briefcase,
-  Lock,
   LogOut,
   Save,
   CheckCircle2,
@@ -19,9 +18,12 @@ import {
   Loader2,
   Calendar,
   Camera,
-  Clock,
-  XCircle,
   Mail,
+  ReceiptText,
+  Wallet,
+  ShoppingBag,
+  ArrowRight,
+  UtensilsCrossed,
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
@@ -183,8 +185,8 @@ export default function ProfilePage() {
         <Header />
         <main className="flex-1 flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-3 text-stone-500">
-            <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
-            <p className="text-xs font-medium">Verifying account credentials...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
+            <p className="text-xs font-semibold">Loading profile credentials...</p>
           </div>
         </main>
         <Footer />
@@ -193,104 +195,101 @@ export default function ProfilePage() {
   }
 
   const accountType = profile?.approved_account_type || profile?.account_type || 'student';
-  const staffStatus = profile?.staff_approval_status || 'not_requested';
-  const appRole = profile?.app_role || 'customer';
   const isEmailVerified = Boolean(user.email_confirmed_at);
 
   return (
     <>
       <Header />
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-6">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-stone-900">Account Profile</h1>
-              <p className="mt-1 text-xs text-stone-500">Manage your dining profile, verification, and credentials</p>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-sm hover:bg-stone-50 hover:text-rose-700 transition"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-6">
-              <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2 mb-6">
-                  <User className="h-4 w-4 text-amber-600" />
-                  <span>Profile Picture & Details</span>
-                </h2>
-
-                <div className="flex items-center gap-5 pb-6 mb-6 border-b border-stone-100">
-                  <div className="relative group">
-                    <div className="h-20 w-20 rounded-full overflow-hidden bg-stone-100 border-2 border-stone-200 flex items-center justify-center">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-                      ) : (
-                        <User className="h-10 w-10 text-stone-400" />
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingAvatar}
-                      className="absolute bottom-0 right-0 rounded-full bg-amber-600 p-1.5 text-white shadow hover:bg-amber-700 disabled:opacity-50 transition"
-                      title="Upload new picture"
-                    >
-                      {uploadingAvatar ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Camera className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/avif"
-                      onChange={handleAvatarChange}
-                      className="hidden"
-                    />
+      <main className="flex-1 pb-16">
+        <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-10 text-white shadow-md">
+          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-white/20 border-2 border-white/40 flex items-center justify-center shadow-md">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-2xl sm:text-3xl font-black text-white">
+                        {(displayName || 'C').charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-stone-900">{profile?.display_name || 'Campus Diner'}</h3>
-                    <p className="text-xs text-stone-500 mt-0.5">{user.email}</p>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadingAvatar}
-                      className="mt-2 text-xs font-semibold text-amber-700 hover:text-amber-800 disabled:opacity-50 inline-flex items-center gap-1"
-                    >
-                      {uploadingAvatar ? 'Uploading avatar...' : 'Change avatar (Max 2MB)'}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="absolute bottom-0 right-0 rounded-full bg-white text-[#ff5e3a] p-1.5 shadow-md hover:bg-orange-50 disabled:opacity-50 transition active:scale-95"
+                    title="Change picture"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Camera className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/avif"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
                 </div>
 
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                    Hi {displayName || 'Diner'}
+                  </h1>
+                  <p className="mt-0.5 text-xs text-orange-100 font-medium">
+                    {user.email} &bull; Cafteria CEV
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-white/30 transition active:scale-95 self-start sm:self-auto"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-6">
+              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+                <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
+                  <User className="h-4 w-4 text-[#ff5e3a]" />
+                  <span>Profile Information</span>
+                </h2>
+
                 {avatarSuccess && (
-                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     <span>Avatar updated successfully!</span>
                   </div>
                 )}
 
                 {avatarError && (
-                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
                     <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
                     <span>{avatarError}</span>
                   </div>
                 )}
 
                 {saveSuccess && (
-                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                     <span>Display name updated successfully!</span>
                   </div>
                 )}
 
                 {saveError && (
-                  <div className="mb-4 flex items-center gap-2 rounded-lg bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
                     <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
                     <span>{saveError}</span>
                   </div>
@@ -298,7 +297,7 @@ export default function ProfilePage() {
 
                 <form onSubmit={handleUpdate} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1" htmlFor="displayName">
+                    <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="displayName">
                       Display Name
                     </label>
                     <input
@@ -307,12 +306,12 @@ export default function ProfilePage() {
                       required
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full rounded-lg border border-stone-300 px-3.5 py-2 text-sm text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-1" htmlFor="email">
+                    <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="email">
                       College Email Address
                     </label>
                     <input
@@ -320,14 +319,14 @@ export default function ProfilePage() {
                       type="email"
                       disabled
                       value={user.email || ''}
-                      className="w-full rounded-lg border border-stone-200 bg-stone-100 px-3.5 py-2 text-sm text-stone-500 cursor-not-allowed"
+                      className="w-full rounded-xl border border-stone-200 bg-stone-100 px-3.5 py-2.5 text-xs text-stone-500 cursor-not-allowed"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-amber-700 disabled:opacity-50 transition"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
                   >
                     {saving ? (
                       <>
@@ -343,36 +342,82 @@ export default function ProfilePage() {
                   </button>
                 </form>
               </div>
+
+              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+                <h2 className="text-base font-black text-stone-900 mb-4">
+                  Quick Actions
+                </h2>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Link
+                    href="/orders"
+                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#ff5e3a]">
+                      <ReceiptText className="h-5 w-5" />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
+                      <span>My Orders</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/wallet"
+                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                      <Wallet className="h-5 w-5" />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
+                      <span>Testing Wallet</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
+                    </div>
+                  </Link>
+
+                  <Link
+                    href="/cart"
+                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+                      <ShoppingBag className="h-5 w-5" />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
+                      <span>Food Cart</span>
+                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
+                    </div>
+                  </Link>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-6">
-              <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-                <h2 className="text-sm font-bold text-stone-900 flex items-center gap-2 mb-4">
-                  <Shield className="h-4 w-4 text-amber-600" />
-                  <span>Security & Verification</span>
+              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+                <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
+                  <Shield className="h-4 w-4 text-[#ff5e3a]" />
+                  <span>Account Status</span>
                 </h2>
 
                 <div className="space-y-4 text-xs">
                   <div>
                     <span className="text-stone-500 block mb-1">Email Verification</span>
                     {isEmailVerified ? (
-                      <div className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 border border-emerald-200">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-800 border border-emerald-200">
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
                         <span>Email Confirmed</span>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        <div className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 font-medium text-amber-800 border border-amber-200">
+                        <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 font-bold text-amber-800 border border-amber-200">
                           <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
                           <span>Unverified</span>
                         </div>
                         <div>
                           <Link
                             href={`/verify-email?email=${encodeURIComponent(user.email || '')}`}
-                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 underline"
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#ff5e3a] hover:underline"
                           >
                             <Mail className="h-3 w-3" />
-                            <span>Verify your inbox now</span>
+                            <span>Verify your email now</span>
                           </Link>
                         </div>
                       </div>
@@ -380,51 +425,27 @@ export default function ProfilePage() {
                   </div>
 
                   <div>
-                    <span className="text-stone-500 block mb-1">Account Classification</span>
-                    <div className="inline-flex items-center gap-1.5 rounded-md bg-stone-100 px-2.5 py-1 font-medium text-stone-800 border border-stone-200">
+                    <span className="text-stone-500 block mb-1">Classification</span>
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 font-bold text-stone-800 border border-stone-200">
                       {accountType === 'staff' ? (
                         <>
-                          <Briefcase className="h-3.5 w-3.5 text-amber-600" />
+                          <Briefcase className="h-3.5 w-3.5 text-[#ff5e3a]" />
                           <span>Faculty / Staff</span>
                         </>
                       ) : (
                         <>
-                          <GraduationCap className="h-3.5 w-3.5 text-amber-600" />
+                          <GraduationCap className="h-3.5 w-3.5 text-[#ff5e3a]" />
                           <span>Student</span>
                         </>
                       )}
                     </div>
                   </div>
 
-                  {profile?.requested_account_type === 'staff' && (
-                    <div>
-                      <span className="text-stone-500 block mb-1">Staff Verification Status</span>
-                      {staffStatus === 'pending' && (
-                        <div className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-1 font-medium text-amber-800 border border-amber-200">
-                          <Clock className="h-3.5 w-3.5 text-amber-600" />
-                          <span>Pending Admin Review</span>
-                        </div>
-                      )}
-                      {staffStatus === 'approved' && (
-                        <div className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 font-medium text-emerald-800 border border-emerald-200">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                          <span>Staff Approved</span>
-                        </div>
-                      )}
-                      {staffStatus === 'rejected' && (
-                        <div className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 px-2.5 py-1 font-medium text-rose-800 border border-rose-200">
-                          <XCircle className="h-3.5 w-3.5 text-rose-600" />
-                          <span>Staff Request Rejected</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   <div>
-                    <span className="text-stone-500 block mb-1">Platform Privilege</span>
-                    <div className="inline-flex items-center gap-1.5 rounded-md bg-stone-100 px-2.5 py-1 font-medium text-stone-800 border border-stone-200">
-                      <Lock className="h-3.5 w-3.5 text-stone-400" />
-                      <span className="capitalize">{appRole}</span>
+                    <span className="text-stone-500 block mb-1">Campus Dining Platform</span>
+                    <div className="flex items-center gap-1.5 text-stone-700 font-bold">
+                      <UtensilsCrossed className="h-3.5 w-3.5 text-[#ff5e3a]" />
+                      <span>Cafteria CEV</span>
                     </div>
                   </div>
 
@@ -439,7 +460,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </main>
       <Footer />
     </>

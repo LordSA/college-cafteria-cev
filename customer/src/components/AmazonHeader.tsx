@@ -8,8 +8,7 @@ import {
   Menu,
   ChevronDown,
   Wallet,
-  UtensilsCrossed,
-  Sparkles,
+  Grid,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -39,11 +38,10 @@ export function AmazonHeader({
     { id: 'all', label: 'All Categories' },
     { id: 'meals', label: 'Hot Meals' },
     { id: 'coffee', label: 'Coffee & Tea' },
-    { id: 'snacks', label: 'Snacks & Combos' },
+    { id: 'snacks', label: 'Snacks & Bites' },
     { id: 'juice', label: 'Fresh Juices' },
     { id: 'cake', label: 'Bakery & Cake' },
     { id: 'pizza', label: 'Pizza & Fast Food' },
-    { id: 'fruits', label: 'Fresh Fruits' },
   ];
 
   const currentCategoryLabel =
@@ -53,22 +51,30 @@ export function AmazonHeader({
     <div className="hidden md:block select-none sticky top-0 z-40 shadow-md">
       <header className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] text-white px-4 py-2.5">
         <div className="mx-auto flex max-w-7xl items-center gap-4">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-white/10 transition"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-[#ff5e3a] shadow-md">
-              <UtensilsCrossed className="h-5 w-5" />
-            </div>
-            <div className="flex flex-col leading-tight">
-              <span className="text-xl font-black tracking-tight text-white">
-                Cafteria<span className="text-amber-200">.cev</span>
-              </span>
-              <span className="text-[10px] tracking-wider text-orange-100 uppercase font-bold">
-                College Canteen Shop
-              </span>
-            </div>
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenSidebar}
+              className="flex items-center justify-center rounded-2xl bg-white/20 p-2 text-white hover:bg-white/30 transition active:scale-95 shadow-xs"
+              title="Open Navigation"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+
+            <Link
+              href="/"
+              className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-white/10 transition"
+            >
+              <div className="flex flex-col leading-tight">
+                <span className="text-xl font-black tracking-tight text-white">
+                  Cafteria<span className="text-amber-200">.cev</span>
+                </span>
+                <span className="text-[10px] tracking-wider text-orange-100 uppercase font-bold">
+                  Cafteria CEV
+                </span>
+              </div>
+            </Link>
+          </div>
 
           <div className="relative flex flex-1 items-center">
             <div className="relative">
@@ -104,7 +110,7 @@ export function AmazonHeader({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search hot dishes, snacks, canteen specials, juices..."
+              placeholder="Search meals, snacks, canteen specials, drinks..."
               className="h-10 w-full bg-white px-4 text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
             />
 
@@ -118,6 +124,14 @@ export function AmazonHeader({
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/categories"
+              className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-md hover:bg-white/25 transition text-xs font-bold text-white shadow-xs"
+            >
+              <Grid className="h-4 w-4 text-amber-200" />
+              <span>Categories</span>
+            </Link>
+
             <Link
               href="/wallet"
               className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1.5 backdrop-blur-md hover:bg-white/25 transition text-xs font-bold text-white shadow-xs"
@@ -170,100 +184,6 @@ export function AmazonHeader({
           </div>
         </div>
       </header>
-
-      <nav className="bg-white border-b border-stone-200/80 text-stone-700">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs font-semibold">
-          <div className="flex items-center gap-3 overflow-x-auto">
-            <button
-              type="button"
-              onClick={onOpenSidebar}
-              className="flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-[#ff5e3a] hover:bg-orange-100 transition whitespace-nowrap"
-            >
-              <Menu className="h-4 w-4" />
-              <span>All Categories</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('all')}
-              className={`rounded-lg px-2.5 py-1 transition whitespace-nowrap ${
-                selectedCategory === 'all'
-                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-xs'
-                  : 'hover:bg-stone-100 text-stone-600'
-              }`}
-            >
-              Hot Products
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('meals')}
-              className={`rounded-lg px-2.5 py-1 transition whitespace-nowrap ${
-                selectedCategory === 'meals'
-                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-xs'
-                  : 'hover:bg-stone-100 text-stone-600'
-              }`}
-            >
-              Lunch Meals & Thali
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('snacks')}
-              className={`rounded-lg px-2.5 py-1 transition whitespace-nowrap ${
-                selectedCategory === 'snacks'
-                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-xs'
-                  : 'hover:bg-stone-100 text-stone-600'
-              }`}
-            >
-              Evening Snacks
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('coffee')}
-              className={`rounded-lg px-2.5 py-1 transition whitespace-nowrap ${
-                selectedCategory === 'coffee'
-                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-xs'
-                  : 'hover:bg-stone-100 text-stone-600'
-              }`}
-            >
-              Tea & Coffee
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('juice')}
-              className={`rounded-lg px-2.5 py-1 transition whitespace-nowrap ${
-                selectedCategory === 'juice'
-                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-xs'
-                  : 'hover:bg-stone-100 text-stone-600'
-              }`}
-            >
-              Fresh Juices
-            </button>
-
-            <Link
-              href="/menu"
-              className="rounded-lg px-2.5 py-1 hover:bg-stone-100 text-stone-600 transition whitespace-nowrap"
-            >
-              Full Menu Catalog
-            </Link>
-
-            <Link
-              href="/payment-faq"
-              className="rounded-lg px-2.5 py-1 hover:bg-stone-100 text-stone-600 transition whitespace-nowrap"
-            >
-              Payment FAQs
-            </Link>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-2 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/60 whitespace-nowrap">
-            <Sparkles className="h-3 w-3 text-amber-600" />
-            <span>Counter #1 &bull; Open 8:00 AM &ndash; 7:00 PM</span>
-          </div>
-        </div>
-      </nav>
     </div>
   );
 }

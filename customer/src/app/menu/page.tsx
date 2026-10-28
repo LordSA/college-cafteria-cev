@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import {
   Utensils,
@@ -17,6 +19,7 @@ import {
   Minus,
   ShoppingBag,
   ArrowRight,
+  Grid,
 } from 'lucide-react';
 
 interface Category {
@@ -45,6 +48,8 @@ interface MenuItem {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 export default function MenuPage() {
+  const router = useRouter();
+  const { user } = useAuth();
   const { items: cartItems, addItem, updateQuantity, itemCount, subtotal } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -53,6 +58,16 @@ export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const catParam = params.get('category');
+      if (catParam) {
+        setSelectedCategory(catParam);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function loadMenuData() {
@@ -99,6 +114,21 @@ export default function MenuPage() {
     return matchesCategory && matchesSearch;
   });
 
+  const handleAddToCart = (item: MenuItem) => {
+    if (!user) {
+      router.push('/login?redirect=/menu');
+      return;
+    }
+
+    addItem({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image_url: item.image_url,
+      category_name: item.category_name,
+    });
+  };
+
   return (
     <>
       <Header />
@@ -106,26 +136,35 @@ export default function MenuPage() {
         <div className="mx-auto max-w-6xl space-y-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-stone-200 pb-6">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
-                Daily Campus Dining
+              <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e3a]">
+                Cafteria CEV
               </span>
               <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">
-                Canteen Menu
+                Today's Menu
               </h1>
               <p className="mt-1 text-xs text-stone-500">
-                Fresh meals, snacks, and beverages prepared daily at the campus kitchen
+                Fresh meals, snacks, and beverages prepared daily
               </p>
             </div>
 
-            <div className="w-full md:w-72">
-              <div className="relative">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Link
+                href="/categories"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 shadow-xs hover:border-[#ff5e3a] transition"
+              >
+                <Grid className="h-4 w-4 text-[#ff5e3a]" />
+                <span className="hidden sm:inline">All</span>
+                <span>Categories</span>
+              </Link>
+
+              <div className="relative flex-1 md:w-72">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                 <input
                   type="text"
                   placeholder="Search dishes, snacks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-stone-300 bg-white pl-9 pr-4 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  className="w-full rounded-xl border border-stone-300 bg-white pl-9 pr-4 py-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                 />
               </div>
             </div>
@@ -136,7 +175,7 @@ export default function MenuPage() {
               onClick={() => setSelectedCategory('all')}
               className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
                 selectedCategory === 'all'
-                  ? 'bg-amber-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
                   : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
               }`}
             >
@@ -149,7 +188,7 @@ export default function MenuPage() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
                   selectedCategory === cat.id
-                    ? 'bg-amber-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
@@ -167,7 +206,7 @@ export default function MenuPage() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
               <p className="text-xs font-medium">Loading freshly prepared canteen catalog...</p>
             </div>
           ) : filteredItems.length === 0 ? (
@@ -199,7 +238,7 @@ export default function MenuPage() {
                       ) : (
                         <div className="flex flex-col items-center gap-1 text-stone-400">
                           <Utensils className="h-8 w-8" />
-                          <span className="text-[10px] font-medium uppercase tracking-wider">Cafteria Kitchen</span>
+                          <span className="text-[10px] font-medium uppercase tracking-wider">Cafteria CEV</span>
                         </div>
                       )}
                       {item.category_name && (
@@ -245,7 +284,7 @@ export default function MenuPage() {
 
                         {item.is_available ? (
                           inCartQuantity > 0 ? (
-                            <div className="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-2 py-1 shadow-sm">
+                            <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-sm">
                               <button
                                 onClick={() => updateQuantity(item.id, inCartQuantity - 1)}
                                 className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-stone-700 hover:bg-stone-100 transition shadow-xs"
@@ -253,12 +292,12 @@ export default function MenuPage() {
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
-                              <span className="min-w-[18px] text-center font-mono text-xs font-bold text-amber-950">
+                              <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950">
                                 {inCartQuantity}
                               </span>
                               <button
                                 onClick={() => updateQuantity(item.id, inCartQuantity + 1)}
-                                className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition shadow-xs"
+                                className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white transition shadow-xs"
                                 title="Increase"
                               >
                                 <Plus className="h-3 w-3" />
@@ -266,16 +305,8 @@ export default function MenuPage() {
                             </div>
                           ) : (
                             <button
-                              onClick={() =>
-                                addItem({
-                                  id: item.id,
-                                  name: item.name,
-                                  price: item.price,
-                                  image_url: item.image_url,
-                                  category_name: item.category_name,
-                                })
-                              }
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-amber-600/20 hover:bg-amber-700 transition active:scale-95"
+                              onClick={() => handleAddToCart(item)}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
                             >
                               <Plus className="h-3.5 w-3.5" />
                               <span>Add</span>
@@ -297,10 +328,10 @@ export default function MenuPage() {
       </main>
 
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-amber-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-orange-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md md:hidden">
           <div className="mx-auto flex max-w-4xl items-center justify-between px-4 sm:px-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
@@ -315,7 +346,7 @@ export default function MenuPage() {
 
             <Link
               href="/cart"
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-amber-600/25 hover:bg-amber-700 transition active:scale-95"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition active:scale-95"
             >
               <span>View Cart</span>
               <ArrowRight className="h-3.5 w-3.5" />

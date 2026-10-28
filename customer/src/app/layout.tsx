@@ -5,7 +5,7 @@ import { MobileBottomNav } from '../components/MobileBottomNav';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Cafteria — College Canteen Ordering Platform',
+  title: 'Cafteria CEV — Smart Campus Dining',
   description: 'Digital ordering, pre-orders, and queue-free meals for college students and faculty.',
 };
 
