@@ -166,10 +166,10 @@ export default function AdminCategoriesPage() {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20 bg-slate-950">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-xs font-medium">Verifying administrator authorization...</p>
+        <main className="flex-1 flex items-center justify-center py-20 bg-[#101114]">
+          <div className="flex flex-col items-center gap-3 text-stone-400">
+            <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+            <p className="text-xs font-semibold">Verifying administrator authorization...</p>
           </div>
         </main>
         <Footer />
@@ -180,19 +180,24 @@ export default function AdminCategoriesPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100">
-        <div className="mx-auto max-w-6xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 bg-[#101114] text-slate-100 min-h-screen">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white transition"
+                className="rounded-full border border-[#282a38] bg-[#17181f] p-2 text-stone-400 hover:text-white transition"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white">Menu Categories</h1>
-                <p className="mt-1 text-xs text-slate-400">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
+                  ALEXATEL • Taxonomy Controls
+                </span>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  Menu Categories
+                </h1>
+                <p className="mt-1 text-xs text-stone-400">
                   Organize daily canteen menus, breakfast sections, and snack stations
                 </p>
               </div>
@@ -201,38 +206,38 @@ export default function AdminCategoriesPage() {
             <button
               onClick={loadCategories}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#17181f] px-4 py-2 text-xs font-bold text-stone-200 hover:bg-[#232533] hover:text-white disabled:opacity-50 transition shadow-xs"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 text-[#9d8bf0] ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
             </button>
           </div>
 
           {success && (
-            <div className="flex items-center gap-2 rounded-xl bg-emerald-950/50 border border-emerald-800/60 p-4 text-xs text-emerald-300">
+            <div className="flex items-center gap-2 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 p-4 text-xs text-emerald-300">
               <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
               <span>{success}</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-rose-800/60 bg-rose-950/50 p-4 text-xs text-rose-300">
+            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="grid gap-8 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-1">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl">
+              <div className="rounded-3xl border border-[#22242e] bg-[#17181f] p-6 shadow-xl">
                 <h2 className="text-sm font-bold text-white flex items-center gap-2 mb-4">
-                  <Plus className="h-4 w-4 text-indigo-400" />
+                  <Plus className="h-4 w-4 text-[#f5a4c6]" />
                   <span>Create New Category</span>
                 </h2>
 
                 <form onSubmit={handleCreate} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="catName">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="catName">
                       Category Name
                     </label>
                     <input
@@ -242,12 +247,12 @@ export default function AdminCategoriesPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Hot Breakfast, Beverages, Rice Meals..."
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="catDesc">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="catDesc">
                       Description (Optional)
                     </label>
                     <textarea
@@ -256,12 +261,12 @@ export default function AdminCategoriesPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Served daily 8:00 AM - 11:00 AM"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="catOrder">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="catOrder">
                       Display Sort Order
                     </label>
                     <input
@@ -269,14 +274,14 @@ export default function AdminCategoriesPage() {
                       type="number"
                       value={sortOrder}
                       onChange={(e) => setSortOrder(Number(e.target.value))}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950/80 px-3.5 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={creating}
-                    className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none disabled:opacity-50 transition"
+                    className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#f5a4c6] px-4 py-2.5 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 focus:outline-none disabled:opacity-50 transition"
                   >
                     {creating ? (
                       <>
@@ -295,39 +300,39 @@ export default function AdminCategoriesPage() {
             </div>
 
             <div className="lg:col-span-2">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="rounded-3xl border border-[#22242e] bg-[#17181f] shadow-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#22242e] bg-[#121316] flex items-center justify-between">
                   <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-indigo-400" />
+                    <Layers className="h-4 w-4 text-[#9d8bf0]" />
                     <span>Existing Categories ({categories.length})</span>
                   </h2>
                 </div>
 
                 {loading ? (
-                  <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-                    <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-                    <p className="text-xs font-medium">Loading catalog categories...</p>
+                  <div className="py-20 flex flex-col items-center justify-center gap-3 text-stone-500">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+                    <p className="text-xs font-semibold">Loading catalog categories...</p>
                   </div>
                 ) : categories.length === 0 ? (
-                  <div className="p-12 text-center text-slate-500 text-xs">
+                  <div className="p-12 text-center text-stone-500 text-xs">
                     No categories registered yet. Create your first category above.
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-800">
+                  <div className="divide-y divide-[#22242e]">
                     {categories.map((cat) => (
                       <div
                         key={cat.id}
-                        className="px-6 py-4 flex items-center justify-between hover:bg-slate-800/30 transition text-xs"
+                        className="px-6 py-4 flex items-center justify-between hover:bg-[#1a1b24] transition text-xs"
                       >
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-white text-sm">{cat.name}</span>
-                            <span className="font-mono text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                            <span className="font-mono text-[10px] text-stone-400 bg-[#101114] border border-[#282a38] px-2 py-0.5 rounded-full">
                               Order #{cat.sort_order}
                             </span>
                           </div>
                           {cat.description && (
-                            <p className="mt-1 text-slate-400 text-[11px]">{cat.description}</p>
+                            <p className="mt-1 text-stone-400 text-[11px]">{cat.description}</p>
                           )}
                         </div>
 
@@ -335,10 +340,10 @@ export default function AdminCategoriesPage() {
                           <button
                             onClick={() => handleToggleActive(cat)}
                             disabled={togglingId === cat.id}
-                            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${
                               cat.is_active
-                                ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/60'
-                                : 'bg-slate-800 border border-slate-700 text-slate-400 hover:bg-slate-700'
+                                ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+                                : 'bg-[#101114] border border-[#282a38] text-stone-400 hover:bg-[#232533] hover:text-white'
                             }`}
                           >
                             {cat.is_active ? (
@@ -348,7 +353,7 @@ export default function AdminCategoriesPage() {
                               </>
                             ) : (
                               <>
-                                <ToggleLeft className="h-4 w-4 text-slate-500" />
+                                <ToggleLeft className="h-4 w-4 text-stone-500" />
                                 <span>Inactive</span>
                               </>
                             )}

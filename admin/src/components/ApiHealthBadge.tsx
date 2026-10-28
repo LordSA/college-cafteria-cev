@@ -60,7 +60,7 @@ export function ApiHealthBadge() {
       ) : (
         <span className="flex items-center gap-1.5 font-bold text-emerald-400">
           <ShieldCheck className="h-3.5 w-3.5" />
-          Operational
+          Operational {data?.version ? `v${data.version}` : ''}
         </span>
       )}
     </div>

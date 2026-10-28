@@ -393,6 +393,9 @@ export default function AdminDashboardPage() {
                     className="h-full w-full object-cover"
                   />
                 </div>
+                <span className="hidden sm:inline text-xs font-bold text-stone-200">
+                  {adminProfile?.display_name || 'Admin'}
+                </span>
 
                 <button
                   onClick={signOut}
@@ -408,16 +411,25 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f5a4c6]/20 text-[#f5a4c6]">
-                    <div className="grid grid-cols-2 gap-0.5">
-                      <span className="h-1 w-1 rounded-full bg-current" />
-                      <span className="h-1 w-1 rounded-full bg-current" />
-                      <span className="h-1 w-1 rounded-full bg-current" />
-                      <span className="h-1 w-1 rounded-full bg-current" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f5a4c6]/20 text-[#f5a4c6]">
+                      <div className="grid grid-cols-2 gap-0.5">
+                        <span className="h-1 w-1 rounded-full bg-current" />
+                        <span className="h-1 w-1 rounded-full bg-current" />
+                        <span className="h-1 w-1 rounded-full bg-current" />
+                        <span className="h-1 w-1 rounded-full bg-current" />
+                      </div>
                     </div>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Tariff Plans</h3>
                   </div>
-                  <h3 className="text-xs font-bold text-white tracking-wide">Tariff Plans</h3>
+                  {statsLoading ? (
+                    <span className="text-[10px] text-stone-500">...</span>
+                  ) : (
+                    <span className="rounded-full bg-[#f5a4c6]/15 text-[#f5a4c6] text-[10px] font-bold px-2 py-0.5 border border-[#f5a4c6]/30">
+                      {stats.activeOrders} Active
+                    </span>
+                  )}
                 </div>
 
                 <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">
@@ -439,11 +451,16 @@ export default function AdminDashboardPage() {
 
             <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#9d8bf0]/20 text-[#9d8bf0]">
-                    <div className="h-3 w-3 border border-current rounded-sm" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#9d8bf0]/20 text-[#9d8bf0]">
+                      <div className="h-3 w-3 border border-current rounded-sm" />
+                    </div>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Additional Options</h3>
                   </div>
-                  <h3 className="text-xs font-bold text-white tracking-wide">Additional Options</h3>
+                  <span className="rounded-full bg-[#9d8bf0]/15 text-[#9d8bf0] text-[10px] font-bold px-2 py-0.5 border border-[#9d8bf0]/30">
+                    {stats.totalMenu} Items
+                  </span>
                 </div>
 
                 <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">
@@ -465,11 +482,16 @@ export default function AdminDashboardPage() {
 
             <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ea9955]/20 text-[#ea9955]">
-                    <div className="h-3 w-3 rounded-full border border-current" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ea9955]/20 text-[#ea9955]">
+                      <div className="h-3 w-3 rounded-full border border-current" />
+                    </div>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Subscription Management</h3>
                   </div>
-                  <h3 className="text-xs font-bold text-white tracking-wide">Subscription Management</h3>
+                  <span className="rounded-full bg-[#ea9955]/15 text-[#ea9955] text-[10px] font-bold px-2 py-0.5 border border-[#ea9955]/30">
+                    {stats.pendingStaff} Pending
+                  </span>
                 </div>
 
                 <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">

@@ -300,10 +300,10 @@ export default function AdminMenuPage() {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20 bg-slate-950">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            <p className="text-xs font-medium">Verifying administrator authorization...</p>
+        <main className="flex-1 flex items-center justify-center py-20 bg-[#101114]">
+          <div className="flex flex-col items-center gap-3 text-stone-400">
+            <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+            <p className="text-xs font-semibold">Verifying administrator authorization...</p>
           </div>
         </main>
         <Footer />
@@ -314,20 +314,25 @@ export default function AdminMenuPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100">
-        <div className="mx-auto max-w-6xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 bg-[#101114] text-slate-100 min-h-screen">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div className="flex items-center gap-3">
               <Link
                 href="/"
-                className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 hover:text-white transition"
+                className="rounded-full border border-[#282a38] bg-[#17181f] p-2 text-stone-400 hover:text-white transition"
               >
                 <ArrowLeft className="h-4 w-4" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold tracking-tight text-white">Menu Item Management</h1>
-                <p className="mt-1 text-xs text-slate-400">
-                  Daily canteen inventory, instantaneous 86 availability toggles, and food catalog uploads
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
+                  ALEXATEL • Catalog Roster
+                </span>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  Menu Item Management
+                </h1>
+                <p className="mt-1 text-xs text-stone-400">
+                  Daily canteen dishes, instantaneous 86 availability toggles, and food catalog uploads
                 </p>
               </div>
             </div>
@@ -336,15 +341,15 @@ export default function AdminMenuPage() {
               <button
                 onClick={loadData}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#17181f] px-4 py-2 text-xs font-bold text-stone-200 hover:bg-[#232533] hover:text-white disabled:opacity-50 transition shadow-xs"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3.5 w-3.5 text-[#9d8bf0] ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
               </button>
 
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 shadow-sm transition"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#f5a4c6] px-4 py-2 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 transition"
               >
                 {showAddForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                 <span>{showAddForm ? 'Close Form' : 'New Menu Item'}</span>
@@ -353,30 +358,30 @@ export default function AdminMenuPage() {
           </div>
 
           {success && (
-            <div className="flex items-center gap-2 rounded-xl bg-emerald-950/50 border border-emerald-800/60 p-4 text-xs text-emerald-300">
+            <div className="flex items-center gap-2 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 p-4 text-xs text-emerald-300">
               <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
               <span>{success}</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-rose-800/60 bg-rose-950/50 p-4 text-xs text-rose-300">
+            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {showAddForm && (
-            <div className="rounded-2xl border border-indigo-500/40 bg-slate-900/95 p-6 shadow-2xl backdrop-blur-md">
+            <div className="rounded-3xl border border-[#22242e] bg-[#17181f] p-6 shadow-2xl backdrop-blur-md">
               <h2 className="text-sm font-bold text-white flex items-center gap-2 mb-4">
-                <Utensils className="h-4 w-4 text-indigo-400" />
+                <Utensils className="h-4 w-4 text-[#f5a4c6]" />
                 <span>Add Fresh Dish to Daily Menu</span>
               </h2>
 
               <form onSubmit={handleCreateItem} className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="itemCategory">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="itemCategory">
                       Category
                     </label>
                     <select
@@ -384,7 +389,7 @@ export default function AdminMenuPage() {
                       required
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     >
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
@@ -395,7 +400,7 @@ export default function AdminMenuPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="itemName">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="itemName">
                       Item Name
                     </label>
                     <input
@@ -405,12 +410,12 @@ export default function AdminMenuPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="e.g. Masala Dosa, Paneer Roll, Cold Coffee"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="itemPrice">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="itemPrice">
                       Price in ₹ (Paise calculated automatically)
                     </label>
                     <input
@@ -422,12 +427,12 @@ export default function AdminMenuPage() {
                       value={priceRupees}
                       onChange={(e) => setPriceRupees(e.target.value)}
                       placeholder="45.00"
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1" htmlFor="itemDesc">
+                    <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="itemDesc">
                       Description (Optional)
                     </label>
                     <textarea
@@ -436,24 +441,24 @@ export default function AdminMenuPage() {
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Served with fresh coconut chutney and hot sambar."
-                      className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-3.5 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <span className="block text-xs font-semibold text-slate-300 mb-1.5">Food Catalog Image</span>
+                    <span className="block text-xs font-semibold text-stone-300 mb-1.5">Food Catalog Image</span>
                     <div className="flex items-center gap-4">
-                      <div className="h-28 w-28 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center relative">
+                      <div className="h-28 w-28 rounded-2xl bg-[#101114] border border-[#282a38] overflow-hidden flex items-center justify-center relative">
                         {previewImageUrl ? (
                           <img src={previewImageUrl} alt="Preview" className="h-full w-full object-cover" />
                         ) : (
-                          <Utensils className="h-8 w-8 text-slate-700" />
+                          <Utensils className="h-8 w-8 text-stone-700" />
                         )}
                         {uploadingImage && (
-                          <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center">
-                            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+                          <div className="absolute inset-0 bg-[#101114]/80 flex items-center justify-center">
+                            <Loader2 className="h-5 w-5 animate-spin text-[#9d8bf0]" />
                           </div>
                         )}
                       </div>
@@ -463,12 +468,12 @@ export default function AdminMenuPage() {
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
                           disabled={uploadingImage}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 disabled:opacity-50 transition"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#101114] px-4 py-1.5 text-xs font-bold text-stone-200 hover:bg-[#232533] disabled:opacity-50 transition"
                         >
-                          <Camera className="h-3.5 w-3.5 text-indigo-400" />
+                          <Camera className="h-3.5 w-3.5 text-[#9d8bf0]" />
                           <span>{previewImageUrl ? 'Replace Image' : 'Select Food Image'}</span>
                         </button>
-                        <p className="text-[11px] text-slate-400 leading-tight">
+                        <p className="text-[11px] text-stone-400 leading-tight">
                           JPEG, PNG, WebP or AVIF (Max 5MB). Storage upload authorized by backend.
                         </p>
                         {uploadedImageKey && (
@@ -491,12 +496,12 @@ export default function AdminMenuPage() {
                   </div>
 
                   <div className="pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300">
+                    <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-stone-300">
                       <input
                         type="checkbox"
                         checked={isAvailable}
                         onChange={(e) => setIsAvailable(e.target.checked)}
-                        className="rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-0"
+                        className="rounded border-[#282a38] bg-[#101114] text-[#f5a4c6] focus:ring-0"
                       />
                       <span>Mark available for immediate ordering</span>
                     </label>
@@ -506,14 +511,14 @@ export default function AdminMenuPage() {
                     <button
                       type="button"
                       onClick={() => setShowAddForm(false)}
-                      className="rounded-lg border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+                      className="rounded-full border border-[#282a38] bg-[#101114] px-4 py-2 text-xs font-bold text-stone-300 hover:bg-[#232533] transition"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-50 transition"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#f5a4c6] px-5 py-2 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 disabled:opacity-50 transition"
                     >
                       {submitting ? (
                         <>
@@ -534,23 +539,23 @@ export default function AdminMenuPage() {
           )}
 
           {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-500">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-              <p className="text-xs font-medium">Fetching active menu catalog...</p>
+            <div className="py-20 flex flex-col items-center justify-center gap-3 text-stone-500">
+              <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+              <p className="text-xs font-semibold">Fetching active menu catalog...</p>
             </div>
           ) : menuItems.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center">
-              <Utensils className="mx-auto h-8 w-8 text-slate-600" />
-              <h3 className="mt-3 text-sm font-bold text-slate-300">No Dishes in Menu</h3>
-              <p className="mt-1 text-xs text-slate-500">
-                Click "New Menu Item" to add your first dish.
+            <div className="rounded-3xl border border-dashed border-[#22242e] bg-[#17181f]/40 p-12 text-center">
+              <Utensils className="mx-auto h-8 w-8 text-stone-600" />
+              <h3 className="mt-3 text-sm font-bold text-stone-300">No Dishes in Menu</h3>
+              <p className="mt-1 text-xs text-stone-500">
+                Click &quot;New Menu Item&quot; to add your first dish.
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl">
+            <div className="overflow-hidden rounded-2xl border border-[#22242e] bg-[#17181f] shadow-xl">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-slate-950/80 uppercase text-[10px] tracking-wider text-slate-400 border-b border-slate-800">
+                <table className="w-full text-left text-xs text-stone-300">
+                  <thead className="bg-[#121316] uppercase text-[10px] tracking-wider text-stone-400 border-b border-[#22242e]">
                     <tr>
                       <th className="px-6 py-3.5 font-bold">Dish Details</th>
                       <th className="px-6 py-3.5 font-bold">Category</th>
@@ -559,27 +564,27 @@ export default function AdminMenuPage() {
                       <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-[#22242e] font-medium">
                     {menuItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-800/30 transition">
+                      <tr key={item.id} className="hover:bg-[#1a1b24] transition">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-lg bg-slate-950 border border-slate-800 overflow-hidden flex items-center justify-center flex-shrink-0">
+                            <div className="h-12 w-12 rounded-xl bg-[#101114] border border-[#282a38] overflow-hidden flex items-center justify-center flex-shrink-0">
                               {item.image_url ? (
                                 <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
                               ) : (
-                                <Utensils className="h-5 w-5 text-slate-700" />
+                                <Utensils className="h-5 w-5 text-stone-700" />
                               )}
                             </div>
                             <div>
                               <div className="font-bold text-white text-sm">{item.name}</div>
                               {item.description && (
-                                <p className="text-[11px] text-slate-400 line-clamp-1 max-w-xs mt-0.5">
+                                <p className="text-[11px] text-stone-400 line-clamp-1 max-w-xs mt-0.5">
                                   {item.description}
                                 </p>
                               )}
                               {item.is_archived && (
-                                <span className="inline-block rounded bg-rose-950/80 text-rose-400 text-[10px] px-1.5 py-0.2 mt-1">
+                                <span className="inline-block rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-[10px] font-bold px-2 py-0.5 mt-1">
                                   Archived
                                 </span>
                               )}
@@ -587,21 +592,21 @@ export default function AdminMenuPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="rounded bg-slate-800 px-2 py-0.5 text-[11px] text-slate-300">
+                          <span className="rounded-full bg-[#101114] px-2.5 py-0.5 text-[11px] font-semibold text-stone-300 border border-[#282a38]">
                             {item.category_name || 'Uncategorized'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-mono text-sm font-bold text-white tabular-nums">
+                        <td className="px-6 py-4 font-mono text-sm font-extrabold text-white tabular-nums">
                           ₹{(item.price / 100).toFixed(2)}
                         </td>
                         <td className="px-6 py-4">
                           <button
                             onClick={() => handleToggleAvailability(item)}
                             disabled={actionInProgress === item.id || item.is_archived}
-                            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition shadow-xs ${
                               item.is_available
-                                ? 'bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 hover:bg-emerald-900/60'
-                                : 'bg-rose-950/60 border border-rose-800/60 text-rose-300 hover:bg-rose-900/60'
+                                ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+                                : 'bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
                             }`}
                           >
                             {item.is_available ? (
@@ -622,7 +627,7 @@ export default function AdminMenuPage() {
                             onClick={() => handleArchiveItem(item.id)}
                             disabled={actionInProgress === item.id || item.is_archived}
                             title="Archive menu item"
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs text-slate-400 hover:text-rose-400 hover:bg-slate-700 disabled:opacity-30 transition"
+                            className="inline-flex items-center justify-center rounded-full border border-[#282a38] bg-[#101114] p-2 text-stone-400 hover:text-rose-400 hover:bg-rose-500/15 disabled:opacity-30 transition"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
