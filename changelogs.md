@@ -18,6 +18,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.5] - 2026-10-28
+
+### Added
+- **Categories Section UX & Dynamic Filtering (`customer/src/app/page.tsx`)**:
+  - Implemented distinct `Grid` category icon for "All" so custom categories no longer duplicate the cutlery icon.
+  - Enhanced dynamic icon heuristics with `Flame` fallback for test/special items and rich food icons for all categories.
+  - Clicking any category now immediately displays dishes filtered by that category right beneath the rail with empty state support.
+
+### Changed
+- **Next.js 16.4 Upgrade Across Frontends (`customer/` & `admin/`)**:
+  - Upgraded Next.js from `14.2.35` to `16.4.3` (Turbopack) in both `customer` and `admin`.
+  - Upgraded React and React-DOM to `19.3.1` and `@types/react` / `@types/react-dom` to `19.3.0`.
+  - Updated all ecosystem dependencies (`@supabase/supabase-js`, `lucide-react`, `tailwind-merge`, `clsx`) to latest.
+  - Refactored component imports across `customer` and `admin` to remove unused `React` default imports per React 19 automatic JSX transform.
+  - Removed desktop hamburger button from `AmazonHeader.tsx` as requested, keeping zero comments and zero unused variables.
+- **Backend Dependency Updates (`backend/`)**:
+  - Updated dependencies across AWS SDK, Cloudflare Workers, Hono, and tooling.
+
+---
+
 ## [0.4.4] - 2026-10-28
 
 ### Added

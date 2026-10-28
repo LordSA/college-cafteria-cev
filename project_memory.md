@@ -33,7 +33,7 @@ college-canteen-cev/
 
 ### 2.1 Customer Application (`customer/`)
 * **Role:** Student and faculty ordering portal.
-* **Stack:** Next.js 14.2.35 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Stack:** Next.js 16.4.3 (App Router / Turbopack), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3000` (`http://localhost:3000`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
@@ -71,7 +71,7 @@ college-canteen-cev/
 
 ### 2.2 Admin Application (`admin/`)
 * **Role:** Management, kitchen order dispatch queue (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, and menu catalog.
-* **Stack:** Next.js 14.2.35 (App Router), React 18, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Stack:** Next.js 16.4.3 (App Router / Turbopack), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
