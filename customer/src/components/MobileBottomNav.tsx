@@ -71,7 +71,7 @@ export function MobileBottomNav() {
               <div className="relative">
                 <IconComponent className="h-5 w-5" />
                 {item.badge !== null && item.badge !== undefined && (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-black text-white shadow-sm">
+                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#ff5e3a] px-1 text-[9px] font-black text-white shadow-sm">
                     {item.badge}
                   </span>
                 )}

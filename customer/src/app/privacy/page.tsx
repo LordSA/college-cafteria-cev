@@ -7,7 +7,7 @@ export default function PrivacyPolicyPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <Link
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
                   Privacy Policy
                 </h1>
                 <p className="mt-1 text-xs text-orange-100 font-medium">
-                  Last updated: October 2026 &bull; CEV College Canteen Digital Platform
+                  Last updated: October 2026 &bull; Cafteria CEV Digital Platform
                 </p>
               </div>
             </div>
@@ -35,12 +35,12 @@ export default function PrivacyPolicyPage() {
 
         <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
           <div className="space-y-8 text-xs sm:text-sm leading-relaxed text-stone-600">
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 text-amber-950">
+            <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5 text-orange-950">
               <div className="flex items-start gap-3">
-                <ShieldCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <ShieldCheck className="h-5 w-5 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
                 <div>
                   <h3 className="font-bold text-sm">Campus Privacy Commitment</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-amber-900/90">
+                  <p className="mt-1 text-xs leading-relaxed text-orange-900/90">
                     Cafteria is built exclusively for our campus community. We do not sell, rent, or monetize your personal data. All data collected is strictly utilized to prepare and fulfill your daily meals at the college canteen shop.
                   </p>
                 </div>
@@ -74,7 +74,7 @@ export default function PrivacyPolicyPage() {
               <ul className="mt-2 list-disc list-inside space-y-1 pl-2 text-stone-700">
                 <li>We do not store or process real credit cards, debit cards, or net banking credentials.</li>
                 <li>Testing wallet credits are non-monetary tokens used to test zero-queue digital order dispatch.</li>
-                <li>In-person payments occur directly at Counter #1 using standard physical counter methods.</li>
+                <li>In-person payments occur directly at the canteen collection desk using standard physical payment methods.</li>
               </ul>
             </div>
 
@@ -88,7 +88,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="mt-2 list-disc list-inside space-y-1 pl-2 text-stone-700">
                 <li><strong>Kitchen Dispatch:</strong> Showing chef queue tickets with ordered dishes and order numbers.</li>
-                <li><strong>Counter Collection:</strong> Verifying order tokens and QR passes at the pickup counter.</li>
+                <li><strong>Collection:</strong> Verifying order tokens and QR passes at the pickup point.</li>
                 <li><strong>Access Control:</strong> Enforcing Row Level Security (RLS) on PostgreSQL so students cannot view other users' personal profiles or order history.</li>
               </ul>
             </div>
@@ -99,7 +99,7 @@ export default function PrivacyPolicyPage() {
                 <span>4. Contact & Student Inquiries</span>
               </h2>
               <p className="mt-2">
-                If you have questions about your data or wish to delete your campus profile, please contact our canteen desk at Counter #1 or speak with the campus administration office during working hours.
+                If you have questions about your data or wish to delete your campus profile, please contact our canteen team or speak with the campus administration office during working hours.
               </p>
             </div>
           </div>
@@ -109,4 +109,3 @@ export default function PrivacyPolicyPage() {
     </>
   );
 }
-

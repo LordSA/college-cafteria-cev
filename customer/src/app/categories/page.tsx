@@ -72,7 +72,7 @@ export default function CategoriesPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-12 text-white">
           <div className="mx-auto max-w-5xl px-4 sm:px-6">
             <div className="flex items-center gap-3">

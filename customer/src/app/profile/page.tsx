@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
@@ -82,7 +82,7 @@ export default function ProfilePage() {
     loadAvatar();
   }, [profile?.avatar_key, session]);
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
     setSaveError(null);
     setSaveSuccess(false);
@@ -104,7 +104,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !session?.access_token) return;
 
@@ -164,8 +164,9 @@ export default function ProfilePage() {
       await refreshProfile();
       setAvatarSuccess(true);
       setTimeout(() => setAvatarSuccess(false), 3000);
-    } catch (err: any) {
-      setAvatarError(err.message || 'Avatar upload failed');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Avatar upload failed';
+      setAvatarError(msg);
     } finally {
       setUploadingAvatar(false);
       if (fileInputRef.current) {
@@ -183,7 +184,7 @@ export default function ProfilePage() {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20">
+        <main className="flex-1 flex items-center justify-center py-20 pb-28 md:pb-16">
           <div className="flex flex-col items-center gap-3 text-stone-500">
             <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
             <p className="text-xs font-semibold">Loading profile credentials...</p>
@@ -200,7 +201,7 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-10 text-white shadow-md">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

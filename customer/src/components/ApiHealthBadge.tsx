@@ -41,25 +41,25 @@ export function ApiHealthBadge() {
   }, []);
 
   return (
-    <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-stone-200 bg-white/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs backdrop-blur-sm shadow-sm transition-all">
-      <span className="hidden sm:inline-flex items-center gap-1 font-medium text-stone-600">
-        <Activity className="h-3 w-3 text-stone-400" />
+    <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/15 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-xs backdrop-blur-md shadow-xs text-white transition-all">
+      <span className="hidden sm:inline-flex items-center gap-1 font-semibold text-orange-100">
+        <Activity className="h-3 w-3 text-amber-200" />
         <span>API:</span>
       </span>
 
       {loading ? (
-        <span className="flex items-center gap-1 text-stone-500">
-          <RefreshCw className="h-3 w-3 animate-spin text-amber-500" />
+        <span className="flex items-center gap-1 text-orange-100">
+          <RefreshCw className="h-3 w-3 animate-spin text-amber-200" />
           <span className="hidden sm:inline">Connecting...</span>
         </span>
       ) : error ? (
-        <span className="flex items-center gap-1 text-rose-600 font-medium" title={`Failed to reach ${apiUrl}/health (${error})`}>
+        <span className="flex items-center gap-1 text-white bg-rose-500/80 px-2 py-0.5 rounded-full font-bold text-[10px]" title={`Failed to reach ${apiUrl}/health (${error})`}>
           <AlertCircle className="h-3 w-3" />
           <span>Offline</span>
         </span>
       ) : (
-        <span className="flex items-center gap-1 text-emerald-600 font-medium">
-          <CheckCircle2 className="h-3.5 w-3.5" />
+        <span className="flex items-center gap-1 text-white font-bold">
+          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
           <span>Online {data?.version ? `v${data.version}` : ''}</span>
         </span>
       )}

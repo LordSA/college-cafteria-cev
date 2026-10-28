@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
@@ -37,7 +37,7 @@ export default function SignUpPage() {
     }
   }, [user, loading, router, redirectPath]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -80,7 +80,7 @@ export default function SignUpPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#fafaf9]">
+      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12 bg-[#fafaf9]">
         <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-3xl border border-stone-200 shadow-sm">
           <div className="text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/20">

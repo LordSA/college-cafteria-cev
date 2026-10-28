@@ -265,7 +265,7 @@ export default function CustomerHomePage() {
             </Link>
           </div>
 
-          <div className="mt-2 flex items-center gap-4 overflow-x-auto py-3 px-2 -mx-2 scrollbar-none">
+          <div className="mt-2 flex items-center gap-4 overflow-x-auto py-4 px-3 -mx-3 scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedCategory('all')}
@@ -274,7 +274,7 @@ export default function CustomerHomePage() {
               <div
                 className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
                   selectedCategory === 'all'
-                    ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a] ring-offset-2'
+                    ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a]'
                     : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
                 }`}
               >
@@ -305,7 +305,7 @@ export default function CustomerHomePage() {
                   <div
                     className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a] ring-offset-2'
+                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a]'
                         : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
                     }`}
                   >

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
@@ -19,14 +19,14 @@ import {
 interface FaqItem {
   question: string;
   answer: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: typeof CreditCard;
 }
 
 const FAQS: FaqItem[] = [
   {
-    question: 'What payment methods can I use at our college canteen shop?',
+    question: 'What payment methods can I use at Cafteria CEV?',
     answer:
-      'You can checkout using two methods: (1) Testing Wallet (Demo Credits) for instant digital pre-orders without entering bank cards, or (2) Pay at Counter when collecting your order at Counter #1 (via UPI, physical cash, or campus tokens).',
+      'You can checkout using two methods: (1) Testing Wallet (Demo Credits) for instant digital pre-orders without entering bank cards, or (2) Pay at Counter when collecting your order at the canteen collection desk (via UPI, physical cash, or campus tokens).',
     icon: CreditCard,
   },
   {
@@ -44,7 +44,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'How do I collect my food after paying or ordering?',
     answer:
-      'Once your order is placed, our kitchen prepares your meal. You can monitor progress on the live Order Tracking page. When the status changes to "READY_TO_PICK", head to Counter #1 and show your high-contrast QR pass or order token (e.g. #B-108). Staff will verify and hand over your meal immediately.',
+      'Once your order is placed, our kitchen prepares your meal. You can monitor progress on the live Order Tracking page. When the status changes to "READY_TO_PICK", head to the collection desk and show your high-contrast QR pass or order token (e.g. #B-108). Staff will verify and hand over your meal immediately.',
     icon: QrCode,
   },
   {
@@ -56,7 +56,7 @@ const FAQS: FaqItem[] = [
   {
     question: 'How does the digital QR pass protect my meal from someone else taking it?',
     answer:
-      'Each order generates a cryptographically random verification token (#CAF-QR-XXXXXX) rendered as a secure SVG QR code. When the canteen operator scans your QR code at Counter #1, it validates your order and permanently marks it as COLLECTED, preventing duplicate pickups.',
+      'Each order generates a cryptographically random verification token (#CAF-QR-XXXXXX) rendered as a secure SVG QR code. When the canteen operator scans your QR code at the collection desk, it validates your order and permanently marks it as COLLECTED, preventing duplicate pickups.',
     icon: Sparkles,
   },
 ];
@@ -71,7 +71,7 @@ export default function PaymentFaqPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <Link
@@ -106,7 +106,7 @@ export default function PaymentFaqPage() {
               return (
                 <div
                   key={faq.question}
-                  className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs transition hover:border-amber-300"
+                  className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs transition hover:border-orange-300"
                 >
                   <button
                     type="button"
@@ -140,21 +140,21 @@ export default function PaymentFaqPage() {
             })}
           </div>
 
-          <div className="mt-10 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/60 p-6 text-stone-800">
+          <div className="mt-10 rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50/70 to-rose-50/50 p-6 text-stone-800 shadow-xs">
             <h3 className="font-bold text-sm text-stone-900">Still have a question?</h3>
-            <p className="mt-1 text-xs text-stone-600">
-              Visit our canteen staff at <strong>Counter #1</strong> in the campus dining hall between 8:00 AM and 7:00 PM, or explore our full menu.
+            <p className="mt-1 text-xs text-stone-600 leading-relaxed">
+              Visit our canteen staff at the collection desk in the campus dining hall between 8:00 AM and 7:00 PM, or explore our full menu.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <Link
                 href="/menu"
-                className="rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-4 py-2 text-xs font-bold text-white shadow-sm hover:opacity-95 transition"
+                className="rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
               >
                 Browse Today's Menu
               </Link>
               <Link
                 href="/wallet"
-                className="rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+                className="rounded-xl border border-orange-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition active:scale-95"
               >
                 Check Demo Wallet
               </Link>
@@ -166,4 +166,3 @@ export default function PaymentFaqPage() {
     </>
   );
 }
-

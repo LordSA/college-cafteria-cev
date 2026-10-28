@@ -140,7 +140,7 @@ function OrderTrackerContent() {
         <p className="text-xs text-stone-500">Please select an order from your order history.</p>
         <Link
           href="/orders"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
         >
           View My Orders
         </Link>
@@ -151,7 +151,7 @@ function OrderTrackerContent() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
         <p className="text-xs font-medium">Tracking order status...</p>
       </div>
     );
@@ -217,12 +217,12 @@ function OrderTrackerContent() {
           onClick={fetchOrder}
           className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs self-start sm:self-auto"
         >
-          <RefreshCw className="h-3.5 w-3.5 text-amber-600" />
+          <RefreshCw className="h-3.5 w-3.5 text-[#ff5e3a]" />
           <span>Refresh Status</span>
         </button>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs">
         {isCancelled ? (
           <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
             <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
@@ -251,7 +251,7 @@ function OrderTrackerContent() {
                     <div
                       className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition ${
                         isCurrent
-                          ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30 ring-4 ring-amber-100'
+                          ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-4 ring-orange-100'
                           : isPassed
                           ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-stone-100 text-stone-400'
@@ -263,7 +263,7 @@ function OrderTrackerContent() {
                       <p
                         className={`text-xs font-bold ${
                           isCurrent
-                            ? 'text-amber-800'
+                            ? 'text-[#ff5e3a]'
                             : isPassed
                             ? 'text-stone-900'
                             : 'text-stone-400'
@@ -272,7 +272,7 @@ function OrderTrackerContent() {
                         {step.label}
                       </p>
                       {isCurrent && (
-                        <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 mt-1">
+                        <span className="inline-block rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-[#ff5e3a] mt-1">
                           Current Stage
                         </span>
                       )}
@@ -286,20 +286,20 @@ function OrderTrackerContent() {
       </div>
 
       {effectiveStage === 'READY_TO_PICK' && !isCancelled && (
-        <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-5 shadow-xs flex items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+        <div className="rounded-3xl border border-emerald-300 bg-emerald-50 p-5 shadow-xs flex items-center gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
             <PackageCheck className="h-6 w-6 animate-pulse" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-emerald-950">Ready to Pick Up!</h3>
             <p className="text-xs text-emerald-800 mt-0.5">
-              Your food is ready at Campus Canteen — Dispatch Station 1. Present your Counter Pickup QR Pass below to collect.
+              Your food is ready at Cafteria CEV. Present your Collection Pass below to pick up.
             </p>
           </div>
         </div>
       )}
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
         <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
           Ordered Dishes
         </h2>
@@ -308,7 +308,7 @@ function OrderTrackerContent() {
           {order.items.map((item) => (
             <div key={item.id} className="py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-amber-700 min-w-[20px]">
+                <span className="font-mono font-bold text-[#ff5e3a] min-w-[20px]">
                   {item.quantity}×
                 </span>
                 <span className="font-semibold text-stone-900">{item.item_name}</span>
@@ -323,22 +323,22 @@ function OrderTrackerContent() {
           ))}
         </div>
 
-        <div className="border-t border-stone-200 pt-3 flex justify-between items-baseline">
+        <div className="border-t border-stone-200/80 pt-3 flex justify-between items-baseline">
           <span className="text-sm font-bold text-stone-900">Total Order Amount</span>
-          <span className="font-mono text-xl font-extrabold text-amber-700 tabular-nums">
+          <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
             ₹{(order.total / 100).toFixed(2)}
           </span>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <h2 className="text-sm font-bold text-stone-900">
-            Campus Fulfillment Details
+            Fulfillment Details
           </h2>
           <Link
             href={`/orders/receipt/?id=${order.id}`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 transition"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#ff5e3a] hover:text-orange-600 transition"
           >
             <Printer className="h-3.5 w-3.5" />
             <span>Print Receipt</span>
@@ -347,43 +347,43 @@ function OrderTrackerContent() {
 
         <div className="grid gap-4 sm:grid-cols-2 text-xs">
           <div>
-            <span className="text-stone-500">Pickup Counter</span>
-            <p className="font-semibold text-stone-900">Campus Canteen — Dispatch Station 1</p>
+            <span className="text-stone-400 font-medium">Pickup Location</span>
+            <p className="font-bold text-stone-900 mt-0.5">Cafteria CEV</p>
           </div>
           <div>
-            <span className="text-stone-500">Payment Status</span>
+            <span className="text-stone-400 font-medium">Payment Status</span>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                 order.payment_status === 'paid'
                   ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-amber-100 text-amber-800'
+                  : 'bg-orange-100 text-orange-800'
               }`}>
                 {order.payment_status}
               </span>
               <span className="text-[11px] text-stone-500">
-                via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Counter Cash'}
+                via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Cash/UPI'}
               </span>
             </div>
           </div>
           <div>
-            <span className="text-stone-500">Order Reference</span>
-            <p className="font-mono font-semibold text-stone-900">{order.id}</p>
+            <span className="text-stone-400 font-medium">Order Reference</span>
+            <p className="font-mono font-semibold text-stone-900 mt-0.5">{order.id}</p>
           </div>
           <div>
-            <span className="text-stone-500">Token Number</span>
-            <p className="font-mono font-extrabold text-amber-700">{order.order_number}</p>
+            <span className="text-stone-400 font-medium">Token Number</span>
+            <p className="font-mono font-extrabold text-[#ff5e3a] mt-0.5">{order.order_number}</p>
           </div>
         </div>
 
         {order.qr_verification_token && order.payment_status === 'paid' && !isCancelled && (
           effectiveStage === 'COLLECTED' || order.qr_consumed_at ? (
-            <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-6 text-center space-y-2">
+            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-6 text-center space-y-2">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stone-200 text-stone-600">
                 <CheckCircle2 className="h-6 w-6" />
               </div>
               <p className="text-sm font-bold text-stone-900">Order Already Collected</p>
               <p className="text-xs text-stone-500">
-                This order has been fulfilled. The counter pickup QR pass is now permanently expired.
+                This order has been fulfilled. The pickup pass is now permanently expired.
               </p>
               {order.collected_at && (
                 <p className="font-mono text-[11px] text-stone-400">
@@ -392,10 +392,10 @@ function OrderTrackerContent() {
               )}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
+            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
-                <QrCode className="h-4 w-4 text-amber-600" />
-                <span>Counter Pickup QR Pass</span>
+                <QrCode className="h-4 w-4 text-[#ff5e3a]" />
+                <span>Pickup Collection Pass</span>
               </div>
               <div className="flex justify-center">
                 <QRCodeSvg value={order.qr_verification_token} size={150} />
@@ -405,12 +405,12 @@ function OrderTrackerContent() {
                 <p className="font-mono text-xs font-bold text-stone-700">{order.qr_verification_token}</p>
               </div>
               {effectiveStage === 'ORDER_PLACED' ? (
-                <p className="text-[11px] text-amber-700 font-medium">
+                <p className="text-[11px] text-[#ff5e3a] font-medium">
                   Order Placed — your QR code will be ready for pickup collection once marked ready.
                 </p>
               ) : (
                 <p className="text-[11px] text-emerald-700 font-semibold">
-                  Present this QR code to the canteen staff at Dispatch Station 1.
+                  Present this QR code to the canteen staff at Cafteria CEV.
                 </p>
               )}
             </div>
@@ -478,12 +478,12 @@ export default function OrderTrackerPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <div className="mx-auto max-w-3xl">
           <Suspense
             fallback={
               <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
                 <p className="text-xs font-medium">Loading order details...</p>
               </div>
             }

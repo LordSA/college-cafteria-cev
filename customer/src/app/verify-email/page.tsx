@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
@@ -37,7 +37,7 @@ function VerifyEmailContent() {
     return undefined;
   }, [cooldown]);
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleVerify = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -67,8 +67,9 @@ function VerifyEmailContent() {
       setTimeout(() => {
         router.push('/profile');
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || 'Verification failed. The code may be invalid or expired.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Verification failed. The code may be invalid or expired.';
+      setError(msg);
     } finally {
       setVerifying(false);
     }
@@ -90,42 +91,45 @@ function VerifyEmailContent() {
       }
 
       setCooldown(60);
-    } catch (err: any) {
-      setError(err.message || 'Failed to resend code. Please try again later.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to resend code. Please try again later.';
+      setError(msg);
     } finally {
       setResending(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl border border-stone-200 shadow-sm">
+    <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-3xl border border-stone-200 shadow-sm">
       <div className="text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-          <Mail className="h-6 w-6" />
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/20">
+          <Mail className="h-7 w-7" />
         </div>
-        <h1 className="mt-4 text-2xl font-bold tracking-tight text-stone-900">Verify Your Email</h1>
+        <h1 className="mt-4 text-2xl font-black tracking-tight text-stone-900">
+          Verify Your Email
+        </h1>
         <p className="mt-1 text-xs text-stone-500">
           Enter the 6-digit verification code sent to your college inbox
         </p>
       </div>
 
       {success && (
-        <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800">
+        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800">
           <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
           <span>Email successfully verified! Redirecting to your profile...</span>
         </div>
       )}
 
       {error && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-800">
+        <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs text-rose-800">
           <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
-      <form className="mt-6 space-y-4" onSubmit={handleVerify}>
+      <form className="space-y-4" onSubmit={handleVerify}>
         <div>
-          <label className="block text-xs font-semibold text-stone-700 mb-1" htmlFor="email">
+          <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="email">
             Email Address
           </label>
           <input
@@ -134,13 +138,13 @@ function VerifyEmailContent() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="rohan@college.edu"
-            className="w-full rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            placeholder="student@college.edu"
+            className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs font-medium text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-stone-700 mb-1" htmlFor="token">
+          <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="token">
             6-Digit Verification Code (OTP)
           </label>
           <input
@@ -151,14 +155,14 @@ function VerifyEmailContent() {
             value={token}
             onChange={(e) => setToken(e.target.value)}
             placeholder="123456"
-            className="w-full tracking-widest text-center font-mono text-lg rounded-lg border border-stone-300 px-3.5 py-2.5 text-stone-900 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full tracking-widest text-center font-mono text-lg rounded-xl border border-stone-300 px-3.5 py-2.5 text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
           />
         </div>
 
         <button
           type="submit"
           disabled={verifying || success}
-          className="w-full mt-2 flex items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50 transition"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-3 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
         >
           {verifying ? (
             <>
@@ -179,13 +183,13 @@ function VerifyEmailContent() {
           type="button"
           onClick={handleResend}
           disabled={cooldown > 0 || resending || !email.trim()}
-          className="inline-flex items-center gap-1.5 font-semibold text-amber-700 hover:text-amber-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 font-bold text-[#ff5e3a] hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${resending ? 'animate-spin' : ''}`} />
           <span>{cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend Code'}</span>
         </button>
 
-        <Link href="/login" className="text-stone-500 hover:text-stone-700">
+        <Link href="/login" className="font-semibold text-stone-500 hover:text-stone-700 transition">
           Back to Sign In
         </Link>
       </div>
@@ -197,11 +201,11 @@ export default function VerifyEmailPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12 bg-[#fafaf9]">
         <Suspense
           fallback={
-            <div className="flex items-center gap-2 text-stone-500 text-xs">
-              <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex items-center gap-2 text-stone-500 text-xs font-medium">
+              <Loader2 className="h-4 w-4 animate-spin text-[#ff5e3a]" />
               <span>Loading verification...</span>
             </div>
           }

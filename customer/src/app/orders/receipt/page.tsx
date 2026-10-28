@@ -103,7 +103,7 @@ function ReceiptContent() {
   if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
       </div>
     );
   }
@@ -116,7 +116,7 @@ function ReceiptContent() {
         <p className="text-xs text-stone-500">{error || 'Could not load receipt for this order.'}</p>
         <Link
           href="/orders"
-          className="inline-block rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition"
+          className="inline-block rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
         >
           Back to Orders
         </Link>
@@ -146,7 +146,7 @@ function ReceiptContent() {
 
       <div className="rounded-3xl border border-stone-300 bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-stone-900 font-sans">
         <div className="border-b border-stone-200 pb-6 text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-xs print:border print:border-stone-900">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff5e3a] text-white shadow-xs print:border print:border-stone-900">
             <UtensilsCrossed className="h-6 w-6" />
           </div>
           <h1 className="text-xl font-extrabold tracking-tight text-stone-900 uppercase">
@@ -164,7 +164,7 @@ function ReceiptContent() {
             <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
               Bill / Token No.
             </span>
-            <span className="font-mono text-base font-extrabold text-amber-700">
+            <span className="font-mono text-base font-extrabold text-[#ff5e3a]">
               {receipt.order_number}
             </span>
           </div>
@@ -251,7 +251,7 @@ function ReceiptContent() {
           </div>
           <div className="flex justify-between items-baseline border-t border-stone-200 pt-2 text-sm font-extrabold text-stone-900">
             <span>Grand Total</span>
-            <span className="font-mono text-xl tabular-nums text-amber-700 font-black">
+            <span className="font-mono text-xl tabular-nums text-[#ff5e3a] font-black">
               ₹{(receipt.total / 100).toFixed(2)}
             </span>
           </div>
@@ -275,7 +275,7 @@ function ReceiptContent() {
           ) : (
             <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-3">
               <p className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
-                Counter Verification Pickup Ticket
+                Pickup Collection Ticket
               </p>
               <div className="flex justify-center">
                 <QRCodeSvg value={receipt.qr_verification_token} size={150} />
@@ -305,11 +305,11 @@ export default function CustomerReceiptPage() {
       <div className="print:hidden">
         <Header />
       </div>
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 pb-28 md:pb-12">
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-24">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
             </div>
           }
         >

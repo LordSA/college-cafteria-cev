@@ -132,7 +132,7 @@ export default function MenuPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-32 md:pb-12">
         <div className="mx-auto max-w-6xl space-y-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-stone-200 pb-6">
             <div>
@@ -328,7 +328,7 @@ export default function MenuPage() {
       </main>
 
       {itemCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-orange-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md md:hidden">
+        <div className="fixed bottom-14 left-0 right-0 z-30 border-t border-orange-200 bg-white/95 p-3 shadow-2xl backdrop-blur-md md:hidden">
           <div className="mx-auto flex max-w-4xl items-center justify-between px-4 sm:px-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm">

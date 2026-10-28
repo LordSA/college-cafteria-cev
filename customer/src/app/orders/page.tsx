@@ -127,13 +127,13 @@ export default function CustomerOrdersPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <div className="mx-auto max-w-4xl space-y-8">
           <div className="border-b border-stone-200 pb-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e3a]">
               Personal Dining Record
             </span>
-            <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">
+            <h1 className="mt-1 text-3xl font-black tracking-tight text-stone-900">
               My Campus Orders
             </h1>
             <p className="mt-1 text-xs text-stone-500">
@@ -142,22 +142,22 @@ export default function CustomerOrdersPage() {
           </div>
 
           {!user && !authLoading ? (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
-              <ReceiptText className="mx-auto h-8 w-8 text-stone-400" />
+            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
+              <ReceiptText className="mx-auto h-10 w-10 text-stone-300" />
               <h2 className="text-base font-bold text-stone-900">Sign in to view your orders</h2>
               <p className="text-xs text-stone-500 max-w-sm mx-auto">
                 Authenticate with your college account to view active prep queues and receipts.
               </p>
               <Link
                 href="/login?redirect=/orders"
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 Sign In
               </Link>
             </div>
           ) : loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
               <p className="text-xs font-medium">Loading your orders...</p>
             </div>
           ) : error ? (
@@ -166,15 +166,15 @@ export default function CustomerOrdersPage() {
               <span>{error}</span>
             </div>
           ) : orders.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
-              <ReceiptText className="mx-auto h-8 w-8 text-stone-300" />
+            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
+              <ReceiptText className="mx-auto h-10 w-10 text-stone-300" />
               <h2 className="text-base font-bold text-stone-900">No orders placed yet</h2>
               <p className="text-xs text-stone-500 max-w-sm mx-auto">
                 When you order from the campus canteen, your live kitchen status and tickets will show up here.
               </p>
               <Link
                 href="/menu"
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 <Utensils className="h-4 w-4" />
                 <span>Explore Today's Menu</span>
@@ -194,7 +194,7 @@ export default function CustomerOrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-5 shadow-xs hover:border-amber-300 hover:shadow-sm transition"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-stone-200/80 bg-white p-5 shadow-xs hover:border-orange-300 hover:shadow-sm transition"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center gap-2.5 flex-wrap">
@@ -219,14 +219,14 @@ export default function CustomerOrdersPage() {
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 block">
                           Total
                         </span>
-                        <span className="font-mono text-base font-extrabold text-stone-900 tabular-nums">
+                        <span className="font-mono text-base font-extrabold text-[#ff5e3a] tabular-nums">
                           ₹{(order.total / 100).toFixed(2)}
                         </span>
                       </div>
 
                       <Link
                         href={`/orders/track/?id=${order.id}`}
-                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 hover:text-amber-700 transition"
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-bold text-stone-700 hover:border-[#ff5e3a] hover:text-[#ff5e3a] transition"
                       >
                         <span>Details</span>
                         <ArrowRight className="h-3 w-3" />

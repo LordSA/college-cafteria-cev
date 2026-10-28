@@ -164,8 +164,8 @@ export default function CheckoutPage() {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+        <main className="flex-1 flex items-center justify-center py-20 pb-28 md:pb-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
         </main>
         <Footer />
       </>
@@ -176,10 +176,10 @@ export default function CheckoutPage() {
     return (
       <>
         <Header />
-        <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-md rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm space-y-5">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-              <User className="h-6 w-6" />
+        <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
+          <div className="mx-auto max-w-md rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-sm space-y-5">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a]">
+              <User className="h-7 w-7" />
             </div>
             <div>
               <h1 className="text-lg font-bold text-stone-900">Sign in to complete order</h1>
@@ -190,7 +190,7 @@ export default function CheckoutPage() {
             <div className="flex flex-col gap-2 pt-2">
               <Link
                 href="/login?redirect=/checkout"
-                className="w-full inline-flex items-center justify-center rounded-xl bg-amber-600 py-3 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+                className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 Sign In to Continue
               </Link>
@@ -211,17 +211,17 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-stone-50">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-stone-50/50 pb-28 md:pb-12">
         <div className="mx-auto max-w-2xl space-y-6">
           <div>
             <Link
               href="/cart"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 transition mb-3"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-[#ff5e3a] transition mb-3"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Cart</span>
             </Link>
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-2xl font-black tracking-tight text-stone-900">
               Review & Place Order
             </h1>
             <p className="mt-1 text-xs text-stone-500">
@@ -252,32 +252,32 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h2 className="text-sm font-bold text-stone-900">Customer Identity</h2>
-              <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-600 capitalize">
+              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#ff5e3a] capitalize">
                 {profile?.account_type || 'Student'}
               </span>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 text-xs">
               <div>
-                <span className="text-stone-500">Name</span>
-                <p className="font-semibold text-stone-900">
+                <span className="text-stone-400 font-medium">Name</span>
+                <p className="font-bold text-stone-900 mt-0.5">
                   {profile?.display_name || user.email?.split('@')[0]}
                 </p>
               </div>
               <div>
-                <span className="text-stone-500">Email</span>
-                <p className="font-semibold text-stone-900 truncate">{user.email}</p>
+                <span className="text-stone-400 font-medium">Email</span>
+                <p className="font-bold text-stone-900 truncate mt-0.5">{user.email}</p>
               </div>
               <div>
-                <span className="text-stone-500">Pickup Counter</span>
-                <p className="font-semibold text-stone-900">Campus Canteen — Dispatch Station 1</p>
+                <span className="text-stone-400 font-medium">Pickup Location</span>
+                <p className="font-bold text-stone-900 mt-0.5">Cafteria CEV</p>
               </div>
               <div>
-                <span className="text-stone-500">Estimated Prep Window</span>
-                <p className="font-semibold text-amber-700 flex items-center gap-1">
+                <span className="text-stone-400 font-medium">Estimated Prep Time</span>
+                <p className="font-bold text-[#ff5e3a] flex items-center gap-1 mt-0.5">
                   <Clock className="h-3.5 w-3.5" />
                   <span>10–15 minutes</span>
                 </p>
@@ -285,7 +285,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
+          <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
             <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
               Order Items ({itemCount})
             </h2>
@@ -294,7 +294,7 @@ export default function CheckoutPage() {
               {items.map((item) => (
                 <div key={item.id} className="py-3 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-amber-700 min-w-[20px]">
+                    <span className="font-mono font-bold text-[#ff5e3a] min-w-[20px]">
                       {item.quantity}×
                     </span>
                     <span className="font-semibold text-stone-900">{item.name}</span>
@@ -306,7 +306,7 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            <div className="border-t border-stone-200 pt-3 space-y-2 text-xs">
+            <div className="border-t border-stone-200/80 pt-3 space-y-2 text-xs">
               <div className="flex justify-between text-stone-500">
                 <span>Subtotal</span>
                 <span className="font-mono tabular-nums font-semibold text-stone-800">
@@ -319,7 +319,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-stone-100">
                 <span className="text-sm font-bold text-stone-900">Total Payable</span>
-                <span className="font-mono text-xl font-extrabold text-amber-700 tabular-nums">
+                <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
                   ₹{(subtotal / 100).toFixed(2)}
                 </span>
               </div>
@@ -381,7 +381,7 @@ export default function CheckoutPage() {
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
                   paymentMethod === 'counter_cash'
-                    ? 'border-amber-500 bg-amber-50/40 ring-1 ring-amber-500'
+                    ? 'border-orange-500 bg-orange-50/40 ring-1 ring-orange-500'
                     : 'border-stone-200 hover:border-stone-300 bg-white'
                 }`}
               >
@@ -391,12 +391,12 @@ export default function CheckoutPage() {
                   value="counter_cash"
                   checked={paymentMethod === 'counter_cash'}
                   onChange={() => setPaymentMethod('counter_cash')}
-                  className="mt-1 h-4 w-4 text-amber-600 focus:ring-amber-500"
+                  className="mt-1 h-4 w-4 text-[#ff5e3a] focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-stone-900">Pay at Counter (Cash/UPI)</span>
-                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                    <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">
                       Unpaid Order
                     </span>
                   </div>
@@ -408,10 +408,10 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 shadow-xs flex items-start gap-3">
-            <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-amber-800 leading-relaxed">
-              Testing Wallet uses non-monetary demo credits only. Real Razorpay gateway payments will be activated in Phase 5.
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 text-xs text-orange-950 shadow-xs flex items-start gap-3">
+            <Info className="h-4 w-4 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
+            <p className="text-[11px] text-orange-900 leading-relaxed">
+              Testing Wallet uses non-monetary demo credits only. Real payments will be activated in upcoming phases.
             </p>
           </div>
 
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
             className={`w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
               paymentMethod === 'testing_wallet'
                 ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
-                : 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/25'
+                : 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] hover:opacity-95 shadow-orange-500/25'
             }`}
           >
             {submitting ? (

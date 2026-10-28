@@ -100,7 +100,7 @@ function CheckoutSuccessContent() {
         <p className="text-xs text-stone-500">{error || 'Could not find order reference.'}</p>
         <Link
           href="/orders"
-          className="inline-block rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition"
+          className="inline-block rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
         >
           View My Orders
         </Link>
@@ -136,11 +136,11 @@ function CheckoutSuccessContent() {
           <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">
             Pickup Token
           </span>
-          <div className="mt-1 font-mono text-3xl font-extrabold tracking-tight text-amber-700">
+          <div className="mt-1 font-mono text-3xl font-extrabold tracking-tight text-[#ff5e3a]">
             {order.order_number}
           </div>
           <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-medium text-stone-600">
-            <Clock className="h-3.5 w-3.5 text-amber-600" />
+            <Clock className="h-3.5 w-3.5 text-[#ff5e3a]" />
             <span>Estimated pickup in 10–15 minutes</span>
           </div>
         </div>
@@ -148,10 +148,10 @@ function CheckoutSuccessContent() {
         {order.qr_verification_token && (
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs space-y-3">
             <span className="text-xs font-bold text-stone-900">
-              Counter Verification Pass
+              Collection Pass
             </span>
             <p className="text-[11px] text-stone-500">
-              Your order has entered <strong>ORDER_PLACED</strong>. Show this QR pass at Canteen Dispatch Station 1 once your order is marked Ready to Pick.
+              Your order has entered <strong>ORDER_PLACED</strong>. Show this QR pass at Cafteria CEV once your order is marked Ready to Pick.
             </p>
 
             <div className="flex justify-center pt-1">
@@ -167,17 +167,17 @@ function CheckoutSuccessContent() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5 text-left text-xs text-amber-900 flex items-start gap-2.5">
-          <ShieldCheck className="h-4 w-4 text-amber-700 flex-shrink-0 mt-0.5" />
-          <p className="text-[11px] text-amber-800/90 leading-relaxed">
-            Testing Wallet — Demo Credits Only. No Real Money. Real payments will be enabled in Phase 5.
+        <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3.5 text-left text-xs text-orange-950 flex items-start gap-2.5">
+          <ShieldCheck className="h-4 w-4 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] text-orange-900 leading-relaxed">
+            Testing Wallet — Demo Credits Only. No Real Money. Real payments will be enabled in upcoming phases.
           </p>
         </div>
 
         <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
           <Link
             href={`/orders/track/?id=${order.id}`}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-amber-600 py-3 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
           >
             <ExternalLink className="h-4 w-4" />
             <span>Track Order Status</span>
@@ -195,7 +195,7 @@ function CheckoutSuccessContent() {
         <div>
           <Link
             href="/menu"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-[#ff5e3a] transition"
           >
             <ShoppingBag className="h-3.5 w-3.5" />
             <span>Return to Menu</span>
@@ -210,7 +210,7 @@ export default function CheckoutSuccessPage() {
   return (
     <div className="min-h-screen flex flex-col bg-stone-50">
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <Suspense
           fallback={
             <div className="flex items-center justify-center py-24">

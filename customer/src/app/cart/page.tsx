@@ -24,7 +24,7 @@ export default function CartPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <div className="mx-auto max-w-4xl space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-6">
             <div>

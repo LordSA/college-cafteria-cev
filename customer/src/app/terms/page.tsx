@@ -7,7 +7,7 @@ export default function TermsAndConditionsPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <Link
@@ -26,7 +26,7 @@ export default function TermsAndConditionsPage() {
                   Terms & Conditions
                 </h1>
                 <p className="mt-1 text-xs text-orange-100 font-medium">
-                  Effective: October 2026 &bull; CEV College Canteen Service Rules
+                  Effective: October 2026 &bull; Cafteria CEV Service Rules
                 </p>
               </div>
             </div>
@@ -38,7 +38,7 @@ export default function TermsAndConditionsPage() {
             <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
               <h3 className="font-bold text-sm text-stone-900">1. Acceptance of Terms</h3>
               <p className="mt-2 text-stone-600">
-                By accessing or placing orders through the Cafteria CEV Canteen platform, you agree to comply with these terms, college canteen operating guidelines, and general campus regulations. This platform is designed specifically for students, faculty, and authorized staff of the college.
+                By accessing or placing orders through the Cafteria CEV platform, you agree to comply with these terms, college canteen operating guidelines, and general campus regulations. This platform is designed specifically for students, faculty, and authorized staff of the college.
               </p>
             </div>
 
@@ -57,10 +57,10 @@ export default function TermsAndConditionsPage() {
             <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
               <h3 className="font-bold text-sm text-stone-900 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <span>3. Order Collection at Counter #1</span>
+                <span>3. Order Collection & Pickup</span>
               </h3>
               <ul className="mt-3 list-disc list-inside space-y-1 pl-1 text-stone-600">
-                <li>Customers must present their active digital order token or high-contrast QR pass at Counter #1 to pick up prepared food.</li>
+                <li>Customers must present their active digital order token or high-contrast QR pass at the collection desk to pick up prepared food.</li>
                 <li>When an order transitions to <strong>READY_TO_PICK</strong>, please collect your meal promptly to ensure food remains fresh and hot.</li>
                 <li>Once scanned and confirmed by canteen staff, the QR token is permanently consumed and marked as <strong>COLLECTED</strong>.</li>
               </ul>
@@ -68,13 +68,13 @@ export default function TermsAndConditionsPage() {
 
             <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
               <h3 className="font-bold text-sm text-stone-900 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertTriangle className="h-4 w-4 text-[#ff5e3a]" />
                 <span>4. Testing Wallet & Demo Credit Terms</span>
               </h3>
               <p className="mt-2 text-stone-600">
                 The integrated Testing Wallet provides simulated demo credits for testing digital checkouts on campus:
               </p>
-              <ul className="mt-2 list-disc list-inside space-y-1 pl-1 text-stone-600">
+              <ul className="mt-3 list-disc list-inside space-y-1 pl-1 text-stone-600">
                 <li><strong>No Real Currency:</strong> Demo wallet balances carry zero monetary cash value and cannot be withdrawn, refunded in cash, or converted into bank funds.</li>
                 <li><strong>Testing Audit Ledger:</strong> All adjustments and deductions are tracked on an auditable ledger for transparency and queue simulation.</li>
               </ul>
@@ -96,4 +96,3 @@ export default function TermsAndConditionsPage() {
     </>
   );
 }
-

@@ -107,8 +107,8 @@ export default function WalletPage() {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50">
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+        <main className="flex-1 flex items-center justify-center py-20 pb-28 md:pb-12">
+          <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
         </main>
         <Footer />
       </div>
@@ -119,10 +119,10 @@ export default function WalletPage() {
     return (
       <div className="min-h-screen flex flex-col bg-stone-50">
         <Header />
-        <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-md rounded-2xl border border-stone-200 bg-white p-8 text-center shadow-sm space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-              <Wallet className="h-6 w-6" />
+        <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
+          <div className="mx-auto max-w-md rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-sm space-y-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a]">
+              <Wallet className="h-7 w-7" />
             </div>
             <h1 className="text-lg font-bold text-stone-900">Sign in to view your wallet</h1>
             <p className="text-xs text-stone-500">
@@ -131,7 +131,7 @@ export default function WalletPage() {
             <div className="pt-2">
               <Link
                 href="/login?redirect=/wallet"
-                className="w-full inline-flex items-center justify-center rounded-xl bg-amber-600 py-3 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+                className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 Sign In to Cafteria
               </Link>
@@ -147,23 +147,23 @@ export default function WalletPage() {
     <div className="min-h-screen flex flex-col bg-stone-50">
       <Header />
 
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <div className="mx-auto max-w-4xl space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
-                  Phase 4.1 Feature
+                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                  Testing Mode
                 </span>
-                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
-                  Testing Wallet
+                <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold text-[#ff5e3a]">
+                  Demo Wallet
                 </span>
               </div>
-              <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-stone-900 sm:text-3xl">
+              <h1 className="mt-2 text-2xl font-black tracking-tight text-stone-900 sm:text-3xl">
                 Canteen Testing Wallet
               </h1>
               <p className="mt-1 text-xs text-stone-500">
-                Manage your non-monetary demo credits for simulated campus food ordering.
+                Manage your non-monetary demo credits for campus food ordering.
               </p>
             </div>
 
@@ -173,12 +173,12 @@ export default function WalletPage() {
                 disabled={refreshing}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-bold text-stone-700 shadow-xs hover:bg-stone-50 transition disabled:opacity-50"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-amber-600' : ''}`} />
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#ff5e3a]' : ''}`} />
                 <span>Refresh</span>
               </button>
               <Link
                 href="/menu"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 <ShoppingBag className="h-3.5 w-3.5" />
                 <span>Order Food</span>
@@ -186,12 +186,12 @@ export default function WalletPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-xs text-amber-900 shadow-xs flex items-start gap-3">
-            <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4 text-xs text-orange-950 shadow-xs flex items-start gap-3">
+            <Info className="h-5 w-5 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Testing Wallet — Demo Credits Only. No Real Money.</p>
-              <p className="mt-0.5 text-amber-800/90 leading-relaxed">
-                This wallet balance contains non-monetary test credits provided for canteen system testing. Credits cannot be withdrawn, refunded to real currency, or transferred. Real payment gateways will be activated in Phase 5.
+              <p className="mt-0.5 text-orange-900/90 leading-relaxed">
+                This wallet balance contains non-monetary test credits provided for canteen system testing. Credits cannot be withdrawn, refunded to real currency, or transferred. Real payments will be enabled in upcoming phases.
               </p>
             </div>
           </div>
@@ -204,27 +204,27 @@ export default function WalletPage() {
           )}
 
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-1 rounded-3xl border border-stone-200 bg-gradient-to-br from-stone-900 via-stone-800 to-amber-950 p-6 text-white shadow-lg flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mt-6 -mr-6 h-28 w-28 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
+            <div className="md:col-span-1 rounded-3xl bg-gradient-to-br from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-6 text-white shadow-lg shadow-orange-500/20 flex flex-col justify-between relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mt-6 -mr-6 h-28 w-28 rounded-full bg-white/10 blur-xl pointer-events-none" />
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-stone-300">Available Balance</span>
-                  <Wallet className="h-5 w-5 text-amber-400" />
+                  <span className="text-xs font-semibold text-orange-100">Available Balance</span>
+                  <Wallet className="h-5 w-5 text-amber-200" />
                 </div>
                 <div className="mt-4">
-                  <div className="font-mono text-3xl font-extrabold tracking-tight tabular-nums text-white">
+                  <div className="font-mono text-3xl font-black tracking-tight tabular-nums text-white">
                     {wallet ? `₹${(wallet.balance / 100).toFixed(2)}` : '₹0.00'}
                   </div>
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
-                    <ShieldCheck className="h-3.5 w-3.5" />
+                  <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-white bg-white/20 px-2 py-0.5 rounded-full w-fit">
+                    <ShieldCheck className="h-3.5 w-3.5 text-amber-200" />
                     <span>Demo credits active</span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 border-t border-stone-700/60 pt-4 text-[10px] text-stone-400">
+              <div className="mt-8 border-t border-white/20 pt-4 text-[10px] text-orange-100">
                 <span>Account ID: </span>
-                <span className="font-mono text-stone-300">{user.id.slice(0, 8)}...</span>
+                <span className="font-mono text-white">{user.id.slice(0, 8)}...</span>
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export default function WalletPage() {
                 <span className="text-stone-500">Need food right now?</span>
                 <Link
                   href="/menu"
-                  className="font-bold text-amber-700 hover:text-amber-800 transition"
+                  className="font-bold text-[#ff5e3a] hover:text-orange-600 transition"
                 >
                   Explore Today's Menu &rarr;
                 </Link>
