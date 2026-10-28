@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { UtensilsCrossed, User, LogIn, UserPlus, BookOpen, ShoppingBag, ReceiptText, Wallet, Grid } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   Search,
   ShoppingCart,
-  Menu,
   ChevronDown,
   Wallet,
   Grid,
@@ -14,7 +13,6 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 interface AmazonHeaderProps {
-  onOpenSidebar: () => void;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
   selectedCategory: string;
@@ -22,7 +20,6 @@ interface AmazonHeaderProps {
 }
 
 export function AmazonHeader({
-  onOpenSidebar,
   searchQuery,
   setSearchQuery,
   selectedCategory,
@@ -52,7 +49,6 @@ export function AmazonHeader({
       <header className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] text-white px-4 py-2.5">
         <div className="mx-auto flex max-w-7xl items-center gap-4">
           <div className="flex items-center gap-2">
-            {/* dont add fucking buttons here */}
             <Link
               href="/"
               className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-white/10 transition"

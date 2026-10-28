@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -55,12 +55,13 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 function getCategoryIcon(name: string) {
   const lower = name.toLowerCase();
-  if (lower.includes('coffee') || lower.includes('tea')) return Coffee;
-  if (lower.includes('juice') || lower.includes('drink') || lower.includes('beverage')) return Wine;
-  if (lower.includes('cake') || lower.includes('bakery') || lower.includes('dessert')) return Cake;
+  if (lower.includes('coffee') || lower.includes('tea') || lower.includes('chai')) return Coffee;
+  if (lower.includes('juice') || lower.includes('drink') || lower.includes('beverage') || lower.includes('shake')) return Wine;
+  if (lower.includes('cake') || lower.includes('bakery') || lower.includes('dessert') || lower.includes('sweet')) return Cake;
   if (lower.includes('pizza') || lower.includes('burger') || lower.includes('fast')) return Pizza;
-  if (lower.includes('fruit') || lower.includes('salad')) return Apple;
-  if (lower.includes('snack') || lower.includes('bites')) return Cookie;
+  if (lower.includes('fruit') || lower.includes('salad') || lower.includes('apple')) return Apple;
+  if (lower.includes('snack') || lower.includes('bites') || lower.includes('cookie') || lower.includes('chips')) return Cookie;
+  if (lower.includes('test') || lower.includes('hot') || lower.includes('special')) return Flame;
   return UtensilsCrossed;
 }
 
@@ -161,7 +162,6 @@ export default function CustomerHomePage() {
       <SidebarDrawer isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <AmazonHeader
-        onOpenSidebar={() => setIsSidebarOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
@@ -278,7 +278,7 @@ export default function CustomerHomePage() {
                     : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
                 }`}
               >
-                <UtensilsCrossed className="h-6 w-6 sm:h-7 sm:w-7" />
+                <Grid className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
               <span
                 className={`text-xs font-semibold ${
