@@ -52,15 +52,7 @@ export function AmazonHeader({
       <header className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] text-white px-4 py-2.5">
         <div className="mx-auto flex max-w-7xl items-center gap-4">
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenSidebar}
-              className="flex items-center justify-center rounded-2xl bg-white/20 p-2 text-white hover:bg-white/30 transition active:scale-95 shadow-xs"
-              title="Open Navigation"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-
+            {/* dont add fucking buttons here */}
             <Link
               href="/"
               className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-white/10 transition"

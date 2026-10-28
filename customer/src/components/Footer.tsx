@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { UtensilsCrossed, HelpCircle, FileText, Lock, Heart } from 'lucide-react';
+import { UtensilsCrossed, HelpCircle, FileText, Lock } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -102,11 +102,8 @@ export function Footer() {
 
         <div className="mt-10 border-t border-stone-200/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-400">
           <p className="flex items-center gap-1">
-            <span>&copy; {new Date().getFullYear()} Cafteria CEV. Made with</span>
-            <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500 inline" />
-            <span>for our campus.</span>
+            <span>&copy; {new Date().getFullYear()} Cafteria CEV.</span>
           </p>
-
           <div className="flex items-center gap-4 text-stone-500">
             <Link href="/payment-faq" className="hover:text-[#ff5e3a] transition">Payment FAQ</Link>
             <span>&bull;</span>
