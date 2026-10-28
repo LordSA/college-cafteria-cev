@@ -1,7 +1,7 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 4.2 (Strict Order Stages, QR Lifecycle & Collection Flow) Complete  
-> **Last Updated:** 2026-10-22  
+> **Status:** Phase 4.2 (Strict Order Stages, QR Lifecycle & Collection Flow) Complete & Design System Unified  
+> **Last Updated:** 2026-10-28  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
 ---
@@ -46,8 +46,10 @@ college-canteen-cev/
   - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion answering questions on Testing Wallet demo credits, Counter #1 pickups, refunds, and QR pass security.
   - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active red/coral rounded pill highlight, and live cart count badge.
   - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by top hamburger button featuring user profile, Counter #1 details, quick navigation links, dining hours, legal pages, and auth actions.
-  - `src/components/AmazonHeader.tsx`: Responsive PC navigation bar (`hidden md:block`) styled in the warm coral/orange mobile theme for the college canteen shop with category-dropdown broad search bar, Account & Profile menu, Canteen Orders, Testing Wallet demo credits, and Cart indicator.
-  - `src/components/Footer.tsx`: Modern 5-column campus canteen footer with CEV shop identity, hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy, Terms, and Payment FAQs.
+  - `src/components/PcNav.tsx`: Responsive PC navigation component (`hidden md:block`) styled in the warm coral/orange theme for the college canteen shop with category-dropdown broad search bar, Account & Profile menu, Canteen Orders, Testing Wallet demo credits, and Cart indicator.
+  - `src/components/Navbar.tsx`: Unified navigation header for desktop PC and responsive layouts with clean `Home`, `Menu`, `Categories` links, square wallet icon button, cart button with item count badge, and user profile avatar / Login button. (Also re-exported via `Header.tsx` as `Header`).
+  - `src/components/Header.tsx`: Re-exports `Navbar as Header` for 100% backward compatibility across all customer pages.
+  - `src/components/Footer.tsx`: Modern 5-column campus canteen footer with CEV shop identity, hours (8:00 AM – 7:00 PM), canteen collection desk details, links to Privacy Policy, Terms, and Payment FAQs. Hidden on mobile (`hidden md:block`).
   - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
@@ -65,8 +67,6 @@ college-canteen-cev/
   - `src/context/CartContext.tsx`: Client-side persistent cart in `localStorage` (`cafteria_customer_cart`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
   - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
-  - `src/components/Header.tsx`: Navigation header with auth identity state, cart button with badge counter, wallet balance indicator, orders link, and live API health indicator.
-  - `src/components/Footer.tsx`: Minimal footer with status and campus copyright.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
 
 ### 2.2 Admin Application (`admin/`)

@@ -54,11 +54,13 @@ Exclusively powered by `lucide-react` across both applications:
     - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50% on Combos, 60% on Special Thali, 30% on Snack Packs).
     - Floating Mobile Bottom Nav: Fixed 4-tab dock (`Home`, `Menu`, `Cart`, `Profile`) with active coral pill highlight and live cart badge counter.
   - **PC Desktop Layout (`hidden md:block`):**
-    - Warm Theme Navigation Bar: Cohesive warm coral/orange gradient header with CEV Canteen shop branding, category dropdown search bar, Account & Profile, Canteen Orders, Testing Wallet demo badge, and Cart counter. No location widgets.
-    - Quick Sub-Nav Bar: Department shortcuts (`Hot Products`, `Meals & Thali`, `Evening Snacks`, `Tea & Coffee`, `Fresh Juices`, `Menu Catalog`, `Payment FAQs`) and Counter #1 operating schedule.
-    - Warm Promotional Hero Banner: Pre-order announcements and testing wallet CTAs.
+    - Clean Unified Navbar (`Navbar.tsx`): Cohesive warm coral/orange gradient header across all desktop pages (`Header` re-exports `Navbar`) with `Cafteria.cev` branding, clean primary navigation links (`Home`, `Menu`, `Categories`), square Wallet icon button (`/wallet`), Cart button with item count badge, and User Profile with real avatar DP (or user initial) / Login button. Zero clutter (no "Today's Menu", wallet text link, or health polling badge).
+    - Inline Hero Search & Actions: Desktop hero banner with search bar, dynamic category selector dropdown, and primary CTA buttons ("Explore Today's Menu", "View Categories") aligned on the exact same row.
+    - Neutral Categories Rail: Neutral circular badges with hover transitions (`hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a]`) that deep-link directly to category anchors (`/categories#${cat.id}`).
+    - Dynamic Hot Products: Engagement-ranked dishes dynamically calculated based on clicks (`localStorage`) and order purchase counts.
+    - Menu Section: Clean catalog section displaying all active dishes in the canteen kitchen.
   - **Upgraded 5-Column Campus Footer (`hidden md:block`):**
-    - Visible exclusively on desktop and tablet views (`md:` and above), hidden on mobile view to avoid redundancy with the floating bottom dock navigation. Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
+    - Visible exclusively on desktop and tablet views (`md:` and above), hidden on mobile view to avoid redundancy with the floating bottom dock navigation. Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), canteen collection desk details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
 
 For full color scales, component anatomy, layout grids, and interactive states:
 

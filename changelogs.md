@@ -9,6 +9,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+---
+
+## [0.4.7] - 2026-10-28
+
+### Added
+- **Dynamic Category Dropdown in Hero Search**:
+  - Replaced hardcoded category list in search bar with real, dynamic categories fetched directly from `/api/v1/categories`.
+  - Selecting any category filters the search scope instantly.
+- **Dynamic Click & Order-Driven Hot Products**:
+  - Implemented dynamic hot products sorting algorithm based on live engagement: `score = clicks * 2 + purchases * 5`.
+  - Clicking any item or "+ Add" tracks item interaction into `localStorage`, prioritizing trending dishes.
+  - Users with active sessions contribute their order history from `/api/v1/orders/me` to personalize and reflect most-bought items.
+
+### Changed
+- **Unified Clean Desktop Navbar (`customer/src/components/Navbar.tsx`)**:
+  - Consolidated `Header` and `PcNav` into a single, clean `Navbar` component.
+  - Removed "Today's Menu", wallet text link, and the backend API health badge per user specification.
+  - Left navigation: Brand logo (`Cafteria.cev`), `Home`, `Menu`, and `Categories` with active path indicators.
+  - Right actions: Clean square wallet icon button (`h-10 w-10`), Cart button with quantity badge, and Profile button with user DP/avatar or Login button.
+  - Updated `Header.tsx` to re-export `Navbar as Header` for full backward compatibility across all 18 customer routes.
+- **Inline Hero Search & CTA Layout (`customer/src/app/page.tsx`)**:
+  - Realigned desktop hero section to place the Search input and the primary CTA buttons ("Explore Today's Menu", "View Categories") on the exact same row (`flex flex-col lg:flex-row lg:items-center justify-between gap-4`).
+- **Neutral Categories Rail with Deep-Linking**:
+  - Removed pre-selected category styling on home page. All category pills render neutrally in white and animate on hover (`hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a]`).
+  - Clicking a category navigates directly to its anchor on the categories page (`/categories#${cat.id}`).
+- **Renamed Kitchen Section to Menu**:
+  - Renamed "Available in Kitchen" section header to "Menu", displaying all active dishes in the canteen catalog.
+
+---
+
+## [0.4.6] - 2026-10-28
+
+### Changed
+- **Unified PC Navigation & Component Renaming**:
+  - Renamed `AmazonHeader.tsx` to `PcNav.tsx` (`export function PcNav`), removing all legacy Amazon references.
+  - Updated `customer/src/app/page.tsx` on desktop PC (`hidden md:block`) to use the common, already-made `Header` navbar, establishing 100% navbar consistency across all customer pages.
+  - Integrated a dedicated search pill inside the PC hero section on the home page so desktop users can seamlessly search canteen dishes.
+- **Comprehensive Warm Design System Rollout Across All Customer Pages**:
+  - Propagated the warm coral/orange gradient design system (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` and `from-[#ff4b4b] to-[#ff7844]`) to all customer pages:
+    - `forgot-password/page.tsx`: Updated icon containers, input focus rings, and primary action buttons to warm coral gradient; added mobile bottom nav padding (`pb-28 md:pb-12`).
+    - `reset-password/page.tsx`: Updated styling from legacy amber to warm coral gradient with `pb-28 md:pb-12`.
+    - `verify-email/page.tsx`: Updated verification action button and resend cooldown states to warm coral theme; added `pb-28 md:pb-12`.
+    - `login/page.tsx` & `signup/page.tsx`: Realigned container cards with `pb-28 md:pb-12` and warm accents.
+    - `profile/page.tsx`: Realigned profile cards and actions with `pb-28 md:pb-16`.
+    - `privacy/page.tsx`, `terms/page.tsx`, & `payment-faq/page.tsx`: Replaced residual amber styling with warm coral badges and added `pb-28 md:pb-16`.
+- **Categories Rail Overflow & Clipping Fix (`customer/src/app/page.tsx`)**:
+  - Eliminated clipping when hovering or clicking categories by increasing scroll track padding to `py-4 px-3 -mx-3` and removing disruptive `ring-offset-2` while keeping `shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a]` and `active:scale-95`.
+- **Mobile Navigation Polish**:
+  - Updated `MobileBottomNav.tsx` inactive cart badge counter to `#ff5e3a`.
+  - Elevated floating bottom cart checkout bar in `menu/page.tsx` to `bottom-14` so it sits cleanly above the persistent 4-tab mobile bottom navigation without overlapping.
+- **De-cluttering & Rebranding**:
+  - Replaced all residual "Counter #1" and "Dispatch Station 1" text across legal, FAQ, and tracking pages with "Cafteria CEV" and "canteen collection desk".
+  - Verified 100% zero comments in source code per `AGENTS.md`.
+
+---
+
 ### Fixed
 - **Profile Position/Role Locking Trigger Removal**:
   - Removed restrictive `protect_profile_roles()` trigger on `public.profiles` (`trg_protect_profile_roles`), which blocked direct database edits in Supabase Table Editor / SQL Editor and prevented admin approval of student-to-staff/faculty conversion.

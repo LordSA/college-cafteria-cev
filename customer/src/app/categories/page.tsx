@@ -148,8 +148,9 @@ export default function CategoriesPage() {
                 return (
                   <Link
                     key={cat.id}
+                    id={cat.id}
                     href={`/menu?category=${cat.id}`}
-                    className="group flex flex-col justify-between rounded-3xl border border-stone-200 bg-white p-6 shadow-xs hover:border-orange-300 hover:shadow-md transition active:scale-98"
+                    className="scroll-mt-24 group flex flex-col justify-between rounded-3xl border border-stone-200 bg-white p-6 shadow-xs hover:border-orange-300 hover:shadow-md transition active:scale-98"
                   >
                     <div>
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a] group-hover:bg-[#ff5e3a] group-hover:text-white transition shadow-xs">

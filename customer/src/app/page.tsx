@@ -16,6 +16,7 @@ import {
   Plus,
   Minus,
   ChevronRight,
+  ChevronDown,
   Menu as MenuIcon,
   Flame,
   Loader2,
@@ -24,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { AmazonHeader } from '../components/AmazonHeader';
+import { Navbar } from '../components/Navbar';
 import { SidebarDrawer } from '../components/SidebarDrawer';
 import { Footer } from '../components/Footer';
 
@@ -67,18 +68,40 @@ function getCategoryIcon(name: string) {
 
 export default function CustomerHomePage() {
   const router = useRouter();
-  const { user, profile } = useAuth();
+  const { user, profile, session } = useAuth();
   const { items: cartItems, addItem, updateQuantity } = useCart();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [menuItems, setMenuItems] = useState<ApiMenuItem[]>([]);
+  const [itemClicks, setItemClicks] = useState<Record<string, number>>({});
+  const [userPurchases, setUserPurchases] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Kaliraj';
+
+  useEffect(() => {
+    try {
+      const storedClicks = localStorage.getItem('cafteria_item_clicks');
+      if (storedClicks) {
+        setItemClicks(JSON.parse(storedClicks));
+      }
+    } catch {}
+  }, []);
+
+  const recordItemClick = (id: string) => {
+    setItemClicks((prev) => {
+      const updated = { ...prev, [id]: (prev[id] || 0) + 1 };
+      try {
+        localStorage.setItem('cafteria_item_clicks', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
 
   useEffect(() => {
     async function loadCatalog() {
@@ -114,6 +137,38 @@ export default function CustomerHomePage() {
     loadCatalog();
   }, []);
 
+  useEffect(() => {
+    async function loadPurchases() {
+      if (!session?.access_token) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/orders/me`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            const counts: Record<string, number> = {};
+            for (const order of json.data) {
+              if (Array.isArray(order.items)) {
+                for (const it of order.items) {
+                  const itemId = it.menu_item_id || it.id;
+                  if (itemId) {
+                    counts[itemId] = (counts[itemId] || 0) + (it.quantity || 1);
+                  }
+                }
+              }
+            }
+            setUserPurchases(counts);
+          }
+        }
+      } catch {}
+    }
+
+    loadPurchases();
+  }, [session]);
+
   const cartQuantityMap = useMemo(() => {
     return new Map(cartItems.map((item) => [item.id, item.quantity]));
   }, [cartItems]);
@@ -128,13 +183,23 @@ export default function CustomerHomePage() {
         (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.category_name && item.category_name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      return matchesCategory && matchesSearch;
+      return item.is_available && matchesCategory && matchesSearch;
     });
   }, [menuItems, selectedCategory, searchQuery]);
 
   const hotProducts = useMemo(() => {
-    return menuItems.filter((item) => item.is_available).slice(0, 6);
-  }, [menuItems]);
+    const available = menuItems.filter((item) => item.is_available);
+    return [...available]
+      .sort((a, b) => {
+        const scoreA = (itemClicks[a.id] || 0) * 2 + (userPurchases[a.id] || 0) * 5;
+        const scoreB = (itemClicks[b.id] || 0) * 2 + (userPurchases[b.id] || 0) * 5;
+        if (scoreB !== scoreA) {
+          return scoreB - scoreA;
+        }
+        return (b.price || 0) - (a.price || 0);
+      })
+      .slice(0, 6);
+  }, [menuItems, itemClicks, userPurchases]);
 
   const handleAddToCart = (item: {
     id: string;
@@ -143,6 +208,7 @@ export default function CustomerHomePage() {
     imageUrl: string | null;
     categoryName?: string;
   }) => {
+    recordItemClick(item.id);
     if (!user) {
       router.push('/login?redirect=/cart');
       return;
@@ -157,16 +223,18 @@ export default function CustomerHomePage() {
     });
   };
 
+  const currentCategoryLabel =
+    selectedCategory === 'all'
+      ? 'All Categories'
+      : categories.find((c) => c.id === selectedCategory)?.name || 'All';
+
   return (
     <div className="min-h-screen bg-[#fafaf9] text-stone-900 flex flex-col pb-24 md:pb-0">
       <SidebarDrawer isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <AmazonHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+      <div className="hidden md:block">
+        <Navbar />
+      </div>
 
       <div className="md:hidden">
         <header className="rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-5 pb-7 text-white shadow-xl shadow-orange-500/15">
@@ -216,7 +284,7 @@ export default function CustomerHomePage() {
       <div className="hidden md:block py-6 bg-gradient-to-b from-orange-50/70 via-stone-50/40 to-[#fafaf9]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-8 text-white shadow-xl shadow-orange-500/15">
-            <div className="max-w-2xl">
+            <div className="max-w-4xl">
               <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">
                 Fresh Campus Dining. <br />
                 <span className="text-amber-200">Zero Wait, Zero Queue.</span>
@@ -224,19 +292,79 @@ export default function CustomerHomePage() {
               <p className="mt-3 text-sm text-orange-100 leading-relaxed font-medium">
                 Browse our daily dishes, order between classes, and collect your food without waiting in queues.
               </p>
-              <div className="mt-6 flex items-center gap-3">
-                <Link
-                  href="/menu"
-                  className="rounded-2xl bg-white px-6 py-3 text-xs font-black text-[#ff5e3a] hover:bg-orange-50 transition shadow-lg shadow-black/5 active:scale-95"
-                >
-                  Explore Today's Menu
-                </Link>
-                <Link
-                  href="/categories"
-                  className="rounded-2xl border border-white/40 bg-white/10 backdrop-blur-xs px-5 py-3 text-xs font-bold text-white hover:bg-white/20 transition active:scale-95"
-                >
-                  View Categories
-                </Link>
+
+              <div className="mt-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="relative flex flex-1 max-w-xl items-center shadow-lg shadow-black/10 rounded-2xl">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setDropdownOpen((prev) => !prev)}
+                      className="flex h-11 items-center gap-1.5 rounded-l-2xl bg-white px-4 text-xs font-bold text-stone-800 hover:bg-stone-50 transition border-r border-stone-200 whitespace-nowrap shadow-xs"
+                    >
+                      <span>{currentCategoryLabel}</span>
+                      <ChevronDown className="h-3.5 w-3.5 text-stone-500" />
+                    </button>
+
+                    {dropdownOpen && (
+                      <div className="absolute left-0 top-full z-50 mt-1.5 w-52 max-h-60 overflow-y-auto rounded-2xl border border-stone-200 bg-white py-1.5 shadow-xl">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCategory('all');
+                            setDropdownOpen(false);
+                          }}
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-orange-50 hover:text-[#ff5e3a]"
+                        >
+                          All Categories
+                        </button>
+                        {categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategory(cat.id);
+                              setDropdownOpen(false);
+                            }}
+                            className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-orange-50 hover:text-[#ff5e3a]"
+                          >
+                            {cat.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search meals, snacks, canteen specials, drinks..."
+                    className="h-11 w-full bg-white px-4 text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    className="flex h-11 w-12 items-center justify-center rounded-r-2xl bg-white text-[#ff5e3a] hover:bg-orange-50 transition border-l border-stone-200 shadow-xs"
+                    title="Search"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/menu"
+                    className="rounded-2xl bg-white px-5 py-3 text-xs font-black text-[#ff5e3a] hover:bg-orange-50 transition shadow-lg shadow-black/5 active:scale-95 whitespace-nowrap"
+                  >
+                    Explore Today's Menu
+                  </Link>
+                  <Link
+                    href="/categories"
+                    className="rounded-2xl border border-white/40 bg-white/10 backdrop-blur-xs px-5 py-3 text-xs font-bold text-white hover:bg-white/20 transition active:scale-95 whitespace-nowrap"
+                  >
+                    View Categories
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -266,61 +394,34 @@ export default function CustomerHomePage() {
           </div>
 
           <div className="mt-2 flex items-center gap-4 overflow-x-auto py-4 px-3 -mx-3 scrollbar-none">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('all')}
+            <Link
+              href="/categories"
               className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
             >
-              <div
-                className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
-                  selectedCategory === 'all'
-                    ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a]'
-                    : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
-                }`}
-              >
+              <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
                 <Grid className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <span
-                className={`text-xs font-semibold ${
-                  selectedCategory === 'all'
-                    ? 'text-[#ff4b4b] font-bold'
-                    : 'text-stone-600 group-hover:text-stone-900'
-                }`}
-              >
+              <span className="text-xs font-semibold text-stone-600 group-hover:text-[#ff5e3a] transition-colors">
                 All
               </span>
-            </button>
+            </Link>
 
             {categories.map((cat) => {
               const IconComp = getCategoryIcon(cat.name);
-              const isSelected = selectedCategory === cat.id;
 
               return (
-                <button
+                <Link
                   key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
+                  href={`/categories#${cat.id}`}
                   className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
                 >
-                  <div
-                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
-                      isSelected
-                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a]'
-                        : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
-                    }`}
-                  >
+                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
                     <IconComp className="h-6 w-6 sm:h-7 sm:w-7" />
                   </div>
-                  <span
-                    className={`text-xs font-semibold ${
-                      isSelected
-                        ? 'text-[#ff4b4b] font-bold'
-                        : 'text-stone-600 group-hover:text-stone-900'
-                    }`}
-                  >
+                  <span className="text-xs font-semibold text-stone-600 group-hover:text-[#ff5e3a] transition-colors">
                     {cat.name}
                   </span>
-                </button>
+                </Link>
               );
             })}
           </div>
@@ -373,7 +474,8 @@ export default function CustomerHomePage() {
                     return (
                       <div
                         key={product.id}
-                        className="w-72 sm:w-auto flex-shrink-0 overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                        onClick={() => recordItemClick(product.id)}
+                        className="w-72 sm:w-auto flex-shrink-0 overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer"
                       >
                         <div className="relative h-44 w-full overflow-hidden bg-stone-100 flex items-center justify-center">
                           {product.image_url ? (
@@ -415,7 +517,10 @@ export default function CustomerHomePage() {
                             </span>
 
                             {inCartQty > 0 ? (
-                              <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs">
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs"
+                              >
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(product.id, inCartQty - 1)}
@@ -437,15 +542,16 @@ export default function CustomerHomePage() {
                             ) : (
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   handleAddToCart({
                                     id: product.id,
                                     name: product.name,
                                     price: product.price,
                                     imageUrl: product.image_url,
                                     categoryName: product.category_name,
-                                  })
-                                }
+                                  });
+                                }}
                                 className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
                               >
                                 <Plus className="h-3.5 w-3.5" />
@@ -466,7 +572,7 @@ export default function CustomerHomePage() {
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
-                    Available in Kitchen
+                    Menu
                   </h2>
                 </div>
                 <span className="text-xs text-stone-500 font-medium">
@@ -486,7 +592,8 @@ export default function CustomerHomePage() {
                     return (
                       <div
                         key={product.id}
-                        className="flex gap-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-xs hover:shadow-md transition"
+                        onClick={() => recordItemClick(product.id)}
+                        className="flex gap-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-xs hover:shadow-md transition cursor-pointer"
                       >
                         <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 flex items-center justify-center">
                           {product.image_url ? (
@@ -498,11 +605,6 @@ export default function CustomerHomePage() {
                             />
                           ) : (
                             <UtensilsCrossed className="h-6 w-6 text-stone-300" />
-                          )}
-                          {!product.is_available && (
-                            <span className="absolute inset-0 bg-stone-900/60 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                              Sold Out
-                            </span>
                           )}
                         </div>
 
@@ -528,49 +630,47 @@ export default function CustomerHomePage() {
                               ₹{(product.price / 100).toFixed(0)}
                             </span>
 
-                            {product.is_available ? (
-                              inCartQty > 0 ? (
-                                <div className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-1.5 py-0.5 shadow-xs">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateQuantity(product.id, inCartQty - 1)}
-                                    className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-stone-700 shadow-xs"
-                                  >
-                                    <Minus className="h-2.5 w-2.5" />
-                                  </button>
-                                  <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950">
-                                    {inCartQty}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => updateQuantity(product.id, inCartQty + 1)}
-                                    className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs"
-                                  >
-                                    <Plus className="h-2.5 w-2.5" />
-                                  </button>
-                                </div>
-                              ) : (
+                            {inCartQty > 0 ? (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-1.5 py-0.5 shadow-xs"
+                              >
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    handleAddToCart({
-                                      id: product.id,
-                                      name: product.name,
-                                      price: product.price,
-                                      imageUrl: product.image_url,
-                                      categoryName: product.category_name,
-                                    })
-                                  }
-                                  className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"
+                                  onClick={() => updateQuantity(product.id, inCartQty - 1)}
+                                  className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-stone-700 shadow-xs"
                                 >
-                                  <Plus className="h-3 w-3" />
-                                  <span>Add</span>
+                                  <Minus className="h-2.5 w-2.5" />
                                 </button>
-                              )
+                                <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950">
+                                  {inCartQty}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateQuantity(product.id, inCartQty + 1)}
+                                  className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs"
+                                >
+                                  <Plus className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
                             ) : (
-                              <span className="rounded-lg bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-400">
-                                Sold Out
-                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToCart({
+                                    id: product.id,
+                                    name: product.name,
+                                    price: product.price,
+                                    imageUrl: product.image_url,
+                                    categoryName: product.category_name,
+                                  });
+                                }}
+                                className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"
+                              >
+                                <Plus className="h-3 w-3" />
+                                <span>Add</span>
+                              </button>
                             )}
                           </div>
                         </div>
