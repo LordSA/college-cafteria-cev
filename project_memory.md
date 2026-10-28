@@ -40,7 +40,10 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` and `CartProvider` wrappers.
   - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
-  - `src/app/page.tsx`: Landing page showcasing platform value and ordering highlights.
+  - `src/app/page.tsx`: Main ordering and discovery portal featuring mobile-first header with personalized greeting, 3-line hamburger sidebar trigger, embedded search pill, circular categories, top-rated carousel, exclusive deals, available kitchen products, and Amazon.in-inspired responsive desktop PC experience.
+  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active red/coral rounded pill highlight, and live cart count badge.
+  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by top hamburger button featuring user profile, location, quick navigation links, dining hours, and auth actions.
+  - `src/components/AmazonHeader.tsx`: Amazon.in inspired desktop PC navigation bar (`hidden md:block`) with campus deliver-to location, category-dropdown broad search bar, Account & Lists menu, Returns & Orders, and Cart total indicator.
   - `src/app/login/page.tsx`: Customer sign-in page with validation and forgot password link.
   - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.

@@ -44,6 +44,20 @@ Exclusively powered by `lucide-react` across both applications:
 
 ## 3. Subsystem References
 
+- **Mobile App Shell & Dual PC Experience:**
+  - **Mobile Shell (`md:hidden`):**
+    - Curved Warm Header: `from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` with `rounded-b-[2.5rem]`, high-contrast white greeting typography, campus location badge, and 3-line hamburger sidebar trigger.
+    - Floating Search Pill: Clean white rounded pill container with amber search icon and filter control.
+    - Circular Category Rail: Circular icon buttons (Hotels/Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with active coral gradient pill highlight.
+    - Top Rated Card Carousel: Horizontal card scroll with rating badge pill (`★ 4.4`), prep time indicator (`⏱ 12 Min`), cuisine tags, and instant Add-to-cart buttons.
+    - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50%, 60%, 30% OFF).
+    - Floating Mobile Bottom Nav: Fixed 4-tab dock (`Home`, `Menu`, `Cart`, `Profile`) with active coral pill highlight and live cart badge counter.
+  - **PC Desktop Layout (`hidden md:block` — Amazon.in Reference):**
+    - Navy Primary Bar (`#131921`): Canteen brand, delivery location widget, wide category-dropdown search box with orange action button (`#febd69`), Accounts & Lists, Returns & Orders, and Cart subtotal counter.
+    - Secondary Sub-Nav Bar (`#232f3e`): `☰ All` drawer trigger and quick department shortcuts.
+    - Promotional Hero Carousel and 4-column product catalog.
+    - Multi-column Amazon-style footer with "Back to top" action.
+
 For full color scales, component anatomy, layout grids, and interactive states:
 
 - **Customer Design System Specification:** [docs/design_customer.md](docs/design_customer.md)

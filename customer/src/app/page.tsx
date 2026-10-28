@@ -1,202 +1,678 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
 import {
-  ArrowRight,
-  Utensils,
-  Clock,
-  Smartphone,
-  ShieldCheck,
-  Sparkles,
+  Search,
+  SlidersHorizontal,
+  UtensilsCrossed,
   Coffee,
-  ChefHat,
-  CheckCircle2,
-  UserCheck,
+  Gift,
+  Wine,
+  Cake,
+  Pizza,
+  Apple,
+  Star,
+  Clock,
+  Plus,
+  Minus,
+  ChevronRight,
+  Menu as MenuIcon,
+  Sparkles,
+  Flame,
+  TrendingUp,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import { AmazonHeader } from '../components/AmazonHeader';
+import { SidebarDrawer } from '../components/SidebarDrawer';
+import { Footer } from '../components/Footer';
 
-export default function CustomerLandingPage() {
+interface CategoryItem {
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isSpecial?: boolean;
+}
+
+interface ProductItem {
+  id: string;
+  name: string;
+  counterName: string;
+  cuisines: string;
+  price: number;
+  rating: number;
+  ordersCount: string;
+  prepTime: string;
+  imageUrl: string;
+  category: string;
+  discountBadge?: string;
+  isAvailable: boolean;
+  isHot?: boolean;
+}
+
+const CATEGORIES: CategoryItem[] = [
+  { id: 'all', name: 'Meals', icon: UtensilsCrossed, isSpecial: true },
+  { id: 'coffee', name: 'Coffee', icon: Coffee },
+  { id: 'gifts', name: 'Gifts', icon: Gift },
+  { id: 'juice', name: 'Juice', icon: Wine },
+  { id: 'cake', name: 'Cake', icon: Cake },
+  { id: 'pizza', name: 'Pizza', icon: Pizza },
+  { id: 'fruits', name: 'Fruits', icon: Apple },
+];
+
+const DEFAULT_HOT_PRODUCTS: ProductItem[] = [
+  {
+    id: 'prod-burger-1',
+    name: 'Crispy Double Patty Burger',
+    counterName: 'Snacks Counter #1',
+    cuisines: 'Burgers, Fast Food',
+    price: 12000,
+    rating: 4.8,
+    ordersCount: '12K+ orders',
+    prepTime: '8 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+    category: 'all',
+    discountBadge: '50% OFF',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-pizza-1',
+    name: 'Farmhouse Loaded Pizza',
+    counterName: 'Hot Oven Station',
+    cuisines: 'Italian, Pizza',
+    price: 15000,
+    rating: 4.7,
+    ordersCount: '9K+ orders',
+    prepTime: '12 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80',
+    category: 'pizza',
+    discountBadge: 'Hot Deal',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-coffee-1',
+    name: 'Frosted Cold Coffee with Cream',
+    counterName: 'Beverages Bar',
+    cuisines: 'Chilled Drinks, Shakes',
+    price: 6000,
+    rating: 4.9,
+    ordersCount: '15K+ orders',
+    prepTime: '4 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80',
+    category: 'coffee',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-meals-1',
+    name: 'Executive South Indian Lunch Thali',
+    counterName: 'Main Meal Counter',
+    cuisines: 'Rice, Sambar, Poriyal, Curd',
+    price: 9000,
+    rating: 4.8,
+    ordersCount: '18K+ orders',
+    prepTime: '5 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80',
+    category: 'all',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-juice-1',
+    name: 'Cold Pressed Orange & Mint Juice',
+    counterName: 'Fresh Juice Bar',
+    cuisines: 'Healthy, Citrus Detox',
+    price: 5000,
+    rating: 4.6,
+    ordersCount: '7K+ orders',
+    prepTime: '3 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80',
+    category: 'juice',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-cake-1',
+    name: 'Belgian Chocolate Truffle Pastry',
+    counterName: 'Bakery Display',
+    cuisines: 'Bakery, Desserts',
+    price: 7500,
+    rating: 4.8,
+    ordersCount: '6K+ orders',
+    prepTime: '2 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
+    category: 'cake',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-fruits-1',
+    name: 'Fresh Exotic Fruit Salad Bowl',
+    counterName: 'Nutrition Hub',
+    cuisines: 'Seasonal Fruits & Honey',
+    price: 8000,
+    rating: 4.7,
+    ordersCount: '5K+ orders',
+    prepTime: '4 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80',
+    category: 'fruits',
+    isAvailable: true,
+    isHot: false,
+  },
+];
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
+export default function CustomerHomePage() {
+  const { user, profile } = useAuth();
+  const { items: cartItems, addItem, updateQuantity } = useCart();
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [dbProducts, setDbProducts] = useState<ProductItem[]>([]);
+
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Kaliraj';
+
+  useEffect(() => {
+    async function fetchMenuCatalog() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/menu`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped: ProductItem[] = json.data.map((item: any, idx: number) => ({
+            id: item.id,
+            name: item.name,
+            counterName: item.category_name ? `${item.category_name} Section` : 'Kitchen Counter #1',
+            cuisines: item.category_name || 'Canteen Daily Special',
+            price: item.price,
+            rating: Number((4.5 + (idx % 5) * 0.1).toFixed(1)),
+            ordersCount: `${(3 + (idx % 6) * 2)}K+ orders`,
+            prepTime: `${5 + (idx % 4) * 3} Min`,
+            imageUrl: item.image_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80',
+            category: item.category_name ? item.category_name.toLowerCase() : 'all',
+            isAvailable: Boolean(item.is_available),
+            isHot: idx % 2 === 0,
+          }));
+          setDbProducts(mapped);
+        }
+      } catch {}
+    }
+
+    fetchMenuCatalog();
+  }, []);
+
+  const allProducts = useMemo(() => {
+    if (dbProducts.length > 0) {
+      return [...dbProducts, ...DEFAULT_HOT_PRODUCTS.filter((dp) => !dbProducts.some((p) => p.name.toLowerCase() === dp.name.toLowerCase()))];
+    }
+    return DEFAULT_HOT_PRODUCTS;
+  }, [dbProducts]);
+
+  const cartQuantityMap = useMemo(() => {
+    return new Map(cartItems.map((item) => [item.id, item.quantity]));
+  }, [cartItems]);
+
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter((product) => {
+      const matchesCategory =
+        selectedCategory === 'all' ||
+        product.category === selectedCategory ||
+        product.category.includes(selectedCategory);
+
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.counterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.cuisines.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [allProducts, selectedCategory, searchQuery]);
+
+  const hotBestsellers = useMemo(() => {
+    return allProducts.filter((p) => p.isAvailable && (p.isHot || p.rating >= 4.7)).slice(0, 6);
+  }, [allProducts]);
+
   return (
-    <>
-      <Header />
+    <div className="min-h-screen bg-[#fafaf9] text-stone-900 flex flex-col pb-24 md:pb-0">
+      <SidebarDrawer isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-stone-200/60 bg-gradient-to-b from-amber-50/60 via-stone-50/30 to-white py-16 sm:py-24">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 text-xs font-semibold text-amber-900 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-              <span>Phase 3 Live: Digital Menu & Verified Campus Accounts</span>
+      <AmazonHeader
+        onOpenSidebar={() => setIsSidebarOpen(true)}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+      />
+
+      <div className="md:hidden">
+        <header className="rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-5 pb-7 text-white shadow-xl shadow-orange-500/15">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-white">
+                Hi {displayName}
+              </h1>
+              <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-orange-100">
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                <span>CEV College Canteen &bull; Counter #1</span>
+              </div>
             </div>
 
-            <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-stone-900 sm:text-5xl md:text-6xl">
-              Smart dining for your campus. <br className="hidden sm:inline" />
-              <span className="text-amber-600">Zero wait, zero queues.</span>
-            </h1>
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open navigation sidebar"
+              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 shadow-xs"
+            >
+              <MenuIcon className="h-6 w-6" />
+            </button>
+          </div>
 
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-stone-600 sm:text-lg">
-              <strong>Cafteria</strong> is the modern dining portal built for college students, faculty, and campus staff.
-              Browse daily kitchen specials, verify live dish availability, and get ready for pre-orders between lectures.
-            </p>
-
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-              <Link
-                href="/menu"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-6 py-3.5 text-sm font-bold text-white shadow-md shadow-amber-600/20 hover:bg-amber-700 transition active:scale-95"
-              >
-                <Utensils className="h-4 w-4" />
-                <span>Browse Today's Menu</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/signup"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-6 py-3.5 text-sm font-bold text-stone-700 shadow-sm hover:bg-stone-50 hover:text-stone-900 transition active:scale-95"
-              >
-                <UserCheck className="h-4 w-4 text-amber-600" />
-                <span>Create Campus Account</span>
-              </Link>
+          <div className="mt-5 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-3 text-stone-800 shadow-xl shadow-black/5">
+            <div className="flex flex-1 items-center gap-3">
+              <Search className="h-5 w-5 text-[#ff5e3a]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search hot meals, snacks, coffee, juices..."
+                className="w-full bg-transparent text-sm font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+              />
             </div>
+            <button
+              type="button"
+              title="Filter"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 transition"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+        </header>
+      </div>
 
-            <div className="mx-auto mt-12 max-w-2xl rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/90 to-orange-50/60 p-6 text-left shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-start gap-3.5">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
-                    <ChefHat className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-amber-950">
-                      Live Canteen Menu Feed Active
-                    </h2>
-                    <p className="mt-0.5 text-xs text-amber-900/80 leading-relaxed">
-                      Check real-time stock indicators, breakfast specials, and afternoon snack items before heading to the counter.
-                    </p>
-                  </div>
-                </div>
-
+      <div className="hidden md:block py-6 bg-gradient-to-b from-orange-50/70 via-stone-50/40 to-[#fafaf9]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-8 text-white shadow-xl shadow-orange-500/15">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-xs font-black text-white uppercase tracking-wider shadow-xs">
+                <Flame className="h-3.5 w-3.5 text-amber-200 fill-amber-200" />
+                Live Campus Kitchen Active
+              </span>
+              <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl text-white">
+                Fresh College Canteen Meals. <br />
+                <span className="text-amber-200">Zero Wait, Zero Queue.</span>
+              </h2>
+              <p className="mt-3 text-sm text-orange-100 leading-relaxed font-medium">
+                Skip canteen rush hours between lectures. Pre-order hot meals, snacks, and chilled drinks directly to Counter #1 with instant testing wallet checkout.
+              </p>
+              <div className="mt-6 flex items-center gap-3">
                 <Link
                   href="/menu"
-                  className="inline-flex items-center justify-center gap-1 text-xs font-bold text-amber-700 hover:text-amber-800 whitespace-nowrap"
+                  className="rounded-2xl bg-white px-6 py-3 text-xs font-black text-[#ff5e3a] hover:bg-orange-50 transition shadow-lg shadow-black/5 active:scale-95"
                 >
-                  <span>Explore Menu</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  Explore Today's Menu
+                </Link>
+                <Link
+                  href="/payment-faq"
+                  className="rounded-2xl border border-white/40 bg-white/10 backdrop-blur-xs px-5 py-3 text-xs font-bold text-white hover:bg-white/20 transition active:scale-95"
+                >
+                  How Pre-Orders Work
                 </Link>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 flex-1 w-full">
+        <section className="mt-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+              Categories
+            </h2>
+            <Link
+              href="/menu"
+              className="text-xs font-bold text-[#ff5e3a] hover:text-orange-600 flex items-center gap-0.5"
+            >
+              <span>See Full Menu</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="mt-4 flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+            {CATEGORIES.map((cat) => {
+              const IconComp = cat.icon;
+              const isSelected = selectedCategory === cat.id;
+
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
+                >
+                  <div
+                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 ${
+                      isSelected || (cat.isSpecial && selectedCategory === 'all')
+                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-lg shadow-orange-500/30 scale-105'
+                        : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
+                    }`}
+                  >
+                    <IconComp className="h-6 w-6 sm:h-7 sm:w-7" />
+                  </div>
+                  <span
+                    className={`text-xs font-semibold ${
+                      isSelected || (cat.isSpecial && selectedCategory === 'all')
+                        ? 'text-[#ff4b4b] font-bold'
+                        : 'text-stone-600 group-hover:text-stone-900'
+                    }`}
+                  >
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
-        <section className="py-16 sm:py-20">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-amber-600">Platform Features</h2>
-              <p className="mt-2 text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">
-                Engineered for college rush hours
+        <section className="mt-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Flame className="h-4 w-4 text-[#ff5e3a] fill-[#ff5e3a]" />
+                <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+                  Hot Products (Most Ordered & Clicked)
+                </h2>
+              </div>
+              <p className="text-xs text-stone-500 mt-0.5">
+                Campus canteen favorites ordered most frequently today
+              </p>
+            </div>
+            <Link
+              href="/menu"
+              className="text-xs font-bold text-[#ff5e3a] hover:text-orange-600 flex items-center gap-0.5"
+            >
+              <span>View All</span>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-4 scrollbar-none sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible">
+            {hotBestsellers.map((product) => {
+              const inCartQty = cartQuantityMap.get(product.id) || 0;
+
+              return (
+                <div
+                  key={product.id}
+                  className="w-72 sm:w-auto flex-shrink-0 overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                >
+                  <div className="relative h-44 w-full overflow-hidden bg-stone-100">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-stone-900 shadow-md backdrop-blur-xs">
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      <span>{product.rating}</span>
+                      <span className="text-[10px] text-stone-400 font-normal">
+                        ({product.ordersCount})
+                      </span>
+                    </div>
+
+                    {product.discountBadge ? (
+                      <div className="absolute right-3 top-3 flex h-11 w-11 flex-col items-center justify-center rounded-full bg-[#fde047] text-stone-900 shadow-md font-black text-center leading-none border-2 border-dashed border-amber-600">
+                        <span className="text-[8px] font-bold uppercase">Hot</span>
+                        <span className="text-[10px] font-black">{product.discountBadge}</span>
+                      </div>
+                    ) : (
+                      <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-[#ff5e3a] text-white px-2.5 py-0.5 text-[10px] font-black shadow-md uppercase">
+                        <TrendingUp className="h-3 w-3" />
+                        <span>Hot</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[#ff5e3a] uppercase tracking-wider">
+                          {product.counterName}
+                        </span>
+                        <span className="text-[11px] text-stone-400 font-medium">
+                          {product.ordersCount}
+                        </span>
+                      </div>
+                      <h3 className="mt-1 text-base font-bold text-stone-900 line-clamp-1">
+                        {product.name}
+                      </h3>
+                      <p className="mt-0.5 text-xs text-stone-500 line-clamp-1 font-medium">
+                        {product.cuisines}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-stone-100 pt-3">
+                      <div className="flex items-center gap-1 text-xs font-bold text-stone-600">
+                        <Clock className="h-3.5 w-3.5 text-stone-400" />
+                        <span>{product.prepTime}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-base font-black text-stone-900 tabular-nums">
+                          ₹{(product.price / 100).toFixed(0)}
+                        </span>
+
+                        {inCartQty > 0 ? (
+                          <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(product.id, inCartQty - 1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-stone-700 hover:bg-stone-100 shadow-xs active:scale-95 transition"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="min-w-[16px] text-center font-mono text-xs font-bold text-orange-950">
+                              {inCartQty}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(product.id, inCartQty + 1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:opacity-90 shadow-xs active:scale-95 transition"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              addItem({
+                                id: product.id,
+                                name: product.name,
+                                price: product.price,
+                                image_url: product.imageUrl,
+                                category_name: product.counterName,
+                              })
+                            }
+                            className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            <span>Add</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+              Exclusive Deals
+            </h2>
+            <span className="text-xs font-semibold text-emerald-600 inline-flex items-center gap-1">
+              <Sparkles className="h-3 w-3" /> Campus Valid
+            </span>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-6 py-2">
+            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-rose-500 via-rose-600 to-red-600 p-4 text-center text-white shadow-md shadow-rose-500/20 aspect-square sm:aspect-auto sm:py-6">
+              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-rose-100">
+                Flat
+              </span>
+              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
+                50% OFF
+              </h3>
+              <p className="mt-1 text-[9px] sm:text-xs text-rose-100 font-medium">
+                on Combos
               </p>
             </div>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-                <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                    <Smartphone className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-4 text-base font-semibold text-stone-900">Live Menu & Daily Specials</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-stone-500">
-                    Instant availability toggles updated directly by canteen chefs. Sold-out dishes are marked instantly so you never wait for an unavailable meal.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-emerald-700 inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Live Now
-                  </span>
-                  <Link href="/menu" className="text-xs font-bold text-amber-700 hover:text-amber-800">
-                    View Dishes &rarr;
-                  </Link>
-                </div>
-              </div>
+            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-teal-700 p-4 text-center text-white shadow-md shadow-emerald-500/20 aspect-square sm:aspect-auto sm:py-6">
+              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-emerald-100">
+                Flat
+              </span>
+              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
+                60% OFF
+              </h3>
+              <p className="mt-1 text-[9px] sm:text-xs text-emerald-100 font-medium">
+                on Special Thali
+              </p>
+            </div>
 
-              <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-                <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                    <ShieldCheck className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-4 text-base font-semibold text-stone-900">Verified Campus Profiles</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-stone-500">
-                    Register with university credentials, verify via 6-digit email OTP, and request faculty/staff dining access with administrative approval.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-emerald-700 inline-flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Live Now
-                  </span>
-                  <Link href="/signup" className="text-xs font-bold text-amber-700 hover:text-amber-800">
-                    Sign Up &rarr;
-                  </Link>
-                </div>
-              </div>
-
-              <div className="flex flex-col justify-between rounded-2xl border border-stone-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-                <div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                    <Clock className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-4 text-base font-semibold text-stone-900">Express Pre-Orders & Pickup</h3>
-                  <p className="mt-2 text-xs leading-relaxed text-stone-500">
-                    Order ahead between lecture intervals. Grab your unique digital order token and collect your hot meal at the counter without queuing.
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-stone-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-amber-700">
-                    Planned for Phase 4
-                  </span>
-                  <span className="text-xs text-stone-400 font-mono">Kitchen KDS</span>
-                </div>
-              </div>
+            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-purple-500 via-indigo-600 to-indigo-700 p-4 text-center text-white shadow-md shadow-purple-500/20 aspect-square sm:aspect-auto sm:py-6">
+              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-purple-100">
+                Flat
+              </span>
+              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
+                30% OFF
+              </h3>
+              <p className="mt-1 text-[9px] sm:text-xs text-purple-100 font-medium">
+                on Snack Packs
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="border-t border-stone-200/80 bg-stone-100/60 py-14">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h3 className="text-sm font-bold text-stone-900 uppercase tracking-wider">
-              Campus Canteen Operating Windows
-            </h3>
-            <p className="mt-1 text-xs text-stone-500">
-              Kitchen timings and daily meal preparation slots
-            </p>
-
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-              <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                  <Coffee className="h-4 w-4 text-amber-600" />
-                  <span>Breakfast Service</span>
-                </div>
-                <p className="mt-2 text-xs text-stone-600 font-medium">8:00 AM &ndash; 11:00 AM</p>
-                <p className="mt-1 text-[11px] text-stone-400">Dosiraks, idlis, tea, coffee</p>
-              </div>
-
-              <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                  <Utensils className="h-4 w-4 text-amber-600" />
-                  <span>Lunch Rush</span>
-                </div>
-                <p className="mt-2 text-xs text-stone-600 font-medium">12:00 PM &ndash; 3:00 PM</p>
-                <p className="mt-1 text-[11px] text-stone-400">Rice bowls, thali, noodles, combos</p>
-              </div>
-
-              <div className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                  <Clock className="h-4 w-4 text-amber-600" />
-                  <span>Evening Snacks</span>
-                </div>
-                <p className="mt-2 text-xs text-stone-600 font-medium">4:00 PM &ndash; 7:00 PM</p>
-                <p className="mt-1 text-[11px] text-stone-400">Samosas, puffs, juices, quick bites</p>
-              </div>
+        <section className="mt-10 mb-8">
+          <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+                Available & Fresh in Kitchen Now
+              </h2>
             </div>
+            <span className="text-xs text-stone-500 font-medium">
+              {filteredProducts.length} items ready
+            </span>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product) => {
+              const inCartQty = cartQuantityMap.get(product.id) || 0;
+
+              return (
+                <div
+                  key={product.id}
+                  className="flex gap-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-xs hover:shadow-md transition"
+                >
+                  <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                    {product.isHot && (
+                      <span className="absolute left-1 top-1 rounded-md bg-rose-600 px-1.5 py-0.5 text-[9px] font-black text-white uppercase tracking-wider">
+                        Hot
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[#ff5e3a] uppercase tracking-wider">
+                          {product.counterName}
+                        </span>
+                        <div className="flex items-center gap-0.5 text-[11px] font-bold text-amber-700">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          <span>{product.rating}</span>
+                        </div>
+                      </div>
+                      <h3 className="mt-1 text-xs sm:text-sm font-bold text-stone-900 line-clamp-1">
+                        {product.name}
+                      </h3>
+                      <p className="text-[11px] text-stone-400 flex items-center gap-1 mt-0.5">
+                        <Clock className="h-3 w-3 text-stone-400" />
+                        <span>{product.prepTime}</span>
+                      </p>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between pt-2 border-t border-stone-100">
+                      <span className="font-mono text-sm font-black text-stone-900 tabular-nums">
+                        ₹{(product.price / 100).toFixed(0)}
+                      </span>
+
+                      {inCartQty > 0 ? (
+                        <div className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-1.5 py-0.5 shadow-xs">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(product.id, inCartQty - 1)}
+                            className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-stone-700 shadow-xs"
+                          >
+                            <Minus className="h-2.5 w-2.5" />
+                          </button>
+                          <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950">
+                            {inCartQty}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(product.id, inCartQty + 1)}
+                            className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs"
+                          >
+                            <Plus className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addItem({
+                              id: product.id,
+                              name: product.name,
+                              price: product.price,
+                              image_url: product.imageUrl,
+                              category_name: product.counterName,
+                            })
+                          }
+                          className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"
+                        >
+                          <Plus className="h-3 w-3" />
+                          <span>Add</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

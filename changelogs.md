@@ -9,6 +9,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+---
+
+## [0.4.3] - 2026-10-28
+
+### Added
+- **Mobile-First App Shell & Home UI Revamp (`customer/src/app/page.tsx`)**:
+  - Implemented top gradient header (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]`) with `rounded-b-[2.5rem]`, personalized greeting ("Hi Kaliraj" / dynamic profile name), and location indicator ("Sayalkudi").
+  - Top-right 3-line hamburger menu button opening an accessible slide-over navigation drawer.
+  - Integrated floating search bar with search and filter controls.
+  - Circular category horizontal carousel (Hotels/Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with interactive category filtering.
+  - "Top rated near you" horizontal card carousel featuring ratings (`★ 4.4`), cuisine tags, prep times (`⏱ 12 Min`), pricing, and one-tap "+ Add" / quantity steppers.
+  - "Exclusive Deals" section featuring 3 circular gradient offer badges (Flat 50% OFF, Flat 60% OFF, Flat 30% OFF).
+  - "Available & Hot in Kitchen Now" live product catalog connected to backend menu feed.
+- **Mobile Bottom Navigation Bar (`customer/src/components/MobileBottomNav.tsx`)**:
+  - Persistent bottom dock on mobile screens (`md:hidden`) featuring the 4 requested destinations: `Home`, `Menu`, `Cart`, and `Profile`.
+  - Active route highlighting using red/coral rounded pill container matching reference mobile design.
+  - Real-time cart item count badge on Cart tab.
+  - Mounted globally in `customer/src/app/layout.tsx`.
+- **Slide-Over Navigation Sidebar Drawer (`customer/src/components/SidebarDrawer.tsx`)**:
+  - Slide-in navigation drawer with backdrop blur, user profile card, campus location, quick links, operating hours, and auth actions.
+- **Desktop PC Experience — Amazon.in Reference (`customer/src/components/AmazonHeader.tsx` & `customer/src/app/page.tsx`)**:
+  - Amazon.in style primary top navigation (`#131921`) with campus delivery selector, broad search input with category dropdown, accounts & lists menu, past orders link, and shopping cart counter.
+  - Secondary sub-navigation bar (`#232f3e`) with `☰ All` department drawer trigger, rush hour schedule, and meal category shortcuts.
+  - Campus promotional hero banner and responsive multi-column catalog grid.
+  - Amazon-style multi-column desktop footer with "Back to top" action.
+
 ### Fixed
 - **PostgREST Schema Cache & Profile Relational Queries**:
   - Resolved `Could not find a relationship between 'orders' and 'customer_id' in the schema cache` error in `backend/src/routes/adminOrders.ts` and `backend/src/routes/adminWallet.ts`.
