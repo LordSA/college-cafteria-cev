@@ -72,10 +72,11 @@ For full color scales, component anatomy, layout grids, and interactive states:
   - Order token cards
 
 - **Admin & KDS Design System Specification:** [docs/design_admin.md](docs/design_admin.md)
-  - Dark Slate Tokens (`admin-50` to `admin-900` + `slate-950`)
-  - Order State Machine badges (Queued, Cooking, Ready, Collected, Cancelled)
-  - Kitchen Display System (KDS) 10-foot legibility specs
-  - High-density inventory tables with 1-click availability ("86") toggles
+  - Neo-Dark Obsidian Canvas (`#101114`) with elevated surfaces (`#17181f`) and subtle borders (`#22242e`)
+  - Pastel Rose Active Pills (`#f5a4c6`), Purple Accents (`#9d8bf0`), and Amber Warnings (`#ea9955`)
+  - High-density rounded table containers with neon portion alerts and 1-click availability ("86") toggles
+  - Order State Machine badges (Order Placed, Ready to Pick, Collected, Pay Later Due)
+  - Kitchen Display System (KDS) and high-contrast POS thermal receipt printing specs (`@media print`)
   - Audio and visual alarm states
 
 ---

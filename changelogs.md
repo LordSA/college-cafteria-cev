@@ -11,6 +11,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.9] - 2026-10-28
+
+### Changed
+- **Comprehensive Neo-Dark Theme Across All Admin Pages**:
+  - Fully transformed all operational management pages to the neo-dark obsidian system inspired by reference image `media_1793180176266_8be4861f.png`:
+    - `admin/src/app/orders/page.tsx`: Transformed to `#101114` canvas, `#17181f` cards with `#22242e` borders, pink active filter pills (`#f5a4c6`), `#9d8bf0` stage tags, Pay Later indicator support, and rounded drawer item checklists.
+    - `admin/src/app/orders/receipt/page.tsx`: Updated outer shell to neo-dark background with pink print pill while retaining high-contrast POS thermal white card for `@media print`.
+    - `admin/src/app/inventory/page.tsx`: Transformed stock management with rounded table cards, neon portion alerts (`#ea9955`), quick 86 availability toggles, and neo-dark modal drawer for stock increments.
+    - `admin/src/app/scan/page.tsx`: Modernized optical QR camera viewport, token fallback container, and eligible collection card states.
+    - `admin/src/app/wallets/page.tsx`: Restyled testing credit ledger, customer search pill, and credit/debit audit modal to neo-dark aesthetic.
+    - `admin/src/app/menu/page.tsx`: Updated food catalog roster, category dropdowns, file upload cards, and availability badges.
+    - `admin/src/app/categories/page.tsx`: Redesigned category creation panel and sort order management board.
+    - `admin/src/app/staff-requests/page.tsx`: Modernized staff verification review board with status pills.
+    - `admin/src/app/login/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx`, `unauthorized/page.tsx`: Styled all authentication and RBAC barrier screens to neo-dark surface cards.
+    - `admin/src/components/ApiHealthBadge.tsx`: Redesigned as clean pill badge matching header aesthetic.
+- **Zero Comments Enforcement**: Verified 100% clean production source code with zero comments across all modified files.
+
+---
+
 ## [0.4.8] - 2026-10-28
 
 ### Added

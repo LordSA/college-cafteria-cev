@@ -72,31 +72,32 @@ college-canteen-cev/
 ### 2.2 Admin Application (`admin/`)
 * **Role:** Management, kitchen order dispatch queue (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, and menu catalog.
 * **Stack:** Next.js 16.4.3 (App Router / Turbopack), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Theme:** Neo-Dark Obsidian & Pastel Rose/Purple (`#101114` canvas, `#17181f` surfaces, `#22242e` borders, `#f5a4c6` pink active pills, `#9d8bf0` purple secondary accents, `#ea9955` amber indicators).
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
-  - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider`.
-  - `src/app/globals.css`: Dark slate base styling.
-  - `src/app/page.tsx`: Modern obsidian dark Operations Command Center with slim icon navigation rail, rose pill active indicator, "My Dashboard" search header, 3 quick-action metric cards (Kitchen Queue, Inventory 86, Pay Later & Wallets), interactive dual-line SVG wave velocity chart (Daily/Weekly/Monthly), live orders & Pay Later dues table cards, collection desk quick scanner launcher, live kitchen activity feed, and campus announcement broadcast box.
-  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab filters, search, payment method badges, collected timestamps, and receipt buttons.
-  - `src/app/orders/receipt/page.tsx`: High-contrast, cashier printable register bill layout (`@media print`).
-  - `src/app/scan/page.tsx`: Camera scanner with manual token fallback, order verification card with item checklist, and 1-click "Confirm Order Collection" action.
-  - `src/app/wallets/page.tsx`: Customer testing wallet management, search, balance adjustment modal (credit/debit with mandatory audit reason), and customer ledger dialog.
-  - `src/app/inventory/page.tsx`: Pantry inventory management table with low-stock alerts, stock quantity editing, and 1-click 86 toggles.
-  - `src/app/login/page.tsx`: Restricted admin sign-in with password recovery link.
-  - `src/app/forgot-password/page.tsx`: Administrator password recovery request.
-  - `src/app/reset-password/page.tsx`: Administrator password reset submission.
+  - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider` and neo-dark background.
+  - `src/app/globals.css`: Dark obsidian base styling (`#101114`).
+  - `src/app/page.tsx`: Modern obsidian dark Operations Command Center with slim icon navigation rail, rose pill active indicator, "My Dashboard" search header, 3 quick-action metric cards (Tariff/Kitchen Queue, Additional Options, Subscription/Staff Management), interactive dual-line SVG wave velocity chart (Daily/Weekly/Monthly), partnerships cards, online operator consultation card, message feed, and update news broadcaster.
+  - `src/app/orders/page.tsx`: Neo-dark kitchen dispatch and live order management dashboard with status tab pills, search pill, stage badges (`ORDER_PLACED`, `READY_TO_PICK`, `COLLECTED`), Pay Later payment indicators, items checklist drawer, and receipt print buttons.
+  - `src/app/orders/receipt/page.tsx`: Neo-dark header shell with high-contrast, cashier printable register bill layout (`@media print`).
+  - `src/app/scan/page.tsx`: Neo-dark camera scanner viewport with manual token fallback, order verification card with item checklist, and 1-click "Confirm Order Collection" action.
+  - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal (credit/debit with mandatory audit reason), and customer ledger dialog in neo-dark design.
+  - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click 86 toggles.
+  - `src/app/login/page.tsx`: Restricted admin sign-in with neo-dark container card and password recovery link.
+  - `src/app/forgot-password/page.tsx`: Administrator password recovery request card.
+  - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
   - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals.
-  - `src/app/categories/page.tsx`: Category management (list, add, active toggle).
-  - `src/app/menu/page.tsx`: Menu item catalog management (list, add with presigned food image upload, toggle availability, archive).
+  - `src/app/categories/page.tsx`: Category management (list, add card, active toggle).
+  - `src/app/menu/page.tsx`: Menu item catalog management (list, add card with presigned food image upload, toggle availability, archive).
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me`.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
   - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
-  - `src/components/Header.tsx`: Dark admin header with orders, scanner, wallets, inventory, menu, category, staff requests navigation, identity badge, and logout.
-  - `src/components/Footer.tsx`: Admin-level audit footer.
-  - `src/components/ApiHealthBadge.tsx`: Health check polling badge against Cloudflare Worker API.
+  - `src/components/Header.tsx`: Neo-dark admin header with infinity logo, active rose navigation pills, user avatar, and logout.
+  - `src/components/Footer.tsx`: Neo-dark audit footer.
+  - `src/components/ApiHealthBadge.tsx`: Pill badge monitoring Cloudflare Worker `/health` status.
 
 ### 2.3 Backend API (`backend/`)
 * **Role:** Single source of truth for database operations, authentication, testing wallets, QR verification, uploads, menu catalog, and business logic.
