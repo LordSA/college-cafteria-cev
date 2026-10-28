@@ -110,6 +110,16 @@ For full color scales, component anatomy, layout grids, and interactive states:
 - **Customer QR Invalidation:**
   - When in `COLLECTED` stage, customer tracking and receipt pages replace the scannable SVG QR code with an `"Order Already Collected"` badge to prevent confusion or double pickup attempts.
 
+### 4.5 Obsidian Admin Dashboard & Faculty Pay Later
+- **Obsidian Dark Surface Tokens:** Deep black base (`#0d0e12`), dark card surfaces (`#16171d`), high border radius (`rounded-3xl`), and ultra-subtle borders (`border-white/[0.04]`).
+- **Slim Icon Sidebar:** Minimal vertical rail (`w-20 lg:w-24`) with pastel rose pill badge (`#f49ebb`) for active destination.
+- **Velocity Wave Chart:** Dual-line spline area chart with gradient fills (purple `#a78bfa` and rose `#f49ebb`) with timeframe switcher (`Daily`, `Weekly`, `Monthly`).
+- **Faculty Pay Later Benefit:**
+  - Reserved exclusively for verified faculty and staff accounts.
+  - Generates instant scannable QR ticket while setting `payment_status = 'unpaid'` and `payment_method = 'pay_later'`.
+  - Surfaces current outstanding balance in customer checkout and profile.
+  - Interactive settlement drawer allowing 1-click clearance via Testing Wallet or UPI.
+
 ---
 
 ## 5. Subsystem Behavioral Guides

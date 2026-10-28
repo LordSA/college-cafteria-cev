@@ -11,6 +11,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.8] - 2026-10-28
+
+### Added
+- **Faculty & Staff Pay Later Feature**:
+  - Database migration `20261028000001_pay_later_feature.sql` adding `'pay_later'` to `orders.payment_method` check constraint, with `pay_later_settled_at` and `pay_later_settled_via` tracking.
+  - Backend authorization in `POST /api/v1/orders` strictly restricting `pay_later` orders to verified faculty and staff (`account_type` or `approved_account_type` in `faculty`, `staff`).
+  - Backend endpoints `GET /api/v1/orders/pay-later/pending` (retrieving customer's outstanding Pay Later tab) and `POST /api/v1/orders/pay-later/settle` (atomic settlement via Testing Wallet or UPI).
+  - Checkout Integration (`customer/src/app/checkout/page.tsx`): Displays dedicated "Pay Later (Faculty & Staff Credit)" payment option with live outstanding dues badge and instant pickup QR generation.
+  - Profile Integration (`customer/src/app/profile/page.tsx`): Dedicated "Pay Later Account" card showing outstanding dues and interactive settlement drawer supporting 1-click Testing Wallet deduction or UPI payment.
+
+### Changed
+- **Full Admin Dashboard Revamp (`admin/src/app/page.tsx`)**:
+  - Complete overhaul to match modern obsidian dark dashboard aesthetic (`media_1793180176266_8be4861f.png`).
+  - Left slim icon rail with pastel rose pill highlight (`#f49ebb`) for active dashboard and direct links to Orders/KDS, Inventory, QR Scanner, Menu, Wallets, and Staff Requests.
+  - Operations Center featuring "My Dashboard" title, pill search input, and 3 quick-action metric cards: Kitchen Queue & KDS, Inventory Controls, and Pay Later & Wallets.
+  - Interactive dual-line cubic SVG wave area chart with `Daily`, `Weekly`, `Monthly` tabs and glowing data inflection points.
+  - "Live Orders & Pay Later Dues" card list with customer identities, order items, and live status pills.
+  - Right panel with Counter Collection Desk scanner launcher, Live Kitchen Stream activity feed, and Campus Canteen Broadcast box with on-duty staff tags.
+- Verified 100% zero comments in source code per `AGENTS.md`.
+
+---
+
 ## [0.4.7] - 2026-10-28
 
 ### Added

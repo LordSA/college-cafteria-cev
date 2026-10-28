@@ -78,7 +78,7 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider`.
   - `src/app/globals.css`: Dark slate base styling.
-  - `src/app/page.tsx`: Operations Command Center with metrics (orders, in-stock count, categories, staff reviews), subsystem quick actions (Orders, QR Scanner, Testing Wallets, Inventory, Menu, Categories, Staff Requests).
+  - `src/app/page.tsx`: Modern obsidian dark Operations Command Center with slim icon navigation rail, rose pill active indicator, "My Dashboard" search header, 3 quick-action metric cards (Kitchen Queue, Inventory 86, Pay Later & Wallets), interactive dual-line SVG wave velocity chart (Daily/Weekly/Monthly), live orders & Pay Later dues table cards, collection desk quick scanner launcher, live kitchen activity feed, and campus announcement broadcast box.
   - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab filters, search, payment method badges, collected timestamps, and receipt buttons.
   - `src/app/orders/receipt/page.tsx`: High-contrast, cashier printable register bill layout (`@media print`).
   - `src/app/scan/page.tsx`: Camera scanner with manual token fallback, order verification card with item checklist, and 1-click "Confirm Order Collection" action.
@@ -120,7 +120,7 @@ college-canteen-cev/
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
-  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`, initializes `ORDER_PLACED`), `GET /api/v1/orders/me` (returns `order_stage`), `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
+  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`, `counter_cash`, and faculty/staff `pay_later`), `GET /api/v1/orders/me` (returns `order_stage`), `GET /api/v1/orders/pay-later/pending` (retrieves customer's outstanding Pay Later dues), `POST /api/v1/orders/pay-later/settle` (atomic settlement via Testing Wallet or UPI), `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
   - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (strict stage filtering via `?stage=`), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (non-mutating pre-flight returning stage eligibility), `POST /:id/collect` (atomic collection, sets `qr_consumed_at`), `GET /:id/receipt`.
   - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId`.
   - `src/routes/wallet.ts`: Customer endpoints `GET /api/v1/wallet/me`, `GET /api/v1/wallet/transactions`.
@@ -140,6 +140,7 @@ college-canteen-cev/
   - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
   - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict `order_stage` constraint, `qr_consumed_at` column, and stage-aware `mark_order_ready`, `verify_qr_token`, and `collect_order` stored procedures.
   - `migrations/0008_remove_profile_role_lock.sql`: Drops restrictive `trg_protect_profile_roles` trigger and `protect_profile_roles` function, unlocking direct position/role updates in Supabase and enabling admin staff approvals.
+  - `migrations/20261028000001_pay_later_feature.sql`: Adds `'pay_later'` payment method, `pay_later_settled_at`, and `pay_later_settled_via` tracking.
 
 ---
 
