@@ -139,6 +139,7 @@ college-canteen-cev/
   - `migrations/0005_wallet_and_qr_verification.sql`: Wallets, ledger transactions, orders QR verification fields, and PL/pgSQL stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`, `verify_qr_token`, `collect_order`).
   - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
   - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict `order_stage` constraint, `qr_consumed_at` column, and stage-aware `mark_order_ready`, `verify_qr_token`, and `collect_order` stored procedures.
+  - `migrations/0008_remove_profile_role_lock.sql`: Drops restrictive `trg_protect_profile_roles` trigger and `protect_profile_roles` function, unlocking direct position/role updates in Supabase and enabling admin staff approvals.
 
 ---
 

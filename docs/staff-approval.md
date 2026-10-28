@@ -35,8 +35,8 @@ Cafteria enforces a strict **Zero-Trust Staff Approval Workflow**:
 
 - **`public.handle_new_user()`:**
   Executes on `auth.users` insertion. Initializes `approved_account_type = 'student'`. If `account_type = 'staff'` was requested, marks `staff_approval_status = 'pending'`.
-- **`public.protect_profile_roles()`:**
-  Trigger executing on `public.profiles` updates. Blocks non-service-role clients from altering `app_role`, `approved_account_type`, `account_type`, or `staff_approval_status`.
+- **`public.handle_profile_updated_at()`:**
+  Trigger executing on `public.profiles` updates to maintain `updated_at = now()`. Position/role updates are permitted for database administrators and authorized backend handlers.
 - **`public.review_staff_request(p_target_user_id, p_decision, p_admin_user_id)`:**
   `SECURITY DEFINER` function callable only by verified administrators (`public.is_admin()`). Sets approved or rejected status and updates audit columns.
 

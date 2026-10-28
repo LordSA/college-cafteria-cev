@@ -59,11 +59,10 @@ When a user signs up via Supabase Auth, the `AFTER INSERT ON auth.users` trigger
 * Hardcodes `app_role = 'customer'` unconditionally. Even if malicious metadata attempts `app_role: 'admin'`, it is ignored.
 * Employs `ON CONFLICT (id) DO NOTHING` for idempotency.
 
-### 3.3 Privilege Escalation Guard (`protect_profile_roles`)
-A `BEFORE UPDATE` trigger on `public.profiles` ensures that:
-* Any caller other than `service_role` attempting to modify `app_role` triggers a PostgreSQL exception: `'Unauthorized: Modifying app_role is forbidden'`.
-* Any caller attempting to modify `account_type` without authorization triggers an exception: `'Unauthorized: Modifying account_type is forbidden'`.
-* Updates `updated_at = now()`.
+### 3.3 Profile Timestamp Maintenance (`handle_profile_updated_at`)
+A lightweight `BEFORE UPDATE` trigger on `public.profiles` ensures that:
+* Every update automatically refreshes `updated_at = now()`.
+* Role protection and authorization boundaries are enforced through Supabase Row Level Security (RLS) policies and backend API middleware (`requireAdmin`), allowing authorized administrators and database operators (Supabase Table Editor / SQL Editor) to modify positions and roles without execution blocks.
 
 ### 3.4 Row Level Security (RLS) Rules
 

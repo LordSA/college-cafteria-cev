@@ -78,44 +78,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.protect_profile_roles()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF current_user != 'service_role' THEN
-    IF OLD.app_role IS DISTINCT FROM NEW.app_role THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying app_role is forbidden';
-    END IF;
-
-    IF OLD.approved_account_type IS DISTINCT FROM NEW.approved_account_type THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying approved_account_type is forbidden';
-    END IF;
-
-    IF OLD.staff_approval_status IS DISTINCT FROM NEW.staff_approval_status THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying staff_approval_status is forbidden';
-    END IF;
-
-    IF OLD.reviewed_by IS DISTINCT FROM NEW.reviewed_by THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying reviewed_by is forbidden';
-    END IF;
-
-    IF OLD.reviewed_at IS DISTINCT FROM NEW.reviewed_at THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying reviewed_at is forbidden';
-    END IF;
-
-    IF OLD.account_type IS DISTINCT FROM NEW.account_type THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying account_type is forbidden';
-    END IF;
-  END IF;
-
-  NEW.account_type = NEW.approved_account_type;
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$;
+DROP TRIGGER IF EXISTS trg_protect_profile_roles ON public.profiles;
+DROP FUNCTION IF EXISTS public.protect_profile_roles();
 
 CREATE TABLE IF NOT EXISTS public.categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

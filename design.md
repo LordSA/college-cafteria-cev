@@ -57,8 +57,8 @@ Exclusively powered by `lucide-react` across both applications:
     - Warm Theme Navigation Bar: Cohesive warm coral/orange gradient header with CEV Canteen shop branding, category dropdown search bar, Account & Profile, Canteen Orders, Testing Wallet demo badge, and Cart counter. No location widgets.
     - Quick Sub-Nav Bar: Department shortcuts (`Hot Products`, `Meals & Thali`, `Evening Snacks`, `Tea & Coffee`, `Fresh Juices`, `Menu Catalog`, `Payment FAQs`) and Counter #1 operating schedule.
     - Warm Promotional Hero Banner: Pre-order announcements and testing wallet CTAs.
-  - **Upgraded 5-Column Campus Footer:**
-    - Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
+  - **Upgraded 5-Column Campus Footer (`hidden md:block`):**
+    - Visible exclusively on desktop and tablet views (`md:` and above), hidden on mobile view to avoid redundancy with the floating bottom dock navigation. Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
 
 For full color scales, component anatomy, layout grids, and interactive states:
 

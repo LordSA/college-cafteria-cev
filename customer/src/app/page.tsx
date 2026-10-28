@@ -18,7 +18,6 @@ import {
   Minus,
   ChevronRight,
   Menu as MenuIcon,
-  Sparkles,
   Flame,
   TrendingUp,
 } from 'lucide-react';
@@ -51,11 +50,120 @@ interface ProductItem {
   isHot?: boolean;
 }
 
-const CATEGORIES: CategoryItem[] = [];
+const CATEGORIES: CategoryItem[] = [
+  { id: 'all', name: 'Meals', icon: UtensilsCrossed, isSpecial: true },
+  { id: 'coffee', name: 'Coffee', icon: Coffee },
+  { id: 'gifts', name: 'Gifts', icon: Gift },
+  { id: 'juice', name: 'Juice', icon: Wine },
+  { id: 'cake', name: 'Cake', icon: Cake },
+  { id: 'pizza', name: 'Pizza', icon: Pizza },
+  { id: 'fruits', name: 'Fruits', icon: Apple },
+];
 
-const DEFAULT_HOT_PRODUCTS: ProductItem[] = [];
+const DEFAULT_HOT_PRODUCTS: ProductItem[] = [
+  {
+    id: 'prod-burger-1',
+    name: 'Crispy Double Patty Burger',
+    counterName: 'Snacks Counter #1',
+    cuisines: 'Burgers, Fast Food',
+    price: 12000,
+    rating: 4.8,
+    ordersCount: '12K+ orders',
+    prepTime: '8 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
+    category: 'all',
+    discountBadge: '50% OFF',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-pizza-1',
+    name: 'Farmhouse Loaded Pizza',
+    counterName: 'Hot Oven Station',
+    cuisines: 'Italian, Pizza',
+    price: 15000,
+    rating: 4.7,
+    ordersCount: '9K+ orders',
+    prepTime: '12 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80',
+    category: 'pizza',
+    discountBadge: 'Hot Deal',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-coffee-1',
+    name: 'Frosted Cold Coffee with Cream',
+    counterName: 'Beverages Bar',
+    cuisines: 'Chilled Drinks, Shakes',
+    price: 6000,
+    rating: 4.9,
+    ordersCount: '15K+ orders',
+    prepTime: '4 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80',
+    category: 'coffee',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-meals-1',
+    name: 'Executive South Indian Lunch Thali',
+    counterName: 'Main Meal Counter',
+    cuisines: 'Rice, Sambar, Poriyal, Curd',
+    price: 9000,
+    rating: 4.8,
+    ordersCount: '18K+ orders',
+    prepTime: '5 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80',
+    category: 'all',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-juice-1',
+    name: 'Cold Pressed Orange & Mint Juice',
+    counterName: 'Fresh Juice Bar',
+    cuisines: 'Healthy, Citrus Detox',
+    price: 5000,
+    rating: 4.6,
+    ordersCount: '7K+ orders',
+    prepTime: '3 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80',
+    category: 'juice',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-cake-1',
+    name: 'Belgian Chocolate Truffle Pastry',
+    counterName: 'Bakery Display',
+    cuisines: 'Bakery, Desserts',
+    price: 7500,
+    rating: 4.8,
+    ordersCount: '6K+ orders',
+    prepTime: '2 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
+    category: 'cake',
+    isAvailable: true,
+    isHot: true,
+  },
+  {
+    id: 'prod-fruits-1',
+    name: 'Fresh Exotic Fruit Salad Bowl',
+    counterName: 'Nutrition Hub',
+    cuisines: 'Seasonal Fruits & Honey',
+    price: 8000,
+    rating: 4.7,
+    ordersCount: '5K+ orders',
+    prepTime: '4 Min',
+    imageUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80',
+    category: 'fruits',
+    isAvailable: true,
+    isHot: false,
+  },
+];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 export default function CustomerHomePage() {
   const { user, profile } = useAuth();

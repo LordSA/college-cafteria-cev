@@ -9,6 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Profile Position/Role Locking Trigger Removal**:
+  - Removed restrictive `protect_profile_roles()` trigger on `public.profiles` (`trg_protect_profile_roles`), which blocked direct database edits in Supabase Table Editor / SQL Editor and prevented admin approval of student-to-staff/faculty conversion.
+  - Added additive migration `0008_remove_profile_role_lock.sql` (`supabase/migrations/20261028000000_remove_profile_role_lock.sql`) dropping `trg_protect_profile_roles` and replacing it with lightweight `handle_profile_updated_at` trigger.
+  - Updated `supabase/complete_setup.sql` to remove the locking trigger.
+  - Unlocked direct editing of `account_type`, `approved_account_type`, `requested_account_type`, `staff_approval_status`, and `app_role`.
+
 ---
 
 ## [0.4.4] - 2026-10-28
@@ -29,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Completely aligned the desktop PC layout with the vibrant coral/orange mobile aesthetic (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]`).
   - Removed all delivery and location selectors ("Sayalkudi" / "Deliver to...") to reflect a dedicated on-campus canteen shop with Counter #1 pickup.
   - Updated `SidebarDrawer.tsx` to include direct links to `/payment-faq`, `/terms`, and `/privacy`.
+  - Configured `Footer.tsx` with `hidden md:block` to hide the footer completely on mobile screens while preserving it on desktop.
 
 ---
 
