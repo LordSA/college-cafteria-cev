@@ -30,9 +30,14 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [validating, setValidating] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'testing_wallet' | 'counter_cash'>('testing_wallet');
+  const [paymentMethod, setPaymentMethod] = useState<'testing_wallet' | 'counter_cash' | 'pay_later'>('testing_wallet');
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
+  const [pendingPayLater, setPendingPayLater] = useState<number>(0);
+
+  const isFacultyOrStaff = ['faculty', 'staff'].includes(
+    profile?.approved_account_type || profile?.account_type || ''
+  );
 
   useEffect(() => {
     async function validateCartItems() {
@@ -86,12 +91,26 @@ export default function CheckoutPage() {
             setWalletBalance(json.data.balance);
           }
         }
+
+        if (isFacultyOrStaff) {
+          const plRes = await fetch(`${API_BASE_URL}/api/v1/orders/pay-later/pending`, {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          });
+          if (plRes.ok) {
+            const plJson = await plRes.json();
+            if (plJson.success && plJson.data) {
+              setPendingPayLater(plJson.data.total_pending || 0);
+            }
+          }
+        }
       } catch {}
       setWalletLoading(false);
     }
 
     loadWallet();
-  }, [session]);
+  }, [session, isFacultyOrStaff]);
 
   const hasInsufficientWalletBalance =
     paymentMethod === 'testing_wallet' && walletBalance !== null && walletBalance < subtotal;
@@ -148,7 +167,7 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-      if (paymentMethod === 'testing_wallet') {
+      if (paymentMethod === 'testing_wallet' || paymentMethod === 'pay_later') {
         router.push(`/checkout/success/?id=${data.data.id}`);
       } else {
         router.push(`/orders/track/?id=${data.data.id}`);
@@ -377,6 +396,43 @@ export default function CheckoutPage() {
                   )}
                 </div>
               </label>
+
+              {isFacultyOrStaff && (
+                <label
+                  className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
+                    paymentMethod === 'pay_later'
+                      ? 'border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500'
+                      : 'border-stone-200 hover:border-stone-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment_method"
+                    value="pay_later"
+                    checked={paymentMethod === 'pay_later'}
+                    onChange={() => setPaymentMethod('pay_later')}
+                    className="mt-1 h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-stone-900">Pay Later (Faculty & Staff Credit)</span>
+                        <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800">
+                          Faculty Benefit
+                        </span>
+                      </div>
+                      {pendingPayLater > 0 && (
+                        <span className="font-mono text-xs font-bold text-amber-700 tabular-nums">
+                          Pending: ₹{(pendingPayLater / 100).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-[11px] text-stone-500 leading-normal">
+                      Order now without upfront payment. Pick up your food with instant QR pass and settle dues later via Wallet or UPI from your Profile.
+                    </p>
+                  </div>
+                </label>
+              )}
 
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${

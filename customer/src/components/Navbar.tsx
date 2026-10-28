@@ -7,7 +7,7 @@ import { User, ShoppingBag, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export function Navbar() {
   const pathname = usePathname();
@@ -54,7 +54,7 @@ export function Navbar() {
             setWalletBalance(wBody.data.balance);
           }
         }
-      } catch {}
+      } catch { }
     }
 
     loadUserData();
@@ -85,11 +85,10 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-xl px-3.5 py-1.5 transition ${
-                  link.isActive
-                    ? 'bg-white/20 text-white shadow-xs'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white'
-                }`}
+                className={`rounded-xl px-3.5 py-1.5 transition ${link.isActive
+                  ? 'bg-white/20 text-white shadow-xs'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  }`}
               >
                 {link.label}
               </Link>

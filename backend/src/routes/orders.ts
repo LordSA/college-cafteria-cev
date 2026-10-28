@@ -13,7 +13,7 @@ const OrderItemInputSchema = z.object({
 const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
-  payment_method: z.enum(['testing_wallet', 'counter_cash']).optional().default('counter_cash'),
+  payment_method: z.enum(['testing_wallet', 'counter_cash', 'pay_later']).optional().default('counter_cash'),
 });
 
 const OrderCancelSchema = z.object({
@@ -68,6 +68,31 @@ customerOrdersRouter.post(
     }
 
     const paymentMethod = payload.payment_method || 'testing_wallet';
+
+    if (paymentMethod === 'pay_later') {
+      const { data: prof } = await adminClient
+        .from('profiles')
+        .select('account_type, approved_account_type')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const isFacultyStaff = ['faculty', 'staff'].includes(
+        prof?.approved_account_type || prof?.account_type || ''
+      );
+
+      if (!isFacultyStaff) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'FORBIDDEN_PAY_LATER',
+              message: 'Pay Later is exclusively available for verified faculty and staff.',
+            },
+          },
+          403
+        );
+      }
+    }
 
     if (paymentMethod === 'testing_wallet') {
       try {
@@ -130,7 +155,7 @@ customerOrdersRouter.post(
           }
         }
       } catch {}
-    } else {
+    } else if (paymentMethod === 'counter_cash') {
       try {
         const { data: rpcResult, error: rpcError } = await adminClient.rpc('place_order', {
           p_customer_id: user.id,
@@ -276,7 +301,9 @@ customerOrdersRouter.post(
     const orderNumber = `${datePrefix}${randomSuffix}`;
 
     const isWalletPaid = paymentMethod === 'testing_wallet';
-    const qrVerificationToken = isWalletPaid
+    const isPayLater = paymentMethod === 'pay_later';
+    const generatesQr = isWalletPaid || isPayLater;
+    const qrVerificationToken = generatesQr
       ? `CAF-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}${Date.now().toString(36).slice(-4).toUpperCase()}`
       : null;
 
@@ -286,7 +313,7 @@ customerOrdersRouter.post(
         customer_id: user.id,
         order_number: orderNumber,
         order_stage: 'ORDER_PLACED',
-        order_status: isWalletPaid ? 'ORDER_PLACED' : 'pending',
+        order_status: (isWalletPaid || isPayLater) ? 'ORDER_PLACED' : 'pending',
         payment_status: isWalletPaid ? 'paid' : 'unpaid',
         payment_method: paymentMethod,
         paid_at: isWalletPaid ? new Date().toISOString() : null,
@@ -294,7 +321,7 @@ customerOrdersRouter.post(
         subtotal: calculatedTotal,
         total: calculatedTotal,
         idempotency_key: idempotencyKey,
-        confirmed_at: isWalletPaid ? new Date().toISOString() : null,
+        confirmed_at: (isWalletPaid || isPayLater) ? new Date().toISOString() : null,
       })
       .select('*')
       .single();
@@ -412,6 +439,159 @@ customerOrdersRouter.get('/me', async (c) => {
 
   return c.json({ success: true, data: formatted });
 });
+
+customerOrdersRouter.get('/pay-later/pending', async (c) => {
+  const user = c.get('user');
+  const adminClient = getSupabaseAdminClient(c.env);
+
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const { data: orders, error } = await adminClient
+    .from('orders')
+    .select('id, order_number, total, created_at, payment_status, payment_method, order_stage, order_items(item_name, quantity, line_total)')
+    .eq('customer_id', user.id)
+    .eq('payment_method', 'pay_later')
+    .in('payment_status', ['unpaid', 'pending'])
+    .neq('order_status', 'cancelled')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return c.json(
+      { success: false, error: { code: 'QUERY_FAILED', message: error.message } },
+      500
+    );
+  }
+
+  const pendingOrders = orders || [];
+  const totalPending = pendingOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
+
+  return c.json({
+    success: true,
+    data: {
+      total_pending: totalPending,
+      order_count: pendingOrders.length,
+      orders: pendingOrders,
+    },
+  });
+});
+
+customerOrdersRouter.post(
+  '/pay-later/settle',
+  zValidator(
+    'json',
+    z.object({
+      settlement_method: z.enum(['wallet', 'upi']),
+      upi_reference: z.string().max(100).optional().nullable(),
+    })
+  ),
+  async (c) => {
+    const user = c.get('user');
+    const { settlement_method, upi_reference } = c.req.valid('json');
+    const adminClient = getSupabaseAdminClient(c.env);
+
+    if (!adminClient) {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+        500
+      );
+    }
+
+    const { data: pendingOrders, error: fetchErr } = await adminClient
+      .from('orders')
+      .select('id, total')
+      .eq('customer_id', user.id)
+      .eq('payment_method', 'pay_later')
+      .in('payment_status', ['unpaid', 'pending'])
+      .neq('order_status', 'cancelled');
+
+    if (fetchErr) {
+      return c.json(
+        { success: false, error: { code: 'QUERY_FAILED', message: fetchErr.message } },
+        500
+      );
+    }
+
+    if (!pendingOrders || pendingOrders.length === 0) {
+      return c.json(
+        { success: false, error: { code: 'NO_PENDING_DUES', message: 'No outstanding Pay Later dues found' } },
+        400
+      );
+    }
+
+    const totalToSettle = pendingOrders.reduce((acc, o: any) => acc + (o.total || 0), 0);
+    const orderIds = pendingOrders.map((o: any) => o.id);
+
+    if (settlement_method === 'wallet') {
+      const { data: wallet, error: walletErr } = await adminClient
+        .from('wallets')
+        .select('*')
+        .eq('customer_id', user.id)
+        .maybeSingle();
+
+      if (walletErr || !wallet || wallet.balance < totalToSettle) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'INSUFFICIENT_FUNDS',
+              message: `Insufficient wallet balance to clear dues (Balance: ₹${((wallet?.balance || 0) / 100).toFixed(0)}, Required: ₹${(totalToSettle / 100).toFixed(0)})`,
+            },
+          },
+          400
+        );
+      }
+
+      const nextBalance = wallet.balance - totalToSettle;
+      await adminClient
+        .from('wallets')
+        .update({ balance: nextBalance, updated_at: new Date().toISOString() })
+        .eq('id', wallet.id);
+
+      await adminClient.from('wallet_transactions').insert({
+        wallet_id: wallet.id,
+        customer_id: user.id,
+        amount: totalToSettle,
+        transaction_type: 'debit',
+        balance_after: nextBalance,
+        reason: `Settlement of ${pendingOrders.length} Pay Later orders`,
+      });
+    }
+
+    const now = new Date().toISOString();
+    const { error: updateErr } = await adminClient
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        paid_at: now,
+        pay_later_settled_at: now,
+        pay_later_settled_via: settlement_method === 'upi' ? `upi:${upi_reference || 'simulated'}` : 'wallet',
+        updated_at: now,
+      })
+      .in('id', orderIds);
+
+    if (updateErr) {
+      return c.json(
+        { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
+        500
+      );
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        settled_orders_count: pendingOrders.length,
+        total_settled: totalToSettle,
+        settlement_method,
+        settled_at: now,
+      },
+    });
+  }
+);
 
 customerOrdersRouter.get('/:id', async (c) => {
   const user = c.get('user');
