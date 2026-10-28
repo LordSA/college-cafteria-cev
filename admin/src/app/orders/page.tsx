@@ -168,21 +168,21 @@ export default function AdminOrdersPage() {
     switch (stage) {
       case 'ORDER_PLACED':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-950/60 border border-blue-800/60 px-2.5 py-0.5 text-[11px] font-bold text-blue-400">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#9d8bf0]/15 border border-[#9d8bf0]/30 px-2.5 py-0.5 text-[11px] font-bold text-[#9d8bf0]">
             <Clock className="h-3 w-3" />
             <span>Order Placed</span>
           </span>
         );
       case 'READY_TO_PICK':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400 animate-pulse">
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#f5a4c6]/15 border border-[#f5a4c6]/30 px-2.5 py-0.5 text-[11px] font-bold text-[#f5a4c6] animate-pulse">
             <PackageCheck className="h-3 w-3" />
             <span>Ready to Pick</span>
           </span>
         );
       case 'COLLECTED':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 border border-slate-700 px-2.5 py-0.5 text-[11px] font-bold text-slate-300">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
             <CheckCircle2 className="h-3 w-3" />
             <span>Collected</span>
           </span>
@@ -200,32 +200,32 @@ export default function AdminOrdersPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100">
-        <div className="mx-auto max-w-6xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 bg-[#101114] text-slate-100 min-h-screen">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
-                Kitchen Dispatch & POS
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
+                ALEXATEL • Kitchen Dispatch & POS
               </span>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-white">
+              <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
                 Live Orders Management
               </h1>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-xs text-stone-400">
                 Monitor incoming tickets, kitchen prep progression, and meal pickup fulfillment
               </p>
             </div>
 
             <button
               onClick={loadOrders}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition shadow-xs self-start sm:self-auto"
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#17181f] px-4 py-2 text-xs font-bold text-stone-200 hover:bg-[#232533] hover:text-white transition shadow-xs self-start sm:self-auto"
             >
-              <RefreshCw className="h-3.5 w-3.5 text-indigo-400" />
+              <RefreshCw className="h-3.5 w-3.5 text-[#9d8bf0]" />
               <span>Refresh Queue</span>
             </button>
           </div>
 
           {error && (
-            <div className="rounded-xl border border-rose-800/60 bg-rose-950/40 p-4 text-xs text-rose-300 flex items-center gap-2">
+            <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
@@ -237,10 +237,10 @@ export default function AdminOrdersPage() {
                 <button
                   key={tab.key}
                   onClick={() => setStatusFilter(tab.key)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold whitespace-nowrap transition ${
                     statusFilter === tab.key
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-[#f5a4c6] text-[#101114] shadow-md shadow-[#f5a4c6]/20'
+                      : 'bg-[#17181f] text-stone-400 border border-[#2b2d3b] hover:bg-[#232533] hover:text-white'
                   }`}
                 >
                   {tab.label}
@@ -250,28 +250,28 @@ export default function AdminOrdersPage() {
 
             <div className="w-full sm:w-64">
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-3.5 top-2.5 h-3.5 w-3.5 text-stone-500" />
                 <input
                   type="text"
                   placeholder="Search order #..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900/90 pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-full border border-[#2b2d3b] bg-[#1a1b24] pl-9 pr-4 py-2 text-xs text-white placeholder-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
                 />
               </div>
             </div>
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 text-slate-400 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-              <p className="text-xs font-medium">Retrieving active orders queue...</p>
+            <div className="flex flex-col items-center justify-center py-24 text-stone-400 gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+              <p className="text-xs font-semibold">Retrieving active orders queue...</p>
             </div>
           ) : orders.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/40 p-12 text-center space-y-3">
-              <ReceiptText className="mx-auto h-8 w-8 text-slate-600" />
-              <h2 className="text-sm font-bold text-slate-300">No orders found</h2>
-              <p className="text-xs text-slate-500">
+            <div className="rounded-3xl border border-dashed border-[#22242e] bg-[#17181f]/40 p-12 text-center space-y-3">
+              <ReceiptText className="mx-auto h-8 w-8 text-stone-600" />
+              <h2 className="text-sm font-bold text-stone-300">No orders found</h2>
+              <p className="text-xs text-stone-500">
                 {statusFilter === 'all'
                   ? 'No canteen orders have been recorded yet.'
                   : `No orders currently in "${statusFilter}" status.`}
@@ -287,7 +287,7 @@ export default function AdminOrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm space-y-4 hover:border-slate-700 transition"
+                    className="rounded-2xl border border-[#22242e] bg-[#17181f] p-5 shadow-sm space-y-4 hover:border-[#2f3140] transition"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="space-y-1.5">
@@ -296,23 +296,23 @@ export default function AdminOrdersPage() {
                             {order.order_number}
                           </span>
                           {renderStageBadge(stage)}
-                          <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
+                          <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
                             order.payment_status === 'paid'
-                              ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
-                              : 'bg-amber-950 text-amber-300 border-amber-800'
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : 'bg-[#ea9955]/15 text-[#ea9955] border-[#ea9955]/30'
                           }`}>
                             {order.payment_status}
                           </span>
-                          <span className="rounded-md bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 border border-slate-700">
+                          <span className="rounded-full bg-[#101114] px-2.5 py-0.5 text-[10px] font-semibold text-stone-300 border border-[#282a38]">
                             {order.customer_name} ({order.customer_account_type})
                           </span>
                           {order.payment_method && (
-                            <span className="text-[10px] text-slate-400">
-                              via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Counter Cash'}
+                            <span className="text-[10px] text-stone-400">
+                              via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : order.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'Counter Cash'}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                        <div className="flex items-center gap-3 text-xs text-stone-400">
                           <span>
                             Placed: {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} •{' '}
                             {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
@@ -328,14 +328,14 @@ export default function AdminOrdersPage() {
                       <div className="flex items-center gap-3 self-end sm:self-auto">
                         <Link
                           href={`/orders/receipt/?id=${order.id}`}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#1a1b24] px-3 py-1.5 text-[11px] font-bold text-stone-300 hover:text-white hover:bg-[#232533] transition"
                           title="Print bill receipt"
                         >
-                          <Printer className="h-3 w-3 text-indigo-400" />
+                          <Printer className="h-3 w-3 text-[#9d8bf0]" />
                           <span>Receipt</span>
                         </Link>
                         <div className="text-right">
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 block">
                             Total
                           </span>
                           <span className="font-mono text-base font-extrabold text-white tabular-nums">
@@ -345,7 +345,7 @@ export default function AdminOrdersPage() {
 
                         <button
                           onClick={() => toggleExpand(order.id)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white transition"
+                          className="flex h-8 w-8 items-center justify-center rounded-full border border-[#282a38] bg-[#101114] text-stone-400 hover:text-white transition"
                           title="Toggle details"
                         >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -353,12 +353,12 @@ export default function AdminOrdersPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/70">
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#22242e]">
                       {stage === 'ORDER_PLACED' && (
                         <button
                           onClick={() => handleMarkReady(order.id)}
                           disabled={isUpdating}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#f5a4c6] px-3.5 py-1.5 text-xs font-bold text-[#101114] shadow-sm shadow-[#f5a4c6]/20 hover:opacity-90 transition disabled:opacity-50"
                         >
                           <PackageCheck className="h-3.5 w-3.5" />
                           <span>Mark Ready to Pick</span>
@@ -368,7 +368,7 @@ export default function AdminOrdersPage() {
                       {stage === 'READY_TO_PICK' && (
                         <Link
                           href={`/scan?token=${encodeURIComponent(order.qr_verification_token || '')}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow-xs"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#9d8bf0] px-3.5 py-1.5 text-xs font-bold text-[#101114] shadow-sm shadow-[#9d8bf0]/20 hover:opacity-90 transition"
                         >
                           <QrCode className="h-3.5 w-3.5" />
                           <span>Scan QR / Collect Order</span>
@@ -376,32 +376,32 @@ export default function AdminOrdersPage() {
                       )}
 
                       {stage === 'COLLECTED' && (
-                        <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-slate-500" />
+                        <span className="inline-flex items-center gap-1.5 text-[11px] text-stone-400 font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
                           <span>
                             Collected {order.collected_at ? `at ${new Date(order.collected_at).toLocaleTimeString()}` : ''}
                           </span>
                         </span>
                       )}
 
-                      {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-indigo-400 ml-2" />}
+                      {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-[#9d8bf0] ml-2" />}
                     </div>
 
                     {isExpanded && (
-                      <div className="rounded-xl bg-slate-950 p-4 border border-slate-800 space-y-3 pt-3">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                      <div className="rounded-xl bg-[#101114] p-4 border border-[#22242e] space-y-3 pt-3">
+                        <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#9d8bf0]">
                           Items Checklist
                         </h4>
-                        <div className="divide-y divide-slate-800 text-xs">
+                        <div className="divide-y divide-[#22242e] text-xs">
                           {order.items.map((item) => (
-                            <div key={item.id} className="py-2 flex items-center justify-between text-slate-200">
+                            <div key={item.id} className="py-2 flex items-center justify-between text-stone-200">
                               <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-indigo-400 min-w-[20px]">
+                                <span className="font-mono font-bold text-[#f5a4c6] min-w-[20px]">
                                   {item.quantity}×
                                 </span>
                                 <span>{item.item_name}</span>
                               </div>
-                              <span className="font-mono tabular-nums text-slate-400">
+                              <span className="font-mono tabular-nums text-stone-400">
                                 ₹{(item.line_total / 100).toFixed(2)}
                               </span>
                             </div>
