@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { UtensilsCrossed, HelpCircle, FileText, Lock } from 'lucide-react';
+import { HelpCircle, FileText, Lock } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -8,9 +8,6 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/20">
-                <UtensilsCrossed className="h-5 w-5" />
-              </div>
               <div className="flex flex-col leading-none">
                 <span className="text-xl font-black tracking-tight text-stone-900">
                   Cafteria<span className="text-[#ff5e3a]">.cev</span>

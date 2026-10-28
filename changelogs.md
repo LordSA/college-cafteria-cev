@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - **Categories Section UX & Dynamic Filtering (`customer/src/app/page.tsx`)**:
+  - Fixed category button clipping and overflow on hover/active states by adding dedicated vertical padding (`py-3 px-2 -mx-2`) to the horizontal scroll track and replacing layout-disruptive `scale-105` with clean `ring-2 ring-[#ff5e3a] ring-offset-2`.
   - Implemented distinct `Grid` category icon for "All" so custom categories no longer duplicate the cutlery icon.
   - Enhanced dynamic icon heuristics with `Flame` fallback for test/special items and rich food icons for all categories.
   - Clicking any category now immediately displays dishes filtered by that category right beneath the rail with empty state support.

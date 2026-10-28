@@ -265,17 +265,17 @@ export default function CustomerHomePage() {
             </Link>
           </div>
 
-          <div className="mt-4 flex items-center gap-4 overflow-x-auto pb-2 scrollbar-none">
+          <div className="mt-2 flex items-center gap-4 overflow-x-auto py-3 px-2 -mx-2 scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedCategory('all')}
               className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
             >
               <div
-                className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 ${
+                className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
                   selectedCategory === 'all'
-                    ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-lg shadow-orange-500/30 scale-105'
-                    : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
+                    ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a] ring-offset-2'
+                    : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
                 }`}
               >
                 <Grid className="h-6 w-6 sm:h-7 sm:w-7" />
@@ -303,10 +303,10 @@ export default function CustomerHomePage() {
                   className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
                 >
                   <div
-                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 ${
+                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
                       isSelected
-                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-lg shadow-orange-500/30 scale-105'
-                        : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
+                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-2 ring-[#ff5e3a] ring-offset-2'
+                        : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-orange-300 hover:bg-orange-50/40 hover:shadow-sm'
                     }`}
                   >
                     <IconComp className="h-6 w-6 sm:h-7 sm:w-7" />
