@@ -51,120 +51,11 @@ interface ProductItem {
   isHot?: boolean;
 }
 
-const CATEGORIES: CategoryItem[] = [
-  { id: 'all', name: 'Meals', icon: UtensilsCrossed, isSpecial: true },
-  { id: 'coffee', name: 'Coffee', icon: Coffee },
-  { id: 'gifts', name: 'Gifts', icon: Gift },
-  { id: 'juice', name: 'Juice', icon: Wine },
-  { id: 'cake', name: 'Cake', icon: Cake },
-  { id: 'pizza', name: 'Pizza', icon: Pizza },
-  { id: 'fruits', name: 'Fruits', icon: Apple },
-];
+const CATEGORIES: CategoryItem[] = [];
 
-const DEFAULT_HOT_PRODUCTS: ProductItem[] = [
-  {
-    id: 'prod-burger-1',
-    name: 'Crispy Double Patty Burger',
-    counterName: 'Snacks Counter #1',
-    cuisines: 'Burgers, Fast Food',
-    price: 12000,
-    rating: 4.8,
-    ordersCount: '12K+ orders',
-    prepTime: '8 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
-    category: 'all',
-    discountBadge: '50% OFF',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-pizza-1',
-    name: 'Farmhouse Loaded Pizza',
-    counterName: 'Hot Oven Station',
-    cuisines: 'Italian, Pizza',
-    price: 15000,
-    rating: 4.7,
-    ordersCount: '9K+ orders',
-    prepTime: '12 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80',
-    category: 'pizza',
-    discountBadge: 'Hot Deal',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-coffee-1',
-    name: 'Frosted Cold Coffee with Cream',
-    counterName: 'Beverages Bar',
-    cuisines: 'Chilled Drinks, Shakes',
-    price: 6000,
-    rating: 4.9,
-    ordersCount: '15K+ orders',
-    prepTime: '4 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80',
-    category: 'coffee',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-meals-1',
-    name: 'Executive South Indian Lunch Thali',
-    counterName: 'Main Meal Counter',
-    cuisines: 'Rice, Sambar, Poriyal, Curd',
-    price: 9000,
-    rating: 4.8,
-    ordersCount: '18K+ orders',
-    prepTime: '5 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80',
-    category: 'all',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-juice-1',
-    name: 'Cold Pressed Orange & Mint Juice',
-    counterName: 'Fresh Juice Bar',
-    cuisines: 'Healthy, Citrus Detox',
-    price: 5000,
-    rating: 4.6,
-    ordersCount: '7K+ orders',
-    prepTime: '3 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=600&auto=format&fit=crop&q=80',
-    category: 'juice',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-cake-1',
-    name: 'Belgian Chocolate Truffle Pastry',
-    counterName: 'Bakery Display',
-    cuisines: 'Bakery, Desserts',
-    price: 7500,
-    rating: 4.8,
-    ordersCount: '6K+ orders',
-    prepTime: '2 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80',
-    category: 'cake',
-    isAvailable: true,
-    isHot: true,
-  },
-  {
-    id: 'prod-fruits-1',
-    name: 'Fresh Exotic Fruit Salad Bowl',
-    counterName: 'Nutrition Hub',
-    cuisines: 'Seasonal Fruits & Honey',
-    price: 8000,
-    rating: 4.7,
-    ordersCount: '5K+ orders',
-    prepTime: '4 Min',
-    imageUrl: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80',
-    category: 'fruits',
-    isAvailable: true,
-    isHot: false,
-  },
-];
+const DEFAULT_HOT_PRODUCTS: ProductItem[] = [];
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerHomePage() {
   const { user, profile } = useAuth();
@@ -200,7 +91,7 @@ export default function CustomerHomePage() {
           }));
           setDbProducts(mapped);
         }
-      } catch {}
+      } catch { }
     }
 
     fetchMenuCatalog();
@@ -298,16 +189,12 @@ export default function CustomerHomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-8 text-white shadow-xl shadow-orange-500/15">
             <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-xs font-black text-white uppercase tracking-wider shadow-xs">
-                <Flame className="h-3.5 w-3.5 text-amber-200 fill-amber-200" />
-                Live Campus Kitchen Active
-              </span>
               <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl text-white">
                 Fresh College Canteen Meals. <br />
                 <span className="text-amber-200">Zero Wait, Zero Queue.</span>
               </h2>
               <p className="mt-3 text-sm text-orange-100 leading-relaxed font-medium">
-                Skip canteen rush hours between lectures. Pre-order hot meals, snacks, and chilled drinks directly to Counter #1 with instant testing wallet checkout.
+                Pre-order hot meals, snacks, and chilled drinks directly with instant Checkout.
               </p>
               <div className="mt-6 flex items-center gap-3">
                 <Link
@@ -356,20 +243,18 @@ export default function CustomerHomePage() {
                   className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
                 >
                   <div
-                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 ${
-                      isSelected || (cat.isSpecial && selectedCategory === 'all')
-                        ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-lg shadow-orange-500/30 scale-105'
-                        : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
-                    }`}
+                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full transition-all duration-200 ${isSelected || (cat.isSpecial && selectedCategory === 'all')
+                      ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-lg shadow-orange-500/30 scale-105'
+                      : 'bg-white text-stone-700 border border-stone-200/80 shadow-xs hover:border-amber-300 hover:scale-105'
+                      }`}
                   >
                     <IconComp className="h-6 w-6 sm:h-7 sm:w-7" />
                   </div>
                   <span
-                    className={`text-xs font-semibold ${
-                      isSelected || (cat.isSpecial && selectedCategory === 'all')
-                        ? 'text-[#ff4b4b] font-bold'
-                        : 'text-stone-600 group-hover:text-stone-900'
-                    }`}
+                    className={`text-xs font-semibold ${isSelected || (cat.isSpecial && selectedCategory === 'all')
+                      ? 'text-[#ff4b4b] font-bold'
+                      : 'text-stone-600 group-hover:text-stone-900'
+                      }`}
                   >
                     {cat.name}
                   </span>
@@ -512,55 +397,6 @@ export default function CustomerHomePage() {
                 </div>
               );
             })}
-          </div>
-        </section>
-
-        <section className="mt-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
-              Exclusive Deals
-            </h2>
-            <span className="text-xs font-semibold text-emerald-600 inline-flex items-center gap-1">
-              <Sparkles className="h-3 w-3" /> Campus Valid
-            </span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-6 py-2">
-            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-rose-500 via-rose-600 to-red-600 p-4 text-center text-white shadow-md shadow-rose-500/20 aspect-square sm:aspect-auto sm:py-6">
-              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-rose-100">
-                Flat
-              </span>
-              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
-                50% OFF
-              </h3>
-              <p className="mt-1 text-[9px] sm:text-xs text-rose-100 font-medium">
-                on Combos
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-600 to-teal-700 p-4 text-center text-white shadow-md shadow-emerald-500/20 aspect-square sm:aspect-auto sm:py-6">
-              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-emerald-100">
-                Flat
-              </span>
-              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
-                60% OFF
-              </h3>
-              <p className="mt-1 text-[9px] sm:text-xs text-emerald-100 font-medium">
-                on Special Thali
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-purple-500 via-indigo-600 to-indigo-700 p-4 text-center text-white shadow-md shadow-purple-500/20 aspect-square sm:aspect-auto sm:py-6">
-              <span className="text-[10px] sm:text-xs uppercase font-extrabold tracking-widest text-purple-100">
-                Flat
-              </span>
-              <h3 className="mt-0.5 text-base sm:text-2xl font-black tracking-tight text-white leading-none">
-                30% OFF
-              </h3>
-              <p className="mt-1 text-[9px] sm:text-xs text-purple-100 font-medium">
-                on Snack Packs
-              </p>
-            </div>
           </div>
         </section>
 

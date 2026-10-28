@@ -11,6 +11,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.4] - 2026-10-28
+
+### Added
+- **Dedicated Campus Policy & FAQ Pages**:
+  - `customer/src/app/privacy/page.tsx`: Full Privacy Policy covering student data protection, non-monetary testing wallet policy, and PostgreSQL RLS security.
+  - `customer/src/app/terms/page.tsx`: Terms & Conditions defining college canteen ordering, Counter #1 collection workflow, and cancellation rules.
+  - `customer/src/app/payment-faq/page.tsx`: Interactive FAQ accordion answering queries on Testing Wallet demo credits, Counter #1 pickups, cancellations, and QR pass security.
+- **Upgraded 5-Column Campus Canteen Footer (`customer/src/components/Footer.tsx`)**:
+  - Replaced minimal placeholder footer with modern 5-column layout displaying CEV Canteen branding, shop hours (8:00 AM – 7:00 PM), Counter #1 pickup details, and direct links to Privacy Policy, Terms, and Payment FAQs.
+- **Hot Products & Bestsellers Section (`customer/src/app/page.tsx`)**:
+  - Replaced location-based "Top rated near you" with "Hot Products (Most Ordered & Clicked)", showcasing top campus favorites with order volumes (`15K+ orders`), star ratings, prep times, and "+ Add" buttons.
+  - Updated exclusive deals to campus combo offers (Flat 50% on Combos, 60% on Special Thali, 30% on Snack Packs).
+
+### Changed
+- **Unified Warm Theme for PC & Mobile (`customer/src/components/AmazonHeader.tsx` & `customer/src/app/page.tsx`)**:
+  - Completely aligned the desktop PC layout with the vibrant coral/orange mobile aesthetic (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]`).
+  - Removed all delivery and location selectors ("Sayalkudi" / "Deliver to...") to reflect a dedicated on-campus canteen shop with Counter #1 pickup.
+  - Updated `SidebarDrawer.tsx` to include direct links to `/payment-faq`, `/terms`, and `/privacy`.
+
+---
+
 ## [0.4.3] - 2026-10-28
 
 ### Added

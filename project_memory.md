@@ -40,11 +40,14 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` and `CartProvider` wrappers.
   - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
-  - `src/app/page.tsx`: Main ordering and discovery portal featuring mobile-first header with personalized greeting, 3-line hamburger sidebar trigger, embedded search pill, circular categories, top-rated carousel, exclusive deals, available kitchen products, and Amazon.in-inspired responsive desktop PC experience.
+  - `src/app/page.tsx`: Unified campus dining portal for our college canteen featuring warm coral/orange gradient theme across mobile and desktop PC, personalized greeting, 3-line hamburger sidebar trigger, search pill, circular categories, "Hot Products" (most ordered & clicked items), exclusive deals, live kitchen products, and rich footer.
+  - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, non-monetary testing wallet policy, and RLS data security.
+  - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, order cancellation rules, and demo wallet policies.
+  - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion answering questions on Testing Wallet demo credits, Counter #1 pickups, refunds, and QR pass security.
   - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active red/coral rounded pill highlight, and live cart count badge.
-  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by top hamburger button featuring user profile, location, quick navigation links, dining hours, and auth actions.
-  - `src/components/AmazonHeader.tsx`: Amazon.in inspired desktop PC navigation bar (`hidden md:block`) with campus deliver-to location, category-dropdown broad search bar, Account & Lists menu, Returns & Orders, and Cart total indicator.
-  - `src/app/login/page.tsx`: Customer sign-in page with validation and forgot password link.
+  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by top hamburger button featuring user profile, Counter #1 details, quick navigation links, dining hours, legal pages, and auth actions.
+  - `src/components/AmazonHeader.tsx`: Responsive PC navigation bar (`hidden md:block`) styled in the warm coral/orange mobile theme for the college canteen shop with category-dropdown broad search bar, Account & Profile menu, Canteen Orders, Testing Wallet demo credits, and Cart indicator.
+  - `src/components/Footer.tsx`: Modern 5-column campus canteen footer with CEV shop identity, hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy, Terms, and Payment FAQs.
   - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.

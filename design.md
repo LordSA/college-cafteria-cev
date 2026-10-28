@@ -44,19 +44,21 @@ Exclusively powered by `lucide-react` across both applications:
 
 ## 3. Subsystem References
 
-- **Mobile App Shell & Dual PC Experience:**
+- **Unified Warm Canteen Theme & College Shop UI:**
+  - **Color Palette & Accents:** Warm coral, rose, and amber gradients (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` and `from-[#ff4b4b] to-[#ff7844]`), crisp white cards with soft warm drop shadows, and neutral stone text tokens (`stone-900`, `stone-600`, `stone-400`).
   - **Mobile Shell (`md:hidden`):**
-    - Curved Warm Header: `from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` with `rounded-b-[2.5rem]`, high-contrast white greeting typography, campus location badge, and 3-line hamburger sidebar trigger.
-    - Floating Search Pill: Clean white rounded pill container with amber search icon and filter control.
-    - Circular Category Rail: Circular icon buttons (Hotels/Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with active coral gradient pill highlight.
-    - Top Rated Card Carousel: Horizontal card scroll with rating badge pill (`★ 4.4`), prep time indicator (`⏱ 12 Min`), cuisine tags, and instant Add-to-cart buttons.
-    - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50%, 60%, 30% OFF).
+    - Curved Warm Header: `from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` with `rounded-b-[2.5rem]`, high-contrast white greeting typography, CEV College Canteen Counter #1 identity, and 3-line hamburger sidebar trigger.
+    - Floating Search Pill: Clean white rounded pill container with orange search icon and filter control.
+    - Circular Category Rail: Circular icon buttons (Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with active coral gradient pill highlight.
+    - Hot Products Carousel: Horizontal card scroll for top campus favorites ("Most Ordered & Clicked") with star ratings (`★ 4.8`), order volume (`12K+ orders`), prep times (`⏱ 4-12 Min`), and instant Add-to-cart buttons.
+    - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50% on Combos, 60% on Special Thali, 30% on Snack Packs).
     - Floating Mobile Bottom Nav: Fixed 4-tab dock (`Home`, `Menu`, `Cart`, `Profile`) with active coral pill highlight and live cart badge counter.
-  - **PC Desktop Layout (`hidden md:block` — Amazon.in Reference):**
-    - Navy Primary Bar (`#131921`): Canteen brand, delivery location widget, wide category-dropdown search box with orange action button (`#febd69`), Accounts & Lists, Returns & Orders, and Cart subtotal counter.
-    - Secondary Sub-Nav Bar (`#232f3e`): `☰ All` drawer trigger and quick department shortcuts.
-    - Promotional Hero Carousel and 4-column product catalog.
-    - Multi-column Amazon-style footer with "Back to top" action.
+  - **PC Desktop Layout (`hidden md:block`):**
+    - Warm Theme Navigation Bar: Cohesive warm coral/orange gradient header with CEV Canteen shop branding, category dropdown search bar, Account & Profile, Canteen Orders, Testing Wallet demo badge, and Cart counter. No location widgets.
+    - Quick Sub-Nav Bar: Department shortcuts (`Hot Products`, `Meals & Thali`, `Evening Snacks`, `Tea & Coffee`, `Fresh Juices`, `Menu Catalog`, `Payment FAQs`) and Counter #1 operating schedule.
+    - Warm Promotional Hero Banner: Pre-order announcements and testing wallet CTAs.
+  - **Upgraded 5-Column Campus Footer:**
+    - Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), Counter #1 pickup details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
 
 For full color scales, component anatomy, layout grids, and interactive states:
 

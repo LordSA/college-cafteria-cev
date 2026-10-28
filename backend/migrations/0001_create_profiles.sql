@@ -58,33 +58,21 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
 
-CREATE OR REPLACE FUNCTION public.protect_profile_roles()
+CREATE OR REPLACE FUNCTION public.handle_profile_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
 AS $$
 BEGIN
-  IF current_user != 'service_role' THEN
-    IF OLD.app_role IS DISTINCT FROM NEW.app_role THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying app_role is forbidden';
-    END IF;
-
-    IF OLD.account_type IS DISTINCT FROM NEW.account_type THEN
-      RAISE EXCEPTION 'Unauthorized: Modifying account_type is forbidden';
-    END IF;
-  END IF;
-
   NEW.updated_at = now();
   RETURN NEW;
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_protect_profile_roles ON public.profiles;
-CREATE TRIGGER trg_protect_profile_roles
+DROP TRIGGER IF EXISTS trg_profile_updated_at ON public.profiles;
+CREATE TRIGGER trg_profile_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW
-  EXECUTE FUNCTION public.protect_profile_roles();
+  EXECUTE FUNCTION public.handle_profile_updated_at();
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
