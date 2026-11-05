@@ -16,7 +16,7 @@ export function ApiHealthBadge() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const checkHealth = async () => {
     setLoading(true);

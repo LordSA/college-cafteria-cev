@@ -40,7 +40,7 @@ interface WalletTransaction {
   created_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function WalletPage() {
   const { user, session, loading: authLoading } = useAuth();
@@ -289,11 +289,10 @@ export default function WalletPage() {
                     >
                       <div className="flex items-center gap-3.5">
                         <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                            isCredit
+                          className={`flex h-10 w-10 items-center justify-center rounded-xl ${isCredit
                               ? 'bg-emerald-50 text-emerald-600'
                               : 'bg-rose-50 text-rose-600'
-                          }`}
+                            }`}
                         >
                           {isCredit ? (
                             <ArrowDownLeft className="h-5 w-5" />
@@ -314,9 +313,8 @@ export default function WalletPage() {
 
                       <div className="text-right">
                         <span
-                          className={`font-mono text-sm font-bold tabular-nums ${
-                            isCredit ? 'text-emerald-700' : 'text-stone-900'
-                          }`}
+                          className={`font-mono text-sm font-bold tabular-nums ${isCredit ? 'text-emerald-700' : 'text-stone-900'
+                            }`}
                         >
                           {isCredit ? '+' : '-'}₹{(tx.amount / 100).toFixed(2)}
                         </span>

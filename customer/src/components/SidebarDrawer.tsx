@@ -24,7 +24,7 @@ interface SidebarDrawerProps {
 
 export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
   const { user, profile, signOut } = useAuth();
-  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Kaliraj';
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'User';
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {

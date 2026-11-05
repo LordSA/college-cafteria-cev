@@ -52,7 +52,7 @@ interface ApiMenuItem {
   stock_quantity?: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function getCategoryIcon(name: string) {
   const lower = name.toLowerCase();
@@ -90,7 +90,7 @@ export default function CustomerHomePage() {
       if (storedClicks) {
         setItemClicks(JSON.parse(storedClicks));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const recordItemClick = (id: string) => {
@@ -98,7 +98,7 @@ export default function CustomerHomePage() {
       const updated = { ...prev, [id]: (prev[id] || 0) + 1 };
       try {
         localStorage.setItem('cafteria_item_clicks', JSON.stringify(updated));
-      } catch {}
+      } catch { }
       return updated;
     });
   };
@@ -163,7 +163,7 @@ export default function CustomerHomePage() {
             setUserPurchases(counts);
           }
         }
-      } catch {}
+      } catch { }
     }
 
     loadPurchases();
