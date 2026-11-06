@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Clock,
   User,
   AlertTriangle,
   Wallet,
@@ -273,7 +272,7 @@ export default function CheckoutPage() {
 
           <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h2 className="text-sm font-bold text-stone-900">Customer Identity</h2>
+              <h2 className="text-sm font-bold text-stone-900">Ordering Account</h2>
               <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#ff5e3a] capitalize">
                 {profile?.account_type || 'Student'}
               </span>
@@ -289,17 +288,6 @@ export default function CheckoutPage() {
               <div>
                 <span className="text-stone-400 font-medium">Email</span>
                 <p className="font-bold text-stone-900 truncate mt-0.5">{user.email}</p>
-              </div>
-              <div>
-                <span className="text-stone-400 font-medium">Pickup Location</span>
-                <p className="font-bold text-stone-900 mt-0.5">Cafteria CEV</p>
-              </div>
-              <div>
-                <span className="text-stone-400 font-medium">Estimated Prep Time</span>
-                <p className="font-bold text-[#ff5e3a] flex items-center gap-1 mt-0.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>10–15 minutes</span>
-                </p>
               </div>
             </div>
           </div>

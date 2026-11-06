@@ -6,7 +6,6 @@ import {
   X,
   Home,
   BookOpen,
-  Grid,
   ReceiptText,
   Wallet,
   User,

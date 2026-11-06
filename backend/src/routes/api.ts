@@ -11,6 +11,7 @@ import { adminOrdersRouter } from './adminOrders';
 import { adminInventoryRouter } from './adminInventory';
 import { customerWalletRouter } from './wallet';
 import { adminWalletRouter } from './adminWallet';
+import { cartRouter } from './cart';
 
 export const apiV1Router = new Hono<{
   Bindings: Env;
@@ -30,6 +31,7 @@ apiV1Router.route('/admin/orders', adminOrdersRouter);
 apiV1Router.route('/admin/inventory', adminInventoryRouter);
 apiV1Router.route('/wallet', customerWalletRouter);
 apiV1Router.route('/admin/wallets', adminWalletRouter);
+apiV1Router.route('/cart', cartRouter);
 
 apiV1Router.get('/', (c) => {
   return c.json(

@@ -3,7 +3,7 @@ import { HelpCircle, FileText, Lock } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="hidden md:block mt-auto border-t border-stone-200/80 bg-gradient-to-b from-stone-50 to-white text-stone-600">
+    <footer className="mt-auto border-t border-stone-200/80 bg-gradient-to-b from-stone-50 to-white text-stone-600">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
           <div>

@@ -72,7 +72,7 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] text-white shadow-md select-none">
+    <header className="hidden md:block sticky top-0 z-50 bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] text-white shadow-md select-none">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 rounded-xl p-1 hover:bg-white/10 transition active:scale-95">

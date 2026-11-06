@@ -11,6 +11,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.4.10] - 2026-11-06
+
+### Added
+- **Database Role Lock Removal**:
+  - Migrations `backend/migrations/0008_remove_profile_role_lock.sql` and `supabase/migrations/20261028000000_remove_profile_role_lock.sql` dropping the restrictive `protect_profile_roles` trigger and replacing it with a non-blocking `updated_at` handler, enabling direct table editing and admin staff approvals.
+- **Cart Item Lock & 5-Minute Reservation System**:
+  - Database migrations `backend/migrations/0009_cart_item_locks.sql` and `supabase/migrations/20261106000000_cart_item_locks.sql` introducing `cart_item_locks` table, `lock_cart_item`, `release_cart_locks`, and `cleanup_expired_cart_locks` stored procedures.
+  - Decrements live inventory on item cart addition with atomic 5-minute reservation timer. Restores stock immediately upon cart removal or 5-minute timeout.
+  - Dedicated backend endpoints in `backend/src/routes/cart.ts` mounted at `/api/v1/cart`: `POST /lock`, `POST /unlock`, `POST /release-all`, `GET /status`.
+  - Frontend `CartContext.tsx` synchronization with live countdown timer and expiration handling.
+- **5 Local Preset Avatars**:
+  - Created 5 local SVG avatars in `customer/public/avatars/`: `avatar-1.svg` (Student), `avatar-2.svg` (Scholar), `avatar-3.svg` (Chef), `avatar-4.svg` (Foodie), `avatar-5.svg` (Coffee Fan).
+
+### Changed
+- **Customer Profile Reconfiguration (`customer/src/app/profile/page.tsx`)**:
+  - Removed file upload mechanism, camera buttons, and presigned S3/R2 endpoints in favor of instant 5-preset local avatar picker.
+  - Removed "Quick Actions" block and "Account Status" card.
+  - Display user role badge directly beneath customer name in top header banner; removed email and "Cafteria CEV" text from top section.
+  - Added dedicated phone number field to profile information.
+  - Added Google account binding option in Settings (`signInWithOAuth({ provider: 'google' })`).
+  - Moved "Sign Out" button to bottom with prominent red styling.
+- **Customer Menu Page Overhaul (`customer/src/app/menu/page.tsx`)**:
+  - Removed search bar and horizontal category button bar.
+  - Added Category Filter modal button with active category pill.
+  - Converted dish presentation from grid cards to vertical single-column list system.
+  - Integrated 5-minute reservation status banner and stock deduction indicators.
+- **Navigation & Mobile Responsiveness**:
+  - Top header navbar (`Navbar.tsx`) hidden on mobile views (`hidden md:block`).
+  - Mobile bottom navigation bar (`MobileBottomNav.tsx`) restored and active across mobile views (`md:hidden`) with Home, Menu, Cart (with badge), Orders, and Profile.
+  - Deleted obsolete `/categories` page and removed all links pointing to it.
+- **Cart & Post-Payment Views (`customer/src/app/cart/page.tsx`, `checkout/success/page.tsx`, `orders/track/page.tsx`)**:
+  - Removed stages progress bar stepper and fulfillment details cards.
+  - On checkout success and order tracking, placed the scannable collection QR pass prominently at the TOP, with itemized ordered dishes directly BELOW.
+
+---
+
 ## [0.4.9] - 2026-10-28
 
 ### Changed

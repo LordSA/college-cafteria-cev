@@ -1,7 +1,7 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 4.2 (Strict Order Stages, QR Lifecycle & Collection Flow) Complete & Design System Unified  
-> **Last Updated:** 2026-10-28  
+> **Status:** Phase 4.2 Extended (Cart Item Locks, Customer Flow Reconfiguration & Direct Profile Editing) Complete  
+> **Last Updated:** 2026-11-06  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
 ---
@@ -44,27 +44,26 @@ college-canteen-cev/
   - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, non-monetary testing wallet policy, and RLS data security.
   - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, order cancellation rules, and demo wallet policies.
   - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion answering questions on Testing Wallet demo credits, Counter #1 pickups, refunds, and QR pass security.
-  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active red/coral rounded pill highlight, and live cart count badge.
-  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by top hamburger button featuring user profile, Counter #1 details, quick navigation links, dining hours, legal pages, and auth actions.
-  - `src/components/PcNav.tsx`: Responsive PC navigation component (`hidden md:block`) styled in the warm coral/orange theme for the college canteen shop with category-dropdown broad search bar, Account & Profile menu, Canteen Orders, Testing Wallet demo credits, and Cart indicator.
-  - `src/components/Navbar.tsx`: Unified navigation header for desktop PC and responsive layouts with clean `Home`, `Menu`, `Categories` links, square wallet icon button, cart button with item count badge, and user profile avatar / Login button. (Also re-exported via `Header.tsx` as `Header`).
+  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 5 destinations (`Home`, `Menu`, `Cart`, `Orders`, `Profile`), active coral rounded highlight, and live cart count badge.
+  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by hamburger button featuring user profile, quick navigation links, dining hours, and auth actions.
+  - `src/components/Navbar.tsx`: Desktop PC navigation header (`hidden md:block`) with clean `Home`, `Menu` links, wallet icon, cart button with item count badge, and user profile avatar / Login button. (Re-exported via `Header.tsx` as `Header`). Hidden on mobile devices where `MobileBottomNav` is used.
   - `src/components/Header.tsx`: Re-exports `Navbar as Header` for 100% backward compatibility across all customer pages.
-  - `src/components/Footer.tsx`: Modern 5-column campus canteen footer with CEV shop identity, hours (8:00 AM – 7:00 PM), canteen collection desk details, links to Privacy Policy, Terms, and Payment FAQs. Hidden on mobile (`hidden md:block`).
+  - `src/components/Footer.tsx`: Modern campus canteen footer with CEV shop identity, hours, canteen collection desk details, links to Privacy Policy, Terms, and Payment FAQs.
   - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
-  - `src/app/menu/page.tsx`: Public menu browsing page with search, category filters, ₹ pricing, quantity steppers, and floating bottom cart bar.
-  - `src/app/cart/page.tsx`: Full shopping cart management page with line items, line totals, and clear cart control.
-  - `src/app/checkout/page.tsx`: Order review page with testing wallet balance check, payment method selector ("Testing Wallet — Demo Credits" vs "Pay at Counter"), and atomic order placement.
-  - `src/app/checkout/success/page.tsx`: Order confirmation screen displaying pickup token, high-contrast SVG QR pass for counter verification, and receipt printing action.
+  - `src/app/menu/page.tsx`: Vertical column layout menu page with category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar.
+  - `src/app/cart/page.tsx`: Full shopping cart management page with line items, line totals, 5-minute lock countdown, and clear cart control.
+  - `src/app/checkout/page.tsx`: Order review page with testing wallet balance check, payment method selector ("Testing Wallet — Demo Credits" vs "Pay Later"), and atomic order placement.
+  - `src/app/checkout/success/page.tsx`: Order confirmation screen displaying pickup token, high-contrast SVG QR pass for counter verification on top, and itemized ordered dishes directly below.
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance, non-monetary notice, and auditable transaction ledger.
   - `src/app/orders/page.tsx`: Customer order record list with status badges and links to trackers.
-  - `src/app/orders/track/page.tsx`: Dedicated live order tracking page with visual step timeline, counter pickup QR pass, breakdown, and self-cancellation button.
+  - `src/app/orders/track/page.tsx`: Live order tracking page with counter pickup QR pass on top, ordered dishes directly below, and self-cancellation button.
   - `src/app/orders/receipt/page.tsx`: Print-friendly (`@media print`) bill layout with Cafteria branding, itemization, and verification QR code.
-  - `src/app/profile/page.tsx`: Account profile with email confirmation status, staff approval state, and avatar upload/display.
-  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes with profile refresh.
-  - `src/context/CartContext.tsx`: Client-side persistent cart in `localStorage` (`cafteria_customer_cart`).
+  - `src/app/profile/page.tsx`: Account profile with role displayed under name, 5 local preset avatar selector (`/avatars/avatar-X.svg`), phone number input, Google account binding option in Settings, Pay Later dues settlement, and prominent bottom red Sign Out button.
+  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes, with profile phone update and preset avatar key updater.
+  - `src/context/CartContext.tsx`: Client-side persistent cart with atomic server locking (`/api/v1/cart/lock`, `/unlock`, `/release-all`), 5-minute auto-expiry countdown, and automatic stock restoration.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
   - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
@@ -121,6 +120,7 @@ college-canteen-cev/
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
+  - `src/routes/cart.ts`: Cart item locking endpoints `POST /api/v1/cart/lock`, `POST /api/v1/cart/unlock`, `POST /api/v1/cart/release-all`, `GET /api/v1/cart/status`.
   - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`, `counter_cash`, and faculty/staff `pay_later`), `GET /api/v1/orders/me` (returns `order_stage`), `GET /api/v1/orders/pay-later/pending` (retrieves customer's outstanding Pay Later dues), `POST /api/v1/orders/pay-later/settle` (atomic settlement via Testing Wallet or UPI), `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
   - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (strict stage filtering via `?stage=`), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (non-mutating pre-flight returning stage eligibility), `POST /:id/collect` (atomic collection, sets `qr_consumed_at`), `GET /:id/receipt`.
   - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId`.
@@ -139,6 +139,9 @@ college-canteen-cev/
   - `migrations/0004_orders_and_inventory.sql`: Orders, order items, inventory movement logs, RLS, and transactional stored procedures.
   - `migrations/0005_wallet_and_qr_verification.sql`: Wallets, ledger transactions, orders QR verification fields, and PL/pgSQL stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`, `verify_qr_token`, `collect_order`).
   - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
+  - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict 3-stage order enum, single-use QR lifecycle, and optical scan verification procedures.
+  - `migrations/0008_remove_profile_role_lock.sql`: Removes restrictive `protect_profile_roles` trigger and enables direct table/dashboard editing of position/roles and admin staff approvals.
+  - `migrations/0009_cart_item_locks.sql`: Cart item locks table and 5-minute atomic inventory reservation system (`lock_cart_item`, `release_cart_locks`, `cleanup_expired_cart_locks`).
   - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict `order_stage` constraint, `qr_consumed_at` column, and stage-aware `mark_order_ready`, `verify_qr_token`, and `collect_order` stored procedures.
   - `migrations/0008_remove_profile_role_lock.sql`: Drops restrictive `trg_protect_profile_roles` trigger and `protect_profile_roles` function, unlocking direct position/role updates in Supabase and enabling admin staff approvals.
   - `migrations/20261028000001_pay_later_feature.sql`: Adds `'pay_later'` payment method, `pay_later_settled_at`, and `pay_later_settled_via` tracking.

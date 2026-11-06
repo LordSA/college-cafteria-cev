@@ -52,12 +52,22 @@ Exclusively powered by `lucide-react` across both applications:
     - Circular Category Rail: Circular icon buttons (Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with active coral gradient pill highlight.
     - Hot Products Carousel: Horizontal card scroll for top campus favorites ("Most Ordered & Clicked") with star ratings (`★ 4.8`), order volume (`12K+ orders`), prep times (`⏱ 4-12 Min`), and instant Add-to-cart buttons.
     - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50% on Combos, 60% on Special Thali, 30% on Snack Packs).
-    - Floating Mobile Bottom Nav: Fixed 4-tab dock (`Home`, `Menu`, `Cart`, `Profile`) with active coral pill highlight and live cart badge counter.
+    - Top Header Navbar: Hidden on mobile views (`hidden md:block`) to maximize vertical ordering viewport.
+    - Floating Mobile Bottom Nav: Fixed 5-tab dock (`Home`, `Menu`, `Cart`, `Orders`, `Profile`) with active coral pill highlight and live cart badge counter.
   - **PC Desktop Layout (`hidden md:block`):**
-    - Clean Unified Navbar (`Navbar.tsx`): Cohesive warm coral/orange gradient header across all desktop pages (`Header` re-exports `Navbar`) with `Cafteria.cev` branding, clean primary navigation links (`Home`, `Menu`, `Categories`), square Wallet icon button (`/wallet`), Cart button with item count badge, and User Profile with real avatar DP (or user initial) / Login button. Zero clutter (no "Today's Menu", wallet text link, or health polling badge).
-    - Inline Hero Search & Actions: Desktop hero banner with search bar, dynamic category selector dropdown, and primary CTA buttons ("Explore Today's Menu", "View Categories") aligned on the exact same row.
-    - Neutral Categories Rail: Neutral circular badges with hover transitions (`hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a]`) that deep-link directly to category anchors (`/categories#${cat.id}`).
-    - Dynamic Hot Products: Engagement-ranked dishes dynamically calculated based on clicks (`localStorage`) and order purchase counts.
+    - Clean Unified Navbar (`Navbar.tsx`): Cohesive warm coral/orange gradient header across all desktop pages with `Cafteria.cev` branding, primary navigation links (`Home`, `Menu`), square Wallet icon button (`/wallet`), Cart button with item count badge, and User Profile with preset avatar / Login button.
+  - **Menu & Cart Column Layout:**
+    - Single-column vertical list system for fast scrolling and thumb reach.
+    - Category Filter dialog button with active filter dismissal tags.
+    - 5-minute atomic reservation timer banner with live stock decrement.
+  - **Post-Payment & Pickup Pass:**
+    - High-contrast SVG QR collection pass displayed prominently at the TOP.
+    - Itemized ordered dishes breakdown and paid total displayed directly BELOW the QR code.
+  - **Profile Experience:**
+    - 5 local preset avatars (`/avatars/avatar-X.svg`) replacing file uploads.
+    - User classification role prominently displayed beneath name.
+    - Phone number field and Google account linking in Settings.
+    - Prominent red Sign Out button positioned at the bottom.
     - Menu Section: Clean catalog section displaying all active dishes in the canteen kitchen.
   - **Upgraded 5-Column Campus Footer (`hidden md:block`):**
     - Visible exclusively on desktop and tablet views (`md:` and above), hidden on mobile view to avoid redundancy with the floating bottom dock navigation. Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), canteen collection desk details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).

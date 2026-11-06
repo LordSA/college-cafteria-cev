@@ -13,29 +13,36 @@ import {
   ArrowRight,
   ArrowLeft,
   Utensils,
-  ShieldCheck,
   LogIn,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function CartPage() {
   const { user } = useAuth();
-  const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount, remainingSeconds, isExpired } = useCart();
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <>
       <Header />
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
-        <div className="mx-auto max-w-4xl space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-6">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e3a]">
                 Cafteria CEV
               </span>
-              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-stone-900">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-stone-900">
                 Shopping Cart
               </h1>
-              <p className="mt-1 text-xs text-stone-500">
-                Review your selected dishes before proceeding to order placement
+              <p className="mt-0.5 text-xs text-stone-500">
+                Review your items before proceeding to checkout
               </p>
             </div>
 
@@ -50,15 +57,34 @@ export default function CartPage() {
             )}
           </div>
 
+          {remainingSeconds > 0 && items.length > 0 && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-amber-500/10 border border-amber-300/60 p-3.5 text-amber-950 text-xs font-medium">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                <span>Items in your cart are locked for you. Stock will release in</span>
+              </div>
+              <span className="font-mono font-black text-amber-700 bg-white px-2.5 py-1 rounded-md border border-amber-200">
+                {formatTimer(remainingSeconds)}
+              </span>
+            </div>
+          )}
+
+          {isExpired && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600" />
+              <span>Your cart reservation expired. Items have been released back to stock.</span>
+            </div>
+          )}
+
           {items.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
+            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a]">
                 <ShoppingBag className="h-7 w-7" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-stone-900">Your cart is empty</h2>
                 <p className="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
-                  Looks like you haven't added anything to your cart yet. Check out today's menu!
+                  Looks like you have no items in your cart. Check today's fresh canteen menu!
                 </p>
               </div>
               <Link
@@ -70,15 +96,15 @@ export default function CartPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-4">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-3.5">
                 {items.map((item) => (
                   <div
                     key={item.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 flex items-center justify-center">
+                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 flex items-center justify-center border border-stone-100">
                         {item.image_url ? (
                           <img
                             src={item.image_url}
@@ -149,12 +175,12 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="h-fit rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-6">
+              <div className="h-fit rounded-3xl border border-stone-200 bg-white p-6 shadow-xs space-y-5">
                 <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
                   Order Summary
                 </h2>
 
-                <div className="space-y-2.5 text-xs">
+                <div className="space-y-2 text-xs">
                   <div className="flex justify-between text-stone-600">
                     <span>Items Count</span>
                     <span className="font-semibold text-stone-900">{itemCount} items</span>
@@ -164,10 +190,6 @@ export default function CartPage() {
                     <span className="font-mono font-semibold text-stone-900 tabular-nums">
                       ₹{(subtotal / 100).toFixed(2)}
                     </span>
-                  </div>
-                  <div className="flex justify-between text-stone-600">
-                    <span>Campus Surcharge</span>
-                    <span className="font-mono font-semibold text-emerald-600 tabular-nums">₹0.00</span>
                   </div>
                 </div>
 
@@ -195,13 +217,6 @@ export default function CartPage() {
                     <span>Sign In to Checkout</span>
                   </Link>
                 )}
-
-                <div className="rounded-xl bg-orange-50/70 p-3 border border-orange-200/60 text-[11px] text-orange-950 flex items-start gap-2">
-                  <ShieldCheck className="h-4 w-4 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
-                  <span>
-                    Orders are checked for live availability and queued directly for canteen kitchen preparation.
-                  </span>
-                </div>
               </div>
             </div>
           )}

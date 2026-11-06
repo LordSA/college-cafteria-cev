@@ -8,10 +8,8 @@ import { Footer } from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import { QRCodeSvg } from '../../../components/QRCodeSvg';
 import {
-  Clock,
   CheckCircle2,
   XCircle,
-  PackageCheck,
   ArrowLeft,
   Loader2,
   AlertCircle,
@@ -102,19 +100,18 @@ function OrderTrackerContent() {
   }, [session, orderId, authLoading]);
 
   const handleCancelOrder = async () => {
-    if (!orderId || !session?.access_token) return;
+    if (!order || !session?.access_token) return;
 
     setCancelling(true);
     setCancelError(null);
-
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/orders/${order.id}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ reason: 'Customer requested cancellation' }),
+        body: JSON.stringify({ reason: 'Customer requested cancellation from tracker' }),
       });
 
       const data = await res.json();
@@ -123,36 +120,20 @@ function OrderTrackerContent() {
       }
 
       setShowCancelConfirm(false);
-      await fetchOrder();
+      fetchOrder();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Could not cancel order';
+      const msg = err instanceof Error ? err.message : 'Error cancelling order';
       setCancelError(msg);
     } finally {
       setCancelling(false);
     }
   };
 
-  if (!orderId) {
-    return (
-      <div className="rounded-2xl border border-stone-200 bg-white p-8 text-center space-y-3">
-        <AlertCircle className="mx-auto h-8 w-8 text-stone-400" />
-        <h2 className="text-base font-bold text-stone-900">No order specified</h2>
-        <p className="text-xs text-stone-500">Please select an order from your order history.</p>
-        <Link
-          href="/orders"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
-        >
-          View My Orders
-        </Link>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
-        <p className="text-xs font-medium">Tracking order status...</p>
+        <p className="text-xs font-medium">Tracking order...</p>
       </div>
     );
   }
@@ -175,26 +156,13 @@ function OrderTrackerContent() {
     );
   }
 
-  const effectiveStage: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED' = order.order_stage || (
-    order.order_status === 'completed' ? 'COLLECTED' :
-    order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
-    'ORDER_PLACED'
-  );
-
-  const steps = [
-    { key: 'ORDER_PLACED', label: 'Order Placed', icon: Clock },
-    { key: 'READY_TO_PICK', label: 'Ready to Pick', icon: PackageCheck },
-    { key: 'COLLECTED', label: 'Collected', icon: CheckCircle2 },
-  ];
-
-  const stageOrder = ['ORDER_PLACED', 'READY_TO_PICK', 'COLLECTED'];
-  const currentIndex = stageOrder.indexOf(effectiveStage);
+  const isCollected = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || Boolean(order.qr_consumed_at);
   const isCancelled = order.order_status === 'cancelled';
-  const canCancel = effectiveStage === 'ORDER_PLACED' && !isCancelled;
+  const canCancel = !isCollected && !isCancelled;
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-6">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
         <div>
           <Link
             href="/orders"
@@ -204,7 +172,7 @@ function OrderTrackerContent() {
             <span>All Orders</span>
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            <h1 className="text-2xl font-black tracking-tight text-stone-900">
               Order #{order.order_number}
             </h1>
           </div>
@@ -213,94 +181,91 @@ function OrderTrackerContent() {
           </p>
         </div>
 
-        <button
-          onClick={fetchOrder}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs self-start sm:self-auto"
-        >
-          <RefreshCw className="h-3.5 w-3.5 text-[#ff5e3a]" />
-          <span>Refresh Status</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Link
+            href={`/orders/receipt/?id=${order.id}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs"
+          >
+            <Printer className="h-3.5 w-3.5" />
+            <span>Receipt</span>
+          </Link>
+
+          <button
+            onClick={fetchOrder}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs"
+          >
+            <RefreshCw className="h-3.5 w-3.5 text-[#ff5e3a]" />
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
-      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs">
-        {isCancelled ? (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
-            <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold">This order was cancelled</p>
-              <p className="mt-0.5">
-                Reason: {order.cancellation_reason || 'Cancelled upon request'}
-              </p>
-              {order.cancelled_at && (
-                <p className="mt-1 text-[11px] text-rose-600">
-                  Cancelled at: {new Date(order.cancelled_at).toLocaleTimeString('en-IN')}
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="py-4">
-            <div className="relative flex flex-col md:flex-row justify-between gap-6">
-              {steps.map((step, idx) => {
-                const IconComponent = step.icon;
-                const isPassed = currentIndex >= idx;
-                const isCurrent = currentIndex === idx;
-
-                return (
-                  <div key={step.key} className="flex-1 flex md:flex-col items-center gap-3 text-left md:text-center relative">
-                    <div
-                      className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition ${
-                        isCurrent
-                          ? 'bg-gradient-to-tr from-[#ff4b4b] to-[#ff7844] text-white shadow-md shadow-orange-500/25 ring-4 ring-orange-100'
-                          : isPassed
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-stone-100 text-stone-400'
-                      }`}
-                    >
-                      <IconComponent className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p
-                        className={`text-xs font-bold ${
-                          isCurrent
-                            ? 'text-[#ff5e3a]'
-                            : isPassed
-                            ? 'text-stone-900'
-                            : 'text-stone-400'
-                        }`}
-                      >
-                        {step.label}
-                      </p>
-                      {isCurrent && (
-                        <span className="inline-block rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-[#ff5e3a] mt-1">
-                          Current Stage
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {effectiveStage === 'READY_TO_PICK' && !isCancelled && (
-        <div className="rounded-3xl border border-emerald-300 bg-emerald-50 p-5 shadow-xs flex items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-sm">
-            <PackageCheck className="h-6 w-6 animate-pulse" />
-          </div>
+      {isCancelled && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
+          <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-bold text-emerald-950">Ready to Pick Up!</h3>
-            <p className="text-xs text-emerald-800 mt-0.5">
-              Your food is ready at Cafteria CEV. Present your Collection Pass below to pick up.
+            <p className="font-bold">This order was cancelled</p>
+            <p className="mt-0.5">
+              Reason: {order.cancellation_reason || 'Cancelled upon request'}
             </p>
+            {order.cancelled_at && (
+              <p className="mt-1 text-[11px] text-rose-600">
+                Cancelled at: {new Date(order.cancelled_at).toLocaleTimeString('en-IN')}
+              </p>
+            )}
           </div>
         </div>
       )}
 
+      {order.qr_verification_token && !isCancelled && (
+        <div className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8 text-center shadow-xs space-y-4">
+          {isCollected ? (
+            <div className="space-y-2 py-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <h2 className="text-base font-bold text-stone-900">Order Collected</h2>
+              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                This meal has been picked up from Cafteria CEV. The collection pass is fulfilled.
+              </p>
+              {order.collected_at && (
+                <p className="font-mono text-[11px] text-stone-400">
+                  Collected on {new Date(order.collected_at).toLocaleTimeString('en-IN')}
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
+                <QrCode className="h-4 w-4 text-[#ff5e3a]" />
+                <span>Collection Pass &bull; Scan at Counter</span>
+              </div>
+
+              <div className="flex justify-center py-2">
+                <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-100 shadow-sm">
+                  <QRCodeSvg value={order.qr_verification_token} size={210} />
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">
+                  Token Number
+                </span>
+                <p className="font-mono text-3xl font-black text-[#ff5e3a] tracking-wider mt-0.5">
+                  {order.order_number}
+                </p>
+              </div>
+
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Present this QR code to the canteen counter staff to verify and receive your food.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
-        <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-stone-100 pb-2">
           Ordered Dishes
         </h2>
 
@@ -324,114 +289,27 @@ function OrderTrackerContent() {
         </div>
 
         <div className="border-t border-stone-200/80 pt-3 flex justify-between items-baseline">
-          <span className="text-sm font-bold text-stone-900">Total Order Amount</span>
+          <span className="text-sm font-bold text-stone-900">Total Amount</span>
           <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
             ₹{(order.total / 100).toFixed(2)}
           </span>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-          <h2 className="text-sm font-bold text-stone-900">
-            Fulfillment Details
-          </h2>
-          <Link
-            href={`/orders/receipt/?id=${order.id}`}
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#ff5e3a] hover:text-orange-600 transition"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Print Receipt</span>
-          </Link>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 text-xs">
-          <div>
-            <span className="text-stone-400 font-medium">Pickup Location</span>
-            <p className="font-bold text-stone-900 mt-0.5">Cafteria CEV</p>
-          </div>
-          <div>
-            <span className="text-stone-400 font-medium">Payment Status</span>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                order.payment_status === 'paid'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-orange-100 text-orange-800'
-              }`}>
-                {order.payment_status}
-              </span>
-              <span className="text-[11px] text-stone-500">
-                via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : 'Cash/UPI'}
-              </span>
-            </div>
-          </div>
-          <div>
-            <span className="text-stone-400 font-medium">Order Reference</span>
-            <p className="font-mono font-semibold text-stone-900 mt-0.5">{order.id}</p>
-          </div>
-          <div>
-            <span className="text-stone-400 font-medium">Token Number</span>
-            <p className="font-mono font-extrabold text-[#ff5e3a] mt-0.5">{order.order_number}</p>
-          </div>
-        </div>
-
-        {order.qr_verification_token && order.payment_status === 'paid' && !isCancelled && (
-          effectiveStage === 'COLLECTED' || order.qr_consumed_at ? (
-            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 p-6 text-center space-y-2">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stone-200 text-stone-600">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <p className="text-sm font-bold text-stone-900">Order Already Collected</p>
-              <p className="text-xs text-stone-500">
-                This order has been fulfilled. The pickup pass is now permanently expired.
-              </p>
-              {order.collected_at && (
-                <p className="font-mono text-[11px] text-stone-400">
-                  Collected on: {new Date(order.collected_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50/70 p-4 text-center space-y-3">
-              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
-                <QrCode className="h-4 w-4 text-[#ff5e3a]" />
-                <span>Pickup Collection Pass</span>
-              </div>
-              <div className="flex justify-center">
-                <QRCodeSvg value={order.qr_verification_token} size={150} />
-              </div>
-              <div>
-                <span className="text-[10px] text-stone-400">Manual Verification:</span>
-                <p className="font-mono text-xs font-bold text-stone-700">{order.qr_verification_token}</p>
-              </div>
-              {effectiveStage === 'ORDER_PLACED' ? (
-                <p className="text-[11px] text-[#ff5e3a] font-medium">
-                  Order Placed — your QR code will be ready for pickup collection once marked ready.
-                </p>
-              ) : (
-                <p className="text-[11px] text-emerald-700 font-semibold">
-                  Present this QR code to the canteen staff at Cafteria CEV.
-                </p>
-              )}
-            </div>
-          )
-        )}
-      </div>
-
       {canCancel && !isCancelled && (
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-stone-900">Need to cancel this order?</h3>
-              <p className="text-xs text-stone-500">
-                You can self-cancel before the kitchen starts cooking. Reserved ingredients will be restored.
+              <h3 className="text-xs font-bold text-stone-900">Need to cancel this order?</h3>
+              <p className="text-[11px] text-stone-500">
+                You can cancel before collection. Reserved ingredients will be restored.
               </p>
             </div>
 
             {!showCancelConfirm && (
               <button
                 onClick={() => setShowCancelConfirm(true)}
-                className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-xs"
+                className="rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-xs"
               >
                 Cancel Order
               </button>
@@ -446,7 +324,7 @@ function OrderTrackerContent() {
           )}
 
           {showCancelConfirm && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 space-y-3">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 space-y-2.5">
               <p className="text-xs font-semibold text-rose-900">
                 Are you sure you want to cancel Order #{order.order_number}?
               </p>
@@ -454,9 +332,9 @@ function OrderTrackerContent() {
                 <button
                   onClick={handleCancelOrder}
                   disabled={cancelling}
-                  className="rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50"
+                  className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50"
                 >
-                  {cancelling ? 'Cancelling...' : 'Yes, Confirm Cancellation'}
+                  {cancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
                 </button>
                 <button
                   onClick={() => setShowCancelConfirm(false)}
@@ -479,7 +357,7 @@ export default function OrderTrackerPage() {
     <>
       <Header />
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto max-w-2xl">
           <Suspense
             fallback={
               <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
