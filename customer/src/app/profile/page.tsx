@@ -1,50 +1,52 @@
 'use client';
 
-import { useState, useEffect, useRef, type FormEvent, type ChangeEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 import {
   User,
-  Shield,
-  GraduationCap,
-  Briefcase,
   LogOut,
   Save,
   CheckCircle2,
   AlertCircle,
   Loader2,
-  Calendar,
-  Camera,
-  Mail,
-  ReceiptText,
-  Wallet,
-  ShoppingBag,
-  ArrowRight,
-  UtensilsCrossed,
+  Phone,
   CreditCard,
   QrCode,
   X,
+  Wallet,
+  Settings,
+  Link as LinkIcon,
+  Check,
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
+const PRESET_AVATARS = [
+  { id: '/avatars/avatar-1.svg', name: 'Student' },
+  { id: '/avatars/avatar-2.svg', name: 'Scholar' },
+  { id: '/avatars/avatar-3.svg', name: 'Chef' },
+  { id: '/avatars/avatar-4.svg', name: 'Foodie' },
+  { id: '/avatars/avatar-5.svg', name: 'Coffee' },
+];
+
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, profile, session, loading, signOut, updateDisplayName, updateAvatarKey, refreshProfile } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, profile, session, loading, signOut, updateProfileInfo, updateAvatarKey, refreshProfile } = useAuth();
 
   const [displayName, setDisplayName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState('/avatars/avatar-1.svg');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const [avatarSuccess, setAvatarSuccess] = useState(false);
+  const [bindingGoogle, setBindingGoogle] = useState(false);
+  const [googleSuccess, setGoogleSuccess] = useState<string | null>(null);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const [pendingPayLater, setPendingPayLater] = useState<{
     total_pending: number;
@@ -74,34 +76,15 @@ export default function ProfilePage() {
     if (profile?.display_name) {
       setDisplayName(profile.display_name);
     }
-  }, [profile]);
-
-  useEffect(() => {
-    async function loadAvatar() {
-      if (!profile?.avatar_key || !session?.access_token) {
-        setAvatarUrl(null);
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/uploads/avatar`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-        if (res.ok) {
-          const body = await res.json();
-          if (body.success && body.data?.display_url) {
-            setAvatarUrl(body.data.display_url);
-          }
-        }
-      } catch {
-        setAvatarUrl(null);
-      }
+    if (profile?.phone) {
+      setPhoneNumber(profile.phone);
+    } else if (user?.user_metadata?.phone) {
+      setPhoneNumber(user.user_metadata.phone);
     }
-
-    loadAvatar();
-  }, [profile?.avatar_key, session]);
+    if (profile?.avatar_key && PRESET_AVATARS.some((a) => a.id === profile.avatar_key)) {
+      setSelectedAvatar(profile.avatar_key);
+    }
+  }, [profile, user]);
 
   const loadPayLaterData = async () => {
     if (!session?.access_token || !isFacultyOrStaff) return;
@@ -135,6 +118,67 @@ export default function ProfilePage() {
     loadPayLaterData();
   }, [session, isFacultyOrStaff]);
 
+  const handleSelectAvatar = async (avatarId: string) => {
+    setSelectedAvatar(avatarId);
+    try {
+      await updateAvatarKey(avatarId);
+    } catch {}
+  };
+
+  const handleUpdate = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!displayName.trim()) {
+      setSaveError('Display name cannot be empty');
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const result = await updateProfileInfo({
+        displayName: displayName.trim(),
+        phone: phoneNumber.trim() || undefined,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update profile information');
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update profile';
+      setSaveError(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleBindGoogle = async () => {
+    setBindingGoogle(true);
+    setGoogleError(null);
+    setGoogleSuccess(null);
+    try {
+      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/profile` : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      setGoogleSuccess('Redirecting to Google authorization...');
+    } catch (err: any) {
+      setGoogleError(err.message || 'Failed to initiate Google account link');
+    } finally {
+      setBindingGoogle(false);
+    }
+  };
+
   const handleSettleDues = async () => {
     setSettling(true);
     setSettleError(null);
@@ -154,111 +198,17 @@ export default function ProfilePage() {
       if (!res.ok || !data.success) {
         throw new Error(data.error?.message || 'Failed to settle dues');
       }
-      setSettleSuccess(`Cleared ₹${(data.data.total_settled / 100).toFixed(2)} via ${settleMethod === 'wallet' ? 'Testing Wallet' : 'UPI'}!`);
-      await loadPayLaterData();
+      setSettleSuccess('Dues settled successfully!');
       setTimeout(() => {
         setShowSettleModal(false);
         setSettleSuccess(null);
-        setUpiRef('');
-      }, 1800);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Settlement failed';
-      setSettleError(msg);
+        loadPayLaterData();
+        refreshProfile();
+      }, 1500);
+    } catch (err: any) {
+      setSettleError(err.message || 'Error settling dues');
     } finally {
       setSettling(false);
-    }
-  };
-
-  const handleUpdate = async (e: FormEvent) => {
-    e.preventDefault();
-    setSaveError(null);
-    setSaveSuccess(false);
-
-    if (!displayName.trim()) {
-      setSaveError('Display name cannot be empty');
-      return;
-    }
-
-    setSaving(true);
-    const result = await updateDisplayName(displayName.trim());
-    setSaving(false);
-
-    if (!result.success) {
-      setSaveError(result.error || 'Failed to update profile');
-    } else {
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    }
-  };
-
-  const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !session?.access_token) return;
-
-    setAvatarError(null);
-    setAvatarSuccess(false);
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
-    if (!allowedTypes.includes(file.type)) {
-      setAvatarError('Please select a valid image file (JPEG, PNG, WebP, or AVIF)');
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      setAvatarError('Avatar image must not exceed 2MB in size');
-      return;
-    }
-
-    setUploadingAvatar(true);
-    try {
-      const presignRes = await fetch(`${API_BASE_URL}/api/v1/uploads/presign`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          file_type: 'profile_image',
-          content_type: file.type,
-          file_size: file.size,
-        }),
-      });
-
-      const presignBody = await presignRes.json();
-      if (!presignRes.ok || !presignBody.success) {
-        throw new Error(presignBody.error?.message || 'Failed to obtain upload authorization');
-      }
-
-      const { upload_url, object_key } = presignBody.data;
-
-      const uploadRes = await fetch(upload_url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error('Failed to upload image data to storage provider');
-      }
-
-      const updateResult = await updateAvatarKey(object_key);
-      if (!updateResult.success) {
-        throw new Error(updateResult.error || 'Failed to link avatar to profile');
-      }
-
-      await refreshProfile();
-      setAvatarSuccess(true);
-      setTimeout(() => setAvatarSuccess(false), 3000);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Avatar upload failed';
-      setAvatarError(msg);
-    } finally {
-      setUploadingAvatar(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
     }
   };
 
@@ -274,7 +224,7 @@ export default function ProfilePage() {
         <main className="flex-1 flex items-center justify-center py-20 pb-28 md:pb-16">
           <div className="flex flex-col items-center gap-3 text-stone-500">
             <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
-            <p className="text-xs font-semibold">Loading profile credentials...</p>
+            <p className="text-xs font-semibold">Loading profile...</p>
           </div>
         </main>
         <Footer />
@@ -282,8 +232,16 @@ export default function ProfilePage() {
     );
   }
 
-  const accountType = profile?.approved_account_type || profile?.account_type || 'student';
-  const isEmailVerified = Boolean(user.email_confirmed_at);
+  const roleLabel =
+    profile?.app_role === 'admin'
+      ? 'Administrator'
+      : profile?.account_type === 'staff' || profile?.approved_account_type === 'staff'
+      ? 'Faculty / Staff'
+      : 'Student';
+
+  const isGoogleLinked =
+    (user as any)?.identities?.some((id: any) => id.provider === 'google') ||
+    (user as any)?.app_metadata?.providers?.includes('google');
 
   return (
     <>
@@ -291,320 +249,284 @@ export default function ProfilePage() {
       <main className="flex-1 pb-28 md:pb-16">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-10 text-white shadow-md">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-white/20 border-2 border-white/40 flex items-center justify-center shadow-md">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-2xl sm:text-3xl font-black text-white">
-                        {(displayName || 'C').charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingAvatar}
-                    className="absolute bottom-0 right-0 rounded-full bg-white text-[#ff5e3a] p-1.5 shadow-md hover:bg-orange-50 disabled:opacity-50 transition active:scale-95"
-                    title="Change picture"
-                  >
-                    {uploadingAvatar ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Camera className="h-3.5 w-3.5" />
-                    )}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/avif"
-                    onChange={handleAvatarChange}
-                    className="hidden"
-                  />
-                </div>
-
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                    Hi {displayName || 'Diner'}
-                  </h1>
-                  <p className="mt-0.5 text-xs text-orange-100 font-medium">
-                    {user.email} &bull; Cafteria CEV
-                  </p>
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden bg-white/20 border-2 border-white/40 flex items-center justify-center shadow-md p-1 bg-white">
+                <img
+                  src={selectedAvatar}
+                  alt={displayName || 'Avatar'}
+                  className="h-full w-full object-contain rounded-full"
+                />
               </div>
 
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-white/30 transition active:scale-95 self-start sm:self-auto"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign Out</span>
-              </button>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                  {displayName || 'Diner'}
+                </h1>
+                <div className="mt-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-[#ff5e3a] shadow-xs">
+                    {roleLabel}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-6">
-              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
-                <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
-                  <User className="h-4 w-4 text-[#ff5e3a]" />
-                  <span>Profile Information</span>
-                </h2>
-
-                {avatarSuccess && (
-                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>Avatar updated successfully!</span>
-                  </div>
-                )}
-
-                {avatarError && (
-                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
-                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                    <span>{avatarError}</span>
-                  </div>
-                )}
-
-                {saveSuccess && (
-                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                    <span>Display name updated successfully!</span>
-                  </div>
-                )}
-
-                {saveError && (
-                  <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
-                    <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                    <span>{saveError}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleUpdate} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="displayName">
-                      Display Name
-                    </label>
-                    <input
-                      id="displayName"
-                      type="text"
-                      required
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="email">
-                      College Email Address
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      disabled
-                      value={user.email || ''}
-                      className="w-full rounded-xl border border-stone-200 bg-stone-100 px-3.5 py-2.5 text-xs text-stone-500 cursor-not-allowed"
-                    />
-                  </div>
-
+        <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 space-y-6">
+          <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+            <h2 className="text-base font-black text-stone-900 mb-2">Choose Avatar</h2>
+            <p className="text-xs text-stone-500 mb-4">Select an avatar representation for your campus account.</p>
+            <div className="grid grid-cols-5 gap-3 max-w-md">
+              {PRESET_AVATARS.map((avatar) => {
+                const isSelected = selectedAvatar === avatar.id;
+                return (
                   <button
-                    type="submit"
-                    disabled={saving}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
+                    key={avatar.id}
+                    type="button"
+                    onClick={() => handleSelectAvatar(avatar.id)}
+                    className={`flex flex-col items-center gap-1.5 p-2 rounded-2xl border-2 transition active:scale-95 ${
+                      isSelected
+                        ? 'border-[#ff5e3a] bg-orange-50/50 shadow-xs'
+                        : 'border-stone-200 hover:border-stone-300 bg-stone-50/50'
+                    }`}
                   >
-                    {saving ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-3.5 w-3.5" />
-                        <span>Save Changes</span>
-                      </>
-                    )}
+                    <div className="h-12 w-12 rounded-full overflow-hidden bg-white p-1 border border-stone-100 flex items-center justify-center">
+                      <img src={avatar.id} alt={avatar.name} className="h-full w-full object-contain" />
+                    </div>
+                    <span className="text-[11px] font-bold text-stone-700">{avatar.name}</span>
                   </button>
-                </form>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+            <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
+              <User className="h-4 w-4 text-[#ff5e3a]" />
+              <span>Profile Information</span>
+            </h2>
+
+            {saveSuccess && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <span>Profile details saved successfully!</span>
+              </div>
+            )}
+
+            {saveError && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                <span>{saveError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="displayName">
+                  Display Name
+                </label>
+                <input
+                  id="displayName"
+                  type="text"
+                  required
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                />
               </div>
 
-              {isFacultyOrStaff && (
-                <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-white p-6 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5 text-indigo-600" />
-                      <h2 className="text-base font-black text-stone-900">Pay Later Account</h2>
-                    </div>
-                    <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[10px] font-bold text-indigo-800">
-                      Faculty & Staff Benefit
-                    </span>
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="phone">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                    <Phone className="h-4 w-4" />
                   </div>
+                  <input
+                    id="phone"
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 pl-9 pr-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  />
+                </div>
+              </div>
 
-                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <span className="text-xs text-stone-500 font-medium">Pending Dues to Pay Later</span>
-                      <div className="mt-1 flex items-baseline gap-2">
-                        {payLaterLoading ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
-                        ) : (
-                          <span className="font-mono text-2xl font-black text-stone-900 tabular-nums">
-                            ₹{(pendingPayLater.total_pending / 100).toFixed(2)}
-                          </span>
-                        )}
-                        {pendingPayLater.order_count > 0 && (
-                          <span className="text-xs text-stone-500 font-semibold">
-                            ({pendingPayLater.order_count} unpaid {pendingPayLater.order_count === 1 ? 'order' : 'orders'})
-                          </span>
-                        )}
-                      </div>
-                    </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="email">
+                  College Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  disabled
+                  value={user.email || ''}
+                  className="w-full rounded-xl border border-stone-200 bg-stone-100 px-3.5 py-2.5 text-xs text-stone-500 cursor-not-allowed"
+                />
+              </div>
 
-                    {pendingPayLater.total_pending > 0 ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSettleError(null);
-                          setSettleSuccess(null);
-                          setShowSettleModal(true);
-                        }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/20 hover:opacity-95 transition active:scale-95 whitespace-nowrap"
-                      >
-                        <CreditCard className="h-4 w-4" />
-                        <span>Settle Dues Now</span>
-                      </button>
-                    ) : (
-                      <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                        <span>All Dues Cleared</span>
-                      </div>
-                    )}
-                  </div>
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-3.5 w-3.5" />
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
 
-                  <p className="mt-4 text-[11px] text-stone-500 border-t border-indigo-100 pt-3 leading-relaxed">
-                    As a verified campus faculty/staff member, you can place canteen orders without upfront payment and settle your tab anytime using your Testing Wallet balance or direct UPI.
+          <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
+            <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
+              <Settings className="h-4 w-4 text-[#ff5e3a]" />
+              <span>Settings & Connected Accounts</span>
+            </h2>
+
+            {googleSuccess && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <span>{googleSuccess}</span>
+              </div>
+            )}
+
+            {googleError && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                <span>{googleError}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-stone-50 border border-stone-200">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-white border border-stone-200 flex items-center justify-center">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-stone-900">Google Account</h3>
+                  <p className="text-[11px] text-stone-500">
+                    {isGoogleLinked
+                      ? 'Your campus Google account is linked for single click sign-in.'
+                      : 'Bind your Google account with this email for quick sign-in.'}
                   </p>
                 </div>
-              )}
+              </div>
 
-              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
-                <h2 className="text-base font-black text-stone-900 mb-4">
-                  Quick Actions
-                </h2>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <Link
-                    href="/orders"
-                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
+              <div>
+                {isGoogleLinked ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 text-emerald-800 px-3 py-1.5 text-xs font-bold">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>Connected</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleBindGoogle}
+                    disabled={bindingGoogle}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-4 py-2 text-xs font-bold text-stone-800 shadow-xs hover:bg-stone-50 disabled:opacity-50 transition active:scale-95"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#ff5e3a]">
-                      <ReceiptText className="h-5 w-5" />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
-                      <span>My Orders</span>
-                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/wallet"
-                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-                      <Wallet className="h-5 w-5" />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
-                      <span>Testing Wallet</span>
-                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
-                    </div>
-                  </Link>
-
-                  <Link
-                    href="/cart"
-                    className="flex flex-col justify-between rounded-2xl border border-stone-200 p-4 hover:border-orange-300 hover:bg-orange-50/40 transition"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
-                      <ShoppingBag className="h-5 w-5" />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-stone-900">
-                      <span>Food Cart</span>
-                      <ArrowRight className="h-3.5 w-3.5 text-stone-400" />
-                    </div>
-                  </Link>
-                </div>
+                    {bindingGoogle ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <LinkIcon className="h-3.5 w-3.5" />
+                    )}
+                    <span>Bind Google Account</span>
+                  </button>
+                )}
               </div>
             </div>
+          </div>
 
-            <div className="space-y-6">
-              <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
-                <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
-                  <Shield className="h-4 w-4 text-[#ff5e3a]" />
-                  <span>Account Status</span>
-                </h2>
+          {isFacultyOrStaff && (
+            <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-purple-50/40 to-white p-6 shadow-xs">
+              <div className="flex items-center justify-between border-b border-indigo-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-indigo-600" />
+                  <h2 className="text-base font-black text-stone-900">Pay Later Account</h2>
+                </div>
+                <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[10px] font-bold text-indigo-800">
+                  Faculty & Staff Benefit
+                </span>
+              </div>
 
-                <div className="space-y-4 text-xs">
-                  <div>
-                    <span className="text-stone-500 block mb-1">Email Verification</span>
-                    {isEmailVerified ? (
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-800 border border-emerald-200">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                        <span>Email Confirmed</span>
-                      </div>
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs text-stone-500 font-medium">Pending Dues to Pay Later</span>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    {payLaterLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
                     ) : (
-                      <div className="space-y-2">
-                        <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 font-bold text-amber-800 border border-amber-200">
-                          <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-                          <span>Unverified</span>
-                        </div>
-                        <div>
-                          <Link
-                            href={`/verify-email?email=${encodeURIComponent(user.email || '')}`}
-                            className="inline-flex items-center gap-1 text-[11px] font-bold text-[#ff5e3a] hover:underline"
-                          >
-                            <Mail className="h-3 w-3" />
-                            <span>Verify your email now</span>
-                          </Link>
-                        </div>
-                      </div>
+                      <span className="font-mono text-2xl font-black text-stone-900 tabular-nums">
+                        ₹{(pendingPayLater.total_pending / 100).toFixed(2)}
+                      </span>
+                    )}
+                    {pendingPayLater.order_count > 0 && (
+                      <span className="text-xs text-stone-500 font-semibold">
+                        ({pendingPayLater.order_count} unpaid {pendingPayLater.order_count === 1 ? 'order' : 'orders'})
+                      </span>
                     )}
                   </div>
-
-                  <div>
-                    <span className="text-stone-500 block mb-1">Classification</span>
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 font-bold text-stone-800 border border-stone-200">
-                      {accountType === 'staff' ? (
-                        <>
-                          <Briefcase className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                          <span>Faculty / Staff</span>
-                        </>
-                      ) : (
-                        <>
-                          <GraduationCap className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                          <span>Student</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-stone-500 block mb-1">Campus Dining Platform</span>
-                    <div className="flex items-center gap-1.5 text-stone-700 font-bold">
-                      <UtensilsCrossed className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                      <span>Cafteria CEV</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <span className="text-stone-500 block mb-1">Member Since</span>
-                    <div className="flex items-center gap-1.5 text-stone-600">
-                      <Calendar className="h-3.5 w-3.5 text-stone-400" />
-                      <span>{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Active'}</span>
-                    </div>
-                  </div>
                 </div>
+
+                {pendingPayLater.total_pending > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSettleError(null);
+                      setSettleSuccess(null);
+                      setShowSettleModal(true);
+                    }}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-indigo-600/20 hover:opacity-95 transition active:scale-95 whitespace-nowrap"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span>Settle Dues Now</span>
+                  </button>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <span>All Dues Cleared</span>
+                  </div>
+                )}
               </div>
             </div>
+          )}
+
+          <div className="pt-4 border-t border-stone-200 flex justify-center">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-8 py-3.5 shadow-md shadow-red-500/20 transition active:scale-95"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
+            </button>
           </div>
         </section>
 

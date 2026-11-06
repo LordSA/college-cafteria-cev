@@ -359,10 +359,10 @@ export default function CustomerHomePage() {
                     Explore Today's Menu
                   </Link>
                   <Link
-                    href="/categories"
+                    href="/menu"
                     className="rounded-2xl border border-white/40 bg-white/10 backdrop-blur-xs px-5 py-3 text-xs font-bold text-white hover:bg-white/20 transition active:scale-95 whitespace-nowrap"
                   >
-                    View Categories
+                    View Menu
                   </Link>
                 </div>
               </div>
@@ -385,17 +385,17 @@ export default function CustomerHomePage() {
               Categories
             </h2>
             <Link
-              href="/categories"
+              href="/menu"
               className="text-xs font-bold text-[#ff5e3a] hover:text-orange-600 flex items-center gap-0.5"
             >
-              <span>See All</span>
+              <span>See Menu</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
           <div className="mt-2 flex items-center gap-4 overflow-x-auto py-4 px-3 -mx-3 scrollbar-none">
             <Link
-              href="/categories"
+              href="/menu"
               className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
             >
               <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
@@ -412,7 +412,7 @@ export default function CustomerHomePage() {
               return (
                 <Link
                   key={cat.id}
-                  href={`/categories#${cat.id}`}
+                  href={`/menu?category=${cat.id}`}
                   className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
                 >
                   <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
@@ -437,14 +437,14 @@ export default function CustomerHomePage() {
             <UtensilsCrossed className="mx-auto h-12 w-12 text-stone-300" />
             <h3 className="mt-4 text-base font-bold text-stone-800">Canteen Menu Updating</h3>
             <p className="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
-              Our kitchen team is currently refreshing today's menu. Check back shortly or browse categories!
+              Our kitchen team is currently refreshing today's menu. Check back shortly!
             </p>
             <Link
-              href="/categories"
+              href="/menu"
               className="mt-6 inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20"
             >
-              <Grid className="h-4 w-4" />
-              <span>Browse Categories</span>
+              <UtensilsCrossed className="h-4 w-4" />
+              <span>Browse Menu</span>
             </Link>
           </section>
         ) : (
