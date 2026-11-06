@@ -110,18 +110,6 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             </Link>
 
             <Link
-              href="/categories"
-              onClick={onClose}
-              className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-stone-700 hover:bg-orange-50 hover:text-orange-600 transition"
-            >
-              <div className="flex items-center gap-3">
-                <Grid className="h-4 w-4 text-[#ff5e3a]" />
-                <span>Categories</span>
-              </div>
-              <ChevronRight className="h-4 w-4 text-stone-300" />
-            </Link>
-
-            <Link
               href="/orders"
               onClick={onClose}
               className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-stone-700 hover:bg-orange-50 hover:text-orange-600 transition"

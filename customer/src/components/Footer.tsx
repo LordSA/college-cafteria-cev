@@ -34,11 +34,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/categories" className="hover:text-[#ff5e3a] transition">
-                  All Categories
-                </Link>
-              </li>
-              <li>
                 <Link href="/cart" className="hover:text-[#ff5e3a] transition">
                   Active Food Cart
                 </Link>

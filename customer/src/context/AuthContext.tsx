@@ -11,6 +11,7 @@ export type AppRole = 'customer' | 'admin';
 export interface UserProfile {
   id: string;
   display_name: string | null;
+  phone?: string | null;
   avatar_key: string | null;
   account_type: AccountType;
   requested_account_type: AccountType;
@@ -45,6 +46,7 @@ interface AuthContextType {
   signIn: (params: SignInParams) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfileInfo: (params: { displayName: string; phone?: string }) => Promise<{ success: boolean; error?: string }>;
   updateAvatarKey: (avatarKey: string) => Promise<{ success: boolean; error?: string }>;
   refreshProfile: () => Promise<void>;
 }
@@ -74,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile({
           id: data.id,
           display_name: data.display_name,
+          phone: data.phone || userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: data.avatar_key,
           account_type: data.account_type || 'student',
           requested_account_type: data.requested_account_type || 'student',
@@ -90,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile({
           id: userId,
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
+          phone: userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: null,
           account_type: 'student',
           requested_account_type: reqType,
@@ -105,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile({
         id: userId,
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
+        phone: userMeta?.phone || userMeta?.phone_number || null,
         avatar_key: null,
         account_type: 'student',
         requested_account_type: reqType,
@@ -276,6 +281,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfileInfo = async (params: { displayName: string; phone?: string }) => {
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    try {
+      const updateData: Record<string, any> = { display_name: params.displayName };
+      if (params.phone !== undefined) {
+        updateData.phone = params.phone;
+      }
+
+      try {
+        await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', user.id);
+      } catch {}
+
+      await supabase.auth.updateUser({
+        data: {
+          display_name: params.displayName,
+          phone: params.phone,
+        },
+      });
+
+      await refreshProfile();
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to update profile' };
+    }
+  };
+
   const updateAvatarKey = async (avatarKey: string) => {
     if (!user) {
       return { success: false, error: 'Not authenticated' };
@@ -310,6 +347,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signOut,
         updateDisplayName,
+        updateProfileInfo,
         updateAvatarKey,
         refreshProfile,
       }}

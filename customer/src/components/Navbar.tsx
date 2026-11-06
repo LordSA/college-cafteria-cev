@@ -25,20 +25,24 @@ export function Navbar() {
       }
 
       if (profile?.avatar_key) {
-        try {
-          const res = await fetch(`${API_BASE_URL}/api/v1/uploads/avatar`, {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-          if (res.ok) {
-            const body = await res.json();
-            if (body.success && body.data?.display_url) {
-              setAvatarUrl(body.data.display_url);
+        if (profile.avatar_key.startsWith('/avatars/')) {
+          setAvatarUrl(profile.avatar_key);
+        } else {
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/v1/uploads/avatar`, {
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
+              },
+            });
+            if (res.ok) {
+              const body = await res.json();
+              if (body.success && body.data?.display_url) {
+                setAvatarUrl(body.data.display_url);
+              }
             }
+          } catch {
+            setAvatarUrl(null);
           }
-        } catch {
-          setAvatarUrl(null);
         }
       }
 
@@ -65,7 +69,6 @@ export function Navbar() {
   const navLinks = [
     { label: 'Home', href: '/', isActive: pathname === '/' },
     { label: 'Menu', href: '/menu', isActive: pathname.startsWith('/menu') },
-    { label: 'Categories', href: '/categories', isActive: pathname.startsWith('/categories') },
   ];
 
   return (
