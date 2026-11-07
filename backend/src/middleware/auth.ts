@@ -6,6 +6,10 @@ export const requireAuth = createMiddleware<{
   Bindings: Env;
   Variables: AuthContextVariables;
 }>(async (c, next) => {
+  if (c.get('user') && c.get('profile')) {
+    return await next();
+  }
+
   const authHeader = c.req.header('Authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -324,27 +324,31 @@ customerOrdersRouter.post(
 
     let razorpayOrderId: string | null = null;
     if (paymentMethod === 'razorpay') {
-      try {
-        const rzpOrder = await createRazorpayOrder(c.env, {
-          amountPaise: calculatedTotal,
-          receipt: orderNumber,
-          notes: {
-            customer_id: user.id,
-            order_number: orderNumber,
-          },
-        });
-        razorpayOrderId = rzpOrder.id;
-      } catch (err: any) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'PAYMENT_GATEWAY_ERROR',
-              message: err?.message || 'Failed to initialize payment gateway order',
+      if (c.env?.RAZORPAY_KEY_ID && c.env?.RAZORPAY_KEY_SECRET) {
+        try {
+          const rzpOrder = await createRazorpayOrder(c.env, {
+            amountPaise: calculatedTotal,
+            receipt: orderNumber,
+            notes: {
+              customer_id: user.id,
+              order_number: orderNumber,
             },
-          },
-          502
-        );
+          });
+          razorpayOrderId = rzpOrder.id;
+        } catch (err: any) {
+          return c.json(
+            {
+              success: false,
+              error: {
+                code: 'PAYMENT_GATEWAY_ERROR',
+                message: err?.message || 'Failed to initialize payment gateway order',
+              },
+            },
+            502
+          );
+        }
+      } else {
+        razorpayOrderId = `order_sim_${Date.now()}`;
       }
     }
 

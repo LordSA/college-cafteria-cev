@@ -572,7 +572,7 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
             400
           );
         }
-        if (errMsg.includes('ERR_NOT_READY_FOR_PICKUP')) {
+        if (errMsg.includes('ERR_ORDER_NOT_READY') || errMsg.includes('ERR_NOT_READY_FOR_PICKUP') || errMsg.includes('ERR_NOT_READY')) {
           return c.json(
             { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
             400
