@@ -4,12 +4,15 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
+export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'customer';
+export type AdminRole = 'developer' | 'admin' | 'retail' | 'staff';
+
 export interface AdminProfile {
   id: string;
   display_name: string | null;
   avatar_key: string | null;
   account_type: 'student' | 'staff';
-  app_role: 'customer' | 'admin';
+  app_role: AppRole;
   created_at: string;
   updated_at: string;
 }
@@ -21,6 +24,16 @@ interface AdminAuthContextType {
   loading: boolean;
   isUnauthorized: boolean;
   error: string | null;
+  role: AdminRole | null;
+  isDeveloper: boolean;
+  isAdmin: boolean;
+  isRetail: boolean;
+  isStaff: boolean;
+  canManageUsers: boolean;
+  canManageInventory: boolean;
+  canManageOrders: boolean;
+  canScanQr: boolean;
+  canViewReports: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; isUnauthorized?: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshVerification: () => Promise<void>;
@@ -48,7 +61,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
       if (res.status === 200) {
         const json = await res.json();
-        return { isAllowed: true, profile: json.data?.profile as AdminProfile };
+        const profile = json.data?.profile as AdminProfile;
+        const role = profile?.app_role;
+        const isAllowed = ['developer', 'admin', 'retail', 'staff'].includes(role);
+        return { isAllowed, profile: isAllowed ? profile : null };
       }
 
       if (res.status === 403) {
@@ -63,7 +79,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .maybeSingle();
 
-      if (!profileErr && data && data.app_role === 'admin') {
+      if (!profileErr && data && ['developer', 'admin', 'retail', 'staff'].includes(data.app_role)) {
         return { isAllowed: true, profile: data as AdminProfile };
       }
     } catch {}
@@ -182,6 +198,18 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const role = (adminProfile?.app_role as AdminRole) || null;
+  const isDeveloper = role === 'developer';
+  const isAdmin = role === 'admin' || isDeveloper;
+  const isRetail = role === 'retail' || isAdmin;
+  const isStaff = role === 'staff' || isRetail;
+
+  const canManageUsers = isDeveloper;
+  const canViewReports = isAdmin;
+  const canManageInventory = isRetail;
+  const canManageOrders = isRetail;
+  const canScanQr = isStaff;
+
   return (
     <AdminAuthContext.Provider
       value={{
@@ -191,6 +219,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         isUnauthorized,
         error,
+        role,
+        isDeveloper,
+        isAdmin,
+        isRetail,
+        isStaff,
+        canManageUsers,
+        canManageInventory,
+        canManageOrders,
+        canScanQr,
+        canViewReports,
         signIn,
         signOut,
         refreshVerification,

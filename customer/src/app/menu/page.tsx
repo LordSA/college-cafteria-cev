@@ -45,7 +45,7 @@ interface MenuItem {
   stock_quantity?: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function MenuPage() {
   const router = useRouter();
@@ -296,9 +296,8 @@ export default function MenuPage() {
 
                         <div className="mt-1 flex items-center gap-2">
                           <span
-                            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
-                              isAvailable ? 'text-emerald-700' : 'text-rose-600'
-                            }`}
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${isAvailable ? 'text-emerald-700' : 'text-rose-600'
+                              }`}
                           >
                             {isAvailable ? (
                               <>
@@ -398,11 +397,10 @@ export default function MenuPage() {
                   setSelectedCategory('all');
                   setShowFilterModal(false);
                 }}
-                className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${
-                  selectedCategory === 'all'
+                className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${selectedCategory === 'all'
                     ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
                     : 'bg-stone-50 hover:bg-stone-100 text-stone-800'
-                }`}
+                  }`}
               >
                 <span>All Dishes</span>
                 <span className="text-[11px] opacity-80">{menuItems.length}</span>
@@ -419,11 +417,10 @@ export default function MenuPage() {
                       setSelectedCategory(cat.id);
                       setShowFilterModal(false);
                     }}
-                    className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${
-                      isSelected
+                    className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${isSelected
                         ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
                         : 'bg-stone-50 hover:bg-stone-100 text-stone-800'
-                    }`}
+                      }`}
                   >
                     <span>{cat.name}</span>
                     <span className="text-[11px] opacity-80">{count}</span>

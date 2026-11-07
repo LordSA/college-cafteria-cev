@@ -1,4 +1,3 @@
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
   images: {
@@ -6,6 +5,9 @@ const nextConfig = {
   },
   trailingSlash: true,
   reactStrictMode: true,
+  experimental: {
+    cpus: 1,
+  },
 };
 
 export default nextConfig;

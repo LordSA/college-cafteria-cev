@@ -37,7 +37,7 @@ interface Order {
   items: OrderItem[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerOrdersPage() {
   const { user, loading: authLoading, session } = useAuth();
@@ -85,9 +85,9 @@ export default function CustomerOrdersPage() {
   const renderStatusBadge = (order: Order) => {
     const stage = order.order_stage || (
       order.order_status === 'completed' ? 'COLLECTED' :
-      order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
-      order.order_status === 'cancelled' ? 'CANCELLED' :
-      'ORDER_PLACED'
+        order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
+          order.order_status === 'cancelled' ? 'CANCELLED' :
+            'ORDER_PLACED'
     );
 
     switch (stage) {

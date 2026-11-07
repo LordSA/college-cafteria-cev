@@ -21,7 +21,7 @@ import {
   UploadCloud,
 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -96,7 +96,7 @@ export default function ProfilePage() {
           setWalletBalance(wJson.data.balance);
         }
       }
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -283,8 +283,8 @@ export default function ProfilePage() {
     profile?.app_role === 'admin' || profile?.app_role === 'developer'
       ? 'Administrator'
       : profile?.account_type === 'staff' || profile?.approved_account_type === 'staff'
-      ? 'Faculty / Staff'
-      : 'Student';
+        ? 'Faculty / Staff'
+        : 'Student';
 
   const avatarDisplayUrl = profile?.avatar_url || (profile?.avatar_key ? `${API_BASE_URL}/api/v1/uploads/avatar?key=${profile.avatar_key}` : null);
 
@@ -606,11 +606,10 @@ export default function ProfilePage() {
                 <label className="block text-xs font-bold text-stone-700">Choose Settlement Method</label>
 
                 <label
-                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${
-                    settleMethod === 'wallet'
+                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${settleMethod === 'wallet'
                       ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-600'
                       : 'border-stone-200 hover:border-stone-300'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"
@@ -636,11 +635,10 @@ export default function ProfilePage() {
                 </label>
 
                 <label
-                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${
-                    settleMethod === 'upi'
+                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${settleMethod === 'upi'
                       ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-600'
                       : 'border-stone-200 hover:border-stone-300'
-                  }`}
+                    }`}
                 >
                   <input
                     type="radio"

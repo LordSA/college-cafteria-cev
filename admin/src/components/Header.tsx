@@ -13,24 +13,59 @@ import {
   Settings,
   Wallet,
   Home,
+  Terminal,
 } from 'lucide-react';
 import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export function Header() {
   const pathname = usePathname();
-  const { adminUser, adminProfile, loading, signOut } = useAdminAuth();
+  const { adminUser, adminProfile, loading, signOut, role, isDeveloper, isAdmin, isRetail, isStaff } = useAdminAuth();
 
-  const navLinks = [
-    { label: 'Dashboard', href: '/', icon: Home, isActive: pathname === '/' },
-    { label: 'Orders', href: '/orders', icon: Timer, isActive: pathname.startsWith('/orders') },
-    { label: 'Inventory', href: '/inventory', icon: Trophy, isActive: pathname.startsWith('/inventory') },
-    { label: 'Scanner', href: '/scan', icon: Calendar, isActive: pathname.startsWith('/scan') },
-    { label: 'Menu', href: '/menu', icon: Bookmark, isActive: pathname.startsWith('/menu') },
-    { label: 'Categories', href: '/categories', icon: Layers, isActive: pathname.startsWith('/categories') },
-    { label: 'Wallets', href: '/wallets', icon: Wallet, isActive: pathname.startsWith('/wallets') },
-    { label: 'Staff', href: '/staff-requests', icon: Settings, isActive: pathname.startsWith('/staff-requests') },
+  const allNavLinks = [
+    { label: 'Dashboard', href: '/', icon: Home, show: isAdmin },
+    { label: 'Orders', href: '/orders', icon: Timer, show: isRetail || isStaff },
+    { label: 'Inventory', href: '/inventory', icon: Trophy, show: isRetail },
+    { label: 'Scanner', href: '/scan', icon: Calendar, show: isStaff },
+    { label: 'Menu', href: '/menu', icon: Bookmark, show: isRetail },
+    { label: 'Categories', href: '/categories', icon: Layers, show: isRetail },
+    { label: 'Wallets', href: '/wallets', icon: Wallet, show: isAdmin },
+    { label: 'Staff', href: '/staff-requests', icon: Settings, show: isAdmin },
+    { label: 'Developer', href: '/developer', icon: Terminal, show: isDeveloper },
   ];
+
+  const visibleLinks = allNavLinks.filter((l) => l.show);
+
+  const renderRoleBadge = () => {
+    switch (role) {
+      case 'developer':
+        return (
+          <span className="rounded-full bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 text-[10px] font-bold text-purple-300">
+            DEVELOPER
+          </span>
+        );
+      case 'admin':
+        return (
+          <span className="rounded-full bg-pink-500/15 border border-pink-500/30 px-2 py-0.5 text-[10px] font-bold text-pink-300">
+            ADMIN
+          </span>
+        );
+      case 'retail':
+        return (
+          <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-300">
+            RETAIL
+          </span>
+        );
+      case 'staff':
+        return (
+          <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+            STAFF
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#1e1f25] bg-[#121316]/95 text-slate-100 backdrop-blur-md select-none">
@@ -44,25 +79,29 @@ export function Header() {
               </svg>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-black tracking-tight text-white group-hover:text-[#f5a4c6] transition">
-                ALEXATEL
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-black tracking-tight text-white group-hover:text-[#f5a4c6] transition">
+                  ALEXATEL
+                </span>
+                {renderRoleBadge()}
+              </div>
               <span className="text-[9px] font-bold uppercase tracking-wider text-stone-400">
                 Cafteria Ops
               </span>
             </div>
           </Link>
 
-          {!loading && adminUser && adminProfile?.app_role === 'admin' && (
+          {!loading && adminUser && role && (
             <nav className="hidden lg:flex items-center gap-1.5 text-xs font-semibold">
-              {navLinks.map((link) => {
+              {visibleLinks.map((link) => {
                 const IconComp = link.icon;
+                const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 transition ${
-                      link.isActive
+                      isActive
                         ? 'bg-[#f5a4c6] text-[#101114] font-bold shadow-sm shadow-[#f5a4c6]/20'
                         : 'text-stone-400 hover:bg-white/[0.05] hover:text-white'
                     }`}
@@ -117,4 +156,5 @@ export function Header() {
       </div>
     </header>
   );
+}
 }
