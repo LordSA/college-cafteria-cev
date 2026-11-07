@@ -2599,3 +2599,414 @@ $$;
 GRANT EXECUTE ON FUNCTION public.set_user_role(uuid, text) TO authenticated, service_role;
 
 
+-- ============================================================================
+-- PAY LATER FEATURE
+-- ============================================================================
+ALTER TABLE public.orders DROP CONSTRAINT IF EXISTS orders_payment_method_check;
+ALTER TABLE public.orders
+  ADD CONSTRAINT orders_payment_method_check
+  CHECK (payment_method IN ('testing_wallet', 'counter_cash', 'razorpay', 'pay_later'));
+
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS pay_later_settled_at timestamptz,
+  ADD COLUMN IF NOT EXISTS pay_later_settled_via text;
+
+CREATE INDEX IF NOT EXISTS idx_orders_pay_later ON public.orders(customer_id, payment_method, payment_status);
+
+-- ============================================================================
+-- CART ITEM LOCKS & 5-MINUTE RESERVATION SYSTEM
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.cart_item_locks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  session_id text,
+  menu_item_id uuid NOT NULL REFERENCES public.menu_items(id) ON DELETE CASCADE,
+  quantity integer NOT NULL CHECK (quantity > 0),
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '5 minutes'),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_cart_locks_user_item UNIQUE (user_id, menu_item_id),
+  CONSTRAINT uq_cart_locks_session_item UNIQUE (session_id, menu_item_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cart_item_locks_expiry ON public.cart_item_locks(expires_at);
+CREATE INDEX IF NOT EXISTS idx_cart_item_locks_item ON public.cart_item_locks(menu_item_id);
+
+ALTER TABLE public.cart_item_locks ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow cart item locks access" ON public.cart_item_locks;
+CREATE POLICY "Allow cart item locks access"
+  ON public.cart_item_locks
+  FOR ALL
+  TO public
+  USING (true)
+  WITH CHECK (true);
+
+CREATE OR REPLACE FUNCTION public.cleanup_expired_cart_locks()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_lock record;
+BEGIN
+  FOR v_lock IN
+    SELECT l.id, l.menu_item_id, l.quantity, m.track_inventory
+    FROM public.cart_item_locks l
+    JOIN public.menu_items m ON m.id = l.menu_item_id
+    WHERE l.expires_at < now()
+    FOR UPDATE OF l
+  LOOP
+    IF v_lock.track_inventory THEN
+      UPDATE public.menu_items
+      SET stock_quantity = stock_quantity + v_lock.quantity,
+          updated_at = now()
+      WHERE id = v_lock.menu_item_id;
+    END IF;
+
+    DELETE FROM public.cart_item_locks WHERE id = v_lock.id;
+  END LOOP;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.lock_cart_item(
+  p_menu_item_id uuid,
+  p_quantity integer,
+  p_user_id uuid DEFAULT NULL,
+  p_session_id text DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_item record;
+  v_existing_qty integer := 0;
+  v_delta integer := 0;
+  v_expires_at timestamptz;
+BEGIN
+  PERFORM public.cleanup_expired_cart_locks();
+
+  IF p_user_id IS NULL AND (p_session_id IS NULL OR trim(p_session_id) = '') THEN
+    RAISE EXCEPTION 'ERR_NO_IDENTIFIER: Either user_id or session_id must be provided';
+  END IF;
+
+  SELECT * INTO v_item
+  FROM public.menu_items
+  WHERE id = p_menu_item_id
+  FOR UPDATE;
+
+  IF v_item.id IS NULL THEN
+    RAISE EXCEPTION 'ERR_ITEM_NOT_FOUND: Menu item does not exist';
+  END IF;
+
+  IF NOT v_item.is_available THEN
+    RAISE EXCEPTION 'ERR_ITEM_UNAVAILABLE: Item is not available';
+  END IF;
+
+  IF p_user_id IS NOT NULL THEN
+    SELECT quantity INTO v_existing_qty
+    FROM public.cart_item_locks
+    WHERE user_id = p_user_id AND menu_item_id = p_menu_item_id;
+  ELSE
+    SELECT quantity INTO v_existing_qty
+    FROM public.cart_item_locks
+    WHERE session_id = p_session_id AND menu_item_id = p_menu_item_id;
+  END IF;
+
+  v_existing_qty := COALESCE(v_existing_qty, 0);
+  v_delta := p_quantity - v_existing_qty;
+
+  IF v_delta > 0 AND v_item.track_inventory THEN
+    IF v_item.stock_quantity < v_delta THEN
+      RAISE EXCEPTION 'ERR_INSUFFICIENT_STOCK: Only % items remaining in stock', v_item.stock_quantity;
+    END IF;
+
+    UPDATE public.menu_items
+    SET stock_quantity = stock_quantity - v_delta,
+        updated_at = now()
+    WHERE id = p_menu_item_id;
+  ELSIF v_delta < 0 AND v_item.track_inventory THEN
+    UPDATE public.menu_items
+    SET stock_quantity = stock_quantity + ABS(v_delta),
+        updated_at = now()
+    WHERE id = p_menu_item_id;
+  END IF;
+
+  v_expires_at := now() + interval '5 minutes';
+
+  IF p_quantity > 0 THEN
+    IF p_user_id IS NOT NULL THEN
+      INSERT INTO public.cart_item_locks (user_id, menu_item_id, quantity, expires_at, updated_at)
+      VALUES (p_user_id, p_menu_item_id, p_quantity, v_expires_at, now())
+      ON CONFLICT (user_id, menu_item_id)
+      DO UPDATE SET quantity = p_quantity, expires_at = v_expires_at, updated_at = now();
+    ELSE
+      INSERT INTO public.cart_item_locks (session_id, menu_item_id, quantity, expires_at, updated_at)
+      VALUES (p_session_id, p_menu_item_id, p_quantity, v_expires_at, now())
+      ON CONFLICT (session_id, menu_item_id)
+      DO UPDATE SET quantity = p_quantity, expires_at = v_expires_at, updated_at = now();
+    END IF;
+  ELSE
+    IF p_user_id IS NOT NULL THEN
+      DELETE FROM public.cart_item_locks WHERE user_id = p_user_id AND menu_item_id = p_menu_item_id;
+    ELSE
+      DELETE FROM public.cart_item_locks WHERE session_id = p_session_id AND menu_item_id = p_menu_item_id;
+    END IF;
+  END IF;
+
+  SELECT stock_quantity INTO v_item.stock_quantity FROM public.menu_items WHERE id = p_menu_item_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'menu_item_id', p_menu_item_id,
+    'locked_quantity', p_quantity,
+    'remaining_stock', v_item.stock_quantity,
+    'expires_at', v_expires_at
+  );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.release_cart_locks(
+  p_user_id uuid DEFAULT NULL,
+  p_session_id text DEFAULT NULL,
+  p_menu_item_id uuid DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_lock record;
+  v_count integer := 0;
+BEGIN
+  FOR v_lock IN
+    SELECT l.id, l.menu_item_id, l.quantity, m.track_inventory
+    FROM public.cart_item_locks l
+    JOIN public.menu_items m ON m.id = l.menu_item_id
+    WHERE (
+      (p_user_id IS NOT NULL AND l.user_id = p_user_id) OR
+      (p_session_id IS NOT NULL AND l.session_id = p_session_id)
+    )
+    AND (p_menu_item_id IS NULL OR l.menu_item_id = p_menu_item_id)
+    FOR UPDATE OF l
+  LOOP
+    IF v_lock.track_inventory THEN
+      UPDATE public.menu_items
+      SET stock_quantity = stock_quantity + v_lock.quantity,
+          updated_at = now()
+      WHERE id = v_lock.menu_item_id;
+    END IF;
+
+    DELETE FROM public.cart_item_locks WHERE id = v_lock.id;
+    v_count := v_count + 1;
+  END LOOP;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'released_count', v_count
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_cart_locks() TO authenticated, service_role, anon;
+GRANT EXECUTE ON FUNCTION public.lock_cart_item(uuid, integer, uuid, text) TO authenticated, service_role, anon;
+GRANT EXECUTE ON FUNCTION public.release_cart_locks(uuid, text, uuid) TO authenticated, service_role, anon;
+
+-- ============================================================================
+-- PHASE 5: PRODUCTION PAYMENTS, 4-TIER ROLES, TEACHER ID & DATABASE SECURITY
+-- ============================================================================
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_app_role_check;
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_app_role_check
+  CHECK (app_role IN ('customer', 'developer', 'admin', 'retail', 'staff'));
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS teacher_id text;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_profiles_teacher_id'
+  ) THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT uq_profiles_teacher_id UNIQUE (teacher_id);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_profiles_teacher_id ON public.profiles(teacher_id) WHERE teacher_id IS NOT NULL;
+
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS razorpay_order_id text,
+  ADD COLUMN IF NOT EXISTS razorpay_payment_id text;
+
+CREATE INDEX IF NOT EXISTS idx_orders_razorpay_order_id ON public.orders(razorpay_order_id);
+CREATE INDEX IF NOT EXISTS idx_orders_razorpay_payment_id ON public.orders(razorpay_payment_id);
+
+CREATE TABLE IF NOT EXISTS public.payments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
+  customer_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  razorpay_order_id text NOT NULL,
+  razorpay_payment_id text,
+  razorpay_signature text,
+  amount integer NOT NULL CHECK (amount >= 0),
+  currency text NOT NULL DEFAULT 'INR',
+  status text NOT NULL DEFAULT 'created' CHECK (status IN ('created', 'authorized', 'captured', 'failed', 'refunded')),
+  payment_method text NOT NULL DEFAULT 'razorpay',
+  error_code text,
+  error_description text,
+  captured_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_payments_razorpay_order UNIQUE (razorpay_order_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_payments_order ON public.payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_payments_customer ON public.payments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON public.payments(status);
+CREATE INDEX IF NOT EXISTS idx_payments_razorpay_payment ON public.payments(razorpay_payment_id);
+
+CREATE TABLE IF NOT EXISTS public.payment_webhook_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_id text NOT NULL UNIQUE,
+  event_type text NOT NULL,
+  payload jsonb NOT NULL,
+  status text NOT NULL DEFAULT 'received' CHECK (status IN ('received', 'processed', 'ignored', 'failed')),
+  processed_at timestamptz,
+  error_message text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_webhook_events_event_id ON public.payment_webhook_events(event_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_events_status ON public.payment_webhook_events(status);
+
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_webhook_events ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Customers can view own payments" ON public.payments;
+CREATE POLICY "Customers can view own payments"
+  ON public.payments
+  FOR SELECT
+  TO authenticated
+  USING (customer_id = auth.uid() OR public.is_admin());
+
+DROP POLICY IF EXISTS "Admins can manage payments" ON public.payments;
+CREATE POLICY "Admins can manage payments"
+  ON public.payments
+  FOR ALL
+  TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+DROP POLICY IF EXISTS "Service role access for webhook events" ON public.payment_webhook_events;
+CREATE POLICY "Service role access for webhook events"
+  ON public.payment_webhook_events
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND app_role IN ('developer', 'admin')
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.protect_profile_fields()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller_role text;
+BEGIN
+  SELECT app_role INTO v_caller_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  IF auth.uid() = NEW.id AND (v_caller_role IS NULL OR v_caller_role NOT IN ('developer')) THEN
+    IF NEW.app_role IS DISTINCT FROM OLD.app_role THEN
+      RAISE EXCEPTION 'ERR_FORBIDDEN: You are not authorized to alter your app role';
+    END IF;
+
+    IF NEW.account_type IS DISTINCT FROM OLD.account_type THEN
+      RAISE EXCEPTION 'ERR_FORBIDDEN: You are not authorized to alter your account type directly';
+    END IF;
+
+    IF NEW.approved_account_type IS DISTINCT FROM OLD.approved_account_type THEN
+      RAISE EXCEPTION 'ERR_FORBIDDEN: You are not authorized to alter approved account type';
+    END IF;
+
+    IF NEW.staff_approval_status IS DISTINCT FROM OLD.staff_approval_status THEN
+      IF NOT (OLD.staff_approval_status IN ('not_requested', 'rejected') AND NEW.staff_approval_status = 'pending') THEN
+        RAISE EXCEPTION 'ERR_FORBIDDEN: You cannot alter staff approval status';
+      END IF;
+    END IF;
+
+    IF NEW.reviewed_by IS DISTINCT FROM OLD.reviewed_by OR NEW.reviewed_at IS DISTINCT FROM OLD.reviewed_at THEN
+      RAISE EXCEPTION 'ERR_FORBIDDEN: You cannot alter staff review audit fields';
+    END IF;
+  END IF;
+
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_protect_profile_fields ON public.profiles;
+CREATE TRIGGER trg_protect_profile_fields
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.protect_profile_fields();
+
+CREATE OR REPLACE FUNCTION public.set_user_role(
+  p_target_user_id uuid,
+  p_new_role text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_caller_role text;
+BEGIN
+  SELECT app_role INTO v_caller_role
+  FROM public.profiles
+  WHERE id = auth.uid();
+
+  IF v_caller_role IS DISTINCT FROM 'developer' AND auth.jwt()->>'role' != 'service_role' THEN
+    RAISE EXCEPTION 'ERR_UNAUTHORIZED: Only developers can modify user roles';
+  END IF;
+
+  IF p_new_role NOT IN ('customer', 'developer', 'admin', 'retail', 'staff') THEN
+    RAISE EXCEPTION 'ERR_INVALID_ROLE: Role % is not recognized', p_new_role;
+  END IF;
+
+  UPDATE public.profiles
+  SET app_role = p_new_role,
+      updated_at = now()
+  WHERE id = p_target_user_id;
+
+  RETURN jsonb_build_object(
+    'user_id', p_target_user_id,
+    'app_role', p_new_role,
+    'updated_at', now()
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.set_user_role(uuid, text) TO authenticated, service_role;
+
+
