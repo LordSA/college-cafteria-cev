@@ -30,7 +30,7 @@ adminOrdersRouter.use('*', requireAuth);
 adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
 
-  if (!adminClient) {
+  if (!adminClient || typeof adminClient.from !== 'function') {
     return c.json(
       { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
       500
@@ -120,7 +120,7 @@ adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), asy
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
-  if (!adminClient) {
+  if (!adminClient || typeof adminClient.from !== 'function') {
     return c.json(
       { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
       500
@@ -179,40 +179,49 @@ adminOrdersRouter.post('/:id/ready', requireRole(['developer', 'admin']), async 
     );
   }
 
-  try {
-    const { data: rpcResult, error: rpcErr } = await adminClient.rpc('mark_order_ready', {
-      p_order_id: orderId,
-    });
-
-    if (!rpcErr && rpcResult) {
-      return c.json({
-        success: true,
-        data: rpcResult,
+  if (typeof adminClient.rpc === 'function') {
+    try {
+      const { data: rpcResult, error: rpcErr } = await adminClient.rpc('mark_order_ready', {
+        p_order_id: orderId,
       });
-    }
 
-    if (rpcErr) {
-      const errMsg = rpcErr.message || '';
-      if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
-        return c.json(
-          { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
-          400
-        );
+      if (!rpcErr && rpcResult) {
+        return c.json({
+          success: true,
+          data: rpcResult,
+        });
       }
-      if (errMsg.includes('ERR_ORDER_UNPAID')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot mark unpaid order as ready' } },
-          400
-        );
+
+      if (rpcErr) {
+        const errMsg = rpcErr.message || '';
+        if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
+          return c.json(
+            { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
+            400
+          );
+        }
+        if (errMsg.includes('ERR_ORDER_UNPAID')) {
+          return c.json(
+            { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot mark unpaid order as ready' } },
+            400
+          );
+        }
+        if (errMsg.includes('ERR_ORDER_NOT_FOUND')) {
+          return c.json(
+            { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
+            404
+          );
+        }
       }
-      if (errMsg.includes('ERR_ORDER_NOT_FOUND')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
-          404
-        );
-      }
-    }
-  } catch {}
+    } catch {}
+  }
+
+  if (typeof adminClient.from !== 'function') {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database operation failed' } },
+      500
+    );
+  }
 
   const { data: order, error: orderErr } = await adminClient
     .from('orders')
@@ -283,7 +292,7 @@ adminOrdersRouter.patch(
     const orderId = c.req.param('id');
     const { status: targetStatus, cancellation_reason } = c.req.valid('json');
 
-    if (!adminClient) {
+    if (!adminClient || typeof adminClient.from !== 'function') {
       return c.json(
         { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
         500
@@ -425,25 +434,34 @@ adminOrdersRouter.post(
       );
     }
 
-    try {
-      const { data: rpcResult, error: rpcErr } = await adminClient.rpc('verify_qr_token', {
-        p_qr_token: qr_token,
-      });
-
-      if (!rpcErr && rpcResult) {
-        return c.json({
-          success: true,
-          data: rpcResult,
+    if (typeof adminClient.rpc === 'function') {
+      try {
+        const { data: rpcResult, error: rpcErr } = await adminClient.rpc('verify_qr_token', {
+          p_qr_token: qr_token,
         });
-      }
 
-      if (rpcErr && rpcErr.message?.includes('ERR_INVALID_QR_TOKEN')) {
-        return c.json(
-          { success: false, error: { code: 'INVALID_QR_TOKEN', message: rpcErr.message } },
-          404
-        );
-      }
-    } catch {}
+        if (!rpcErr && rpcResult) {
+          return c.json({
+            success: true,
+            data: rpcResult,
+          });
+        }
+
+        if (rpcErr && rpcErr.message?.includes('ERR_INVALID_QR_TOKEN')) {
+          return c.json(
+            { success: false, error: { code: 'INVALID_QR_TOKEN', message: rpcErr.message } },
+            404
+          );
+        }
+      } catch {}
+    }
+
+    if (typeof adminClient.from !== 'function') {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database operation failed' } },
+        500
+      );
+    }
 
     const { data: order, error: orderErr } = await adminClient
       .from('orders')
@@ -532,35 +550,44 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
     );
   }
 
-  try {
-    const { data: rpcResult, error: rpcErr } = await adminClient.rpc('confirm_order_collection', {
-      p_order_id: orderId,
-      p_admin_id: adminUser.id,
-    });
-
-    if (!rpcErr && rpcResult) {
-      return c.json({
-        success: true,
-        data: rpcResult,
+  if (typeof adminClient.rpc === 'function') {
+    try {
+      const { data: rpcResult, error: rpcErr } = await adminClient.rpc('confirm_order_collection', {
+        p_order_id: orderId,
+        p_admin_id: adminUser.id,
       });
-    }
 
-    if (rpcErr) {
-      const errMsg = rpcErr.message || '';
-      if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
-        return c.json(
-          { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
-          400
-        );
+      if (!rpcErr && rpcResult) {
+        return c.json({
+          success: true,
+          data: rpcResult,
+        });
       }
-      if (errMsg.includes('ERR_NOT_READY_FOR_PICKUP')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
-          400
-        );
+
+      if (rpcErr) {
+        const errMsg = rpcErr.message || '';
+        if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
+          return c.json(
+            { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
+            400
+          );
+        }
+        if (errMsg.includes('ERR_NOT_READY_FOR_PICKUP')) {
+          return c.json(
+            { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
+            400
+          );
+        }
       }
-    }
-  } catch {}
+    } catch {}
+  }
+
+  if (typeof adminClient.from !== 'function') {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database operation failed' } },
+      500
+    );
+  }
 
   const { data: order, error: orderErr } = await adminClient
     .from('orders')

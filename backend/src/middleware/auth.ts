@@ -77,12 +77,17 @@ export function requireRole(allowedRoles: AppRole[]) {
     }
 
     if (!allowedRoles.includes(profile.app_role)) {
+      const isStaffOrRetailOnly = !allowedRoles.includes('developer') && !allowedRoles.includes('admin');
+      const message = isStaffOrRetailOnly
+        ? `Access denied: Required role (${allowedRoles.join(', ')}). Your role: ${profile.app_role}`
+        : 'Access denied: Administrator privileges required';
+
       return c.json(
         {
           success: false,
           error: {
             code: 'FORBIDDEN',
-            message: `Access denied. Required role: ${allowedRoles.join(' or ')}. Your role: ${profile.app_role}`,
+            message,
           },
         },
         403
