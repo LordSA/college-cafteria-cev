@@ -57,7 +57,7 @@ college-canteen-cev/
   - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Back button, Account Security (Change Password, Google Account Link/Unlink, Sign Out), and Account Information (Email, Role, Teacher ID input with verification status).
   - `src/app/profile/page.tsx`: Account profile with role displayed under name, Instagram-style circular profile avatar with camera overlay badge and direct file upload preview modal, phone number input, Pay Later dues settlement, gear icon link to `/settings`, and prominent bottom red Sign Out button.
   - `src/app/menu/page.tsx`: Vertical column layout menu page with category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar.
-  - `src/app/cart/page.tsx`: Shopping cart management page with line items, line totals, 5-minute lock countdown, and clear cart control.
+  - `src/app/cart/page.tsx`: Shopping cart management page with line items, line totals, 5-minute lock countdown, clear cart control, and "My Orders" access buttons in the header, empty state, and summary sidebar.
   - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later.
   - `src/app/checkout/success/page.tsx`: Order confirmation screen displaying pickup token, high-contrast SVG QR pass for counter verification on top, and itemized ordered dishes directly below.
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.

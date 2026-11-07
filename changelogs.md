@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.5.0] - 2026-11-08
 
 ### Added
+- **Orders Navigation in Customer Cart (`customer/src/app/cart/page.tsx`)**:
+  - Added "My Orders" buttons to the customer shopping cart page:
+    1. In the cart top action bar next to "Clear All Items".
+    2. In the empty cart state alongside the "Browse Menu" button.
+    3. In the Order Summary sidebar beneath the checkout call-to-action.
 - **Inventory PUT and PATCH Support (`PUT /api/v1/admin/inventory/:menuItemId`)**:
   - Registered both `PUT` and `PATCH` methods on `adminInventoryRouter` in `backend/src/routes/adminInventory.ts`.
   - Fixes 404 error when admin inventory adjustments or availability toggles are submitted from `admin/src/app/inventory/page.tsx` via HTTP `PUT`.
