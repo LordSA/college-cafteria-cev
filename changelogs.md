@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.5.0] - 2026-11-08
 
 ### Added
+- **Admin QR Order Collection Endpoint (`POST /api/v1/admin/orders/collect-qr`)**:
+  - Implemented direct QR verification token collection endpoint in `backend/src/routes/adminOrders.ts` accepting `{ qr_token: string }`.
+  - Supports `developer`, `admin`, `retail`, and `staff` roles.
+  - Enforces atomic transition to `COLLECTED`, timestamps collection (`collected_at`), consumes QR token (`qr_consumed_at`), and sets `collected_by`.
+  - Added unit test suite in `backend/tests/phase4_2.test.ts` covering success, duplicate collection rejection, and missing token rejection.
+  - Updated `admin/src/app/scan/page.tsx` with resilient dual-endpoint fallback (`/collect-qr` and `/:id/collect`).
 - **Production Payment Integration (Razorpay)**:
   - Integrated Razorpay Standard Checkout in integer paise (INR).
   - Secure backend order creation (`POST /api/v1/orders`), signature verification endpoint (`POST /api/v1/orders/verify-payment`), and webhook handler (`POST /api/v1/webhooks/razorpay`) with constant-time HMAC SHA-256 validation.

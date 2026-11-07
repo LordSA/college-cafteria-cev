@@ -128,7 +128,7 @@ college-canteen-cev/
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
   - `src/routes/cart.ts`: Cart item locking endpoints `POST /api/v1/cart/lock`, `POST /api/v1/cart/unlock`, `POST /api/v1/cart/release-all`, `GET /api/v1/cart/status`.
   - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `razorpay`, `testing_wallet`, `counter_cash`, and faculty `pay_later`), `POST /api/v1/orders/verify-payment`, `GET /api/v1/orders/me` (returns `order_stage`), `GET /api/v1/orders/pay-later/pending`, `POST /api/v1/orders/pay-later/settle`, `GET /:id`, `GET /:id/receipt`. Customer cancellation endpoint permanently removed.
-  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (role-checked), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (accessible to `staff`), `POST /:id/collect` (accessible to `staff`), `GET /:id/receipt`.
+  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (role-checked), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (accessible to `staff`), `POST /collect-qr` (direct collection by QR token, accessible to `staff`), `POST /:id/collect` (accessible to `staff`), `GET /:id/receipt`.
   - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId` (protected with `requireRole(['developer', 'admin', 'retail'])`).
   - `src/routes/wallet.ts`: Customer endpoints `GET /api/v1/wallet/me`, `GET /api/v1/wallet/transactions`.
   - `src/routes/adminWallet.ts`: Admin endpoints `GET /api/v1/admin/wallets`, `GET /:customerId`, `POST /:customerId/adjust`.
