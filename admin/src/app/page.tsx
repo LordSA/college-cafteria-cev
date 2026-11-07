@@ -24,6 +24,9 @@ import {
   X,
   Sparkles,
   ExternalLink,
+  Download,
+  Terminal,
+  IndianRupee,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -35,11 +38,25 @@ interface OperationalStats {
   lowStockCount: number;
 }
 
+interface FinancialStats {
+  totalRevenuePaise: number;
+  totalOrders: number;
+  activeOrders: number;
+  completedOrders: number;
+  lowStockCount: number;
+  pendingStaffCount: number;
+  paymentBreakdown: {
+    razorpayPaise: number;
+    walletPaise: number;
+    payLaterPaise: number;
+  };
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
 
 export default function AdminDashboardPage() {
-  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut } = useAdminAuth();
+  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, isDeveloper } = useAdminAuth();
 
   const [stats, setStats] = useState<OperationalStats>({
     totalMenu: 0,
@@ -49,7 +66,9 @@ export default function AdminDashboardPage() {
     activeOrders: 0,
     lowStockCount: 0,
   });
+  const [financialStats, setFinancialStats] = useState<FinancialStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
   const [newsInput, setNewsInput] = useState('');
   const [newsSent, setNewsSent] = useState(false);
@@ -71,12 +90,13 @@ export default function AdminDashboardPage() {
           Authorization: `Bearer ${session?.access_token}`,
         };
 
-        const [menuRes, catRes, staffRes, ordersRes, invRes] = await Promise.all([
+        const [menuRes, catRes, staffRes, ordersRes, invRes, finRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/v1/admin/menu`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/categories`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/staff-requests?status=pending`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/orders`, { headers }).catch(() => null),
           fetch(`${API_BASE_URL}/api/v1/admin/inventory?low_stock_only=true`, { headers }).catch(() => null),
+          fetch(`${API_BASE_URL}/api/v1/admin/reports/stats?range=${timeframe}`, { headers }).catch(() => null),
         ]);
 
         let menuCount = 0;
@@ -124,6 +144,13 @@ export default function AdminDashboardPage() {
           }
         }
 
+        if (finRes && finRes.ok) {
+          const finData = await finRes.json();
+          if (finData.success && finData.data) {
+            setFinancialStats(finData.data);
+          }
+        }
+
         if (isMounted) {
           setStats({
             totalMenu: menuCount,
@@ -146,7 +173,33 @@ export default function AdminDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [session?.access_token, adminUser, isUnauthorized]);
+  }, [session?.access_token, adminUser, isUnauthorized, timeframe]);
+
+  const handleExportExcel = async () => {
+    if (!session?.access_token) return;
+    setExporting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/reports/export?range=${timeframe}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cafteria_report_${timeframe}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message || 'Failed to download Excel report');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleNewsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,6 +398,16 @@ export default function AdminDashboardPage() {
             >
               <Settings className="h-5 w-5" />
             </Link>
+
+            {isDeveloper && (
+              <Link
+                href="/developer"
+                title="Developer Console"
+                className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-[#9d8bf0] transition"
+              >
+                <Terminal className="h-5 w-5" />
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -513,34 +576,57 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-6 shadow-lg">
-            <div className="flex items-center justify-between border-b border-[#23242e] pb-4">
-              <h2 className="text-sm font-bold text-white tracking-wide">Network Speed</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#23242e] pb-4">
+              <div>
+                <h2 className="text-sm font-bold text-white tracking-wide">Financial Overview & Velocity</h2>
+                <div className="flex items-center gap-4 mt-1 text-[11px] text-stone-400">
+                  <span>Revenue: <strong className="text-white">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
+                  <span>Online: <strong className="text-[#f5a4c6]">₹{((financialStats?.paymentBreakdown?.razorpayPaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
+                  <span>Pay Later: <strong className="text-[#ea9955]">₹{((financialStats?.paymentBreakdown?.payLaterPaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
+                </div>
+              </div>
 
-              <div className="flex items-center gap-5 text-xs font-medium">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 text-xs font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setTimeframe('daily')}
+                    className={`transition ${timeframe === 'daily' ? 'text-white font-bold' : 'text-stone-500 hover:text-stone-300'}`}
+                  >
+                    Daily
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeframe('weekly')}
+                    className={`transition ${timeframe === 'weekly' ? 'text-white font-bold' : 'text-stone-500 hover:text-stone-300'}`}
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeframe('monthly')}
+                    className={`relative pb-1 transition ${
+                      timeframe === 'monthly'
+                        ? 'text-white font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#8e75db]'
+                        : 'text-stone-500 hover:text-stone-300'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setTimeframe('daily')}
-                  className={`transition ${timeframe === 'daily' ? 'text-white' : 'text-stone-500 hover:text-stone-300'}`}
+                  onClick={handleExportExcel}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#f5a4c6] px-3.5 py-1.5 text-xs font-bold text-[#101114] shadow-sm hover:opacity-90 disabled:opacity-50 transition active:scale-95"
                 >
-                  Daily
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTimeframe('weekly')}
-                  className={`transition ${timeframe === 'weekly' ? 'text-white' : 'text-stone-500 hover:text-stone-300'}`}
-                >
-                  Weekly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTimeframe('monthly')}
-                  className={`relative pb-1 transition ${
-                    timeframe === 'monthly'
-                      ? 'text-white font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#8e75db]'
-                      : 'text-stone-500 hover:text-stone-300'
-                  }`}
-                >
-                  Monthly
+                  {exporting ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Download className="h-3.5 w-3.5" />
+                  )}
+                  <span>Export (.xlsx)</span>
                 </button>
               </div>
             </div>

@@ -19,7 +19,7 @@ app.route('/api/v1', apiV1Router);
 
 app.get('/', (c) => {
   return c.json({
-    message: 'Welcome to Cafteria API',
+    message: 'Fuck u Bitches',
     health: '/health',
     apiV1: '/api/v1',
   });

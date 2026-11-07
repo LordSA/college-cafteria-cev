@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
-import { useAdminAuth, AdminRole } from '../../context/AdminAuthContext';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
-  Terminal,
-  ShieldAlert,
   Loader2,
   ArrowLeft,
   Search,
