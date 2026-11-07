@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "development"
-ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,https://ad3a1131.college-cafteria-cev.pages.dev/"
 
 [dev]
 port = 8787

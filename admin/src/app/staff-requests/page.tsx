@@ -22,6 +22,8 @@ import {
 interface StaffRequest {
   id: string;
   display_name: string | null;
+  teacher_id?: string | null;
+  email?: string | null;
   account_type: string;
   requested_account_type: string;
   approved_account_type: string;
@@ -214,12 +216,17 @@ export default function StaffRequestsPage() {
                     {requests.map((req) => (
                       <tr key={req.id} className="hover:bg-[#1a1b24] transition">
                         <td className="px-6 py-4">
-                          <div className="font-bold text-white">
-                            {req.display_name || 'Unnamed Diner'}
+                          <div className="font-bold text-white flex items-center gap-2">
+                            <span>{req.display_name || 'Unnamed Diner'}</span>
+                            {req.teacher_id && (
+                              <span className="rounded-md bg-[#252836] border border-[#3b3e52] px-1.5 py-0.5 text-[10px] font-mono text-purple-300">
+                                ID: {req.teacher_id}
+                              </span>
+                            )}
                           </div>
                           <div className="text-[11px] text-stone-400 flex items-center gap-1 mt-0.5">
                             <Mail className="h-3 w-3 text-stone-500" />
-                            <span>{req.users?.email || req.id}</span>
+                            <span>{req.email || req.users?.email || req.id}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
