@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 
 const OrderStatusUpdateSchema = z.object({
@@ -26,9 +26,8 @@ export const adminOrdersRouter = new Hono<{
 }>();
 
 adminOrdersRouter.use('*', requireAuth);
-adminOrdersRouter.use('*', requireAdmin);
 
-adminOrdersRouter.get('/', async (c) => {
+adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
 
   if (!adminClient) {
@@ -78,16 +77,18 @@ adminOrdersRouter.get('/', async (c) => {
     new Set((orders || []).map((o: any) => o.customer_id).filter(Boolean))
   );
 
-  const profilesMap = new Map<string, { display_name?: string; account_type?: string }>();
+  const profilesMap = new Map<string, { display_name?: string; account_type?: string; teacher_id?: string }>();
   if (customerIds.length > 0) {
-    const { data: profiles } = await adminClient
-      .from('profiles')
-      .select('id, display_name, account_type')
-      .in('id', customerIds);
+    try {
+      const { data: profiles } = await adminClient
+        .from('profiles')
+        .select('id, display_name, account_type, teacher_id')
+        .in('id', customerIds);
 
-    (profiles || []).forEach((p: any) => {
-      profilesMap.set(p.id, p);
-    });
+      (profiles || []).forEach((p: any) => {
+        profilesMap.set(p.id, p);
+      });
+    } catch {}
   }
 
   const formatted = (orders || []).map((o: any) => {
@@ -100,6 +101,7 @@ adminOrdersRouter.get('/', async (c) => {
       items: o.order_items || [],
       customer_name: profile?.display_name || 'Customer',
       customer_account_type: profile?.account_type || 'student',
+      teacher_id: profile?.teacher_id || null,
     };
   });
 
@@ -114,7 +116,7 @@ adminOrdersRouter.get('/', async (c) => {
   });
 });
 
-adminOrdersRouter.get('/:id', async (c) => {
+adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
@@ -138,29 +140,35 @@ adminOrdersRouter.get('/:id', async (c) => {
     );
   }
 
-  let customerProfile: { display_name?: string; account_type?: string } | null = null;
+  let customerProfile: { display_name?: string; account_type?: string; teacher_id?: string } | null = null;
   if (order.customer_id) {
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('display_name, account_type')
-      .eq('id', order.customer_id)
-      .maybeSingle();
-    customerProfile = profile;
+    try {
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('display_name, account_type, teacher_id')
+        .eq('id', order.customer_id)
+        .maybeSingle();
+      customerProfile = profile;
+    } catch {}
   }
+
+  const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
 
   return c.json({
     success: true,
     data: {
       ...order,
-      order_stage: order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED'),
+      order_stage: stage,
+      order_status: stage,
       items: order.order_items || [],
       customer_name: customerProfile?.display_name || 'Customer',
       customer_account_type: customerProfile?.account_type || 'student',
+      teacher_id: customerProfile?.teacher_id || null,
     },
   });
 });
 
-adminOrdersRouter.post('/:id/ready', async (c) => {
+adminOrdersRouter.post('/:id/ready', requireRole(['developer', 'admin']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
@@ -268,10 +276,10 @@ adminOrdersRouter.post('/:id/ready', async (c) => {
 
 adminOrdersRouter.patch(
   '/:id/status',
+  requireRole(['developer', 'admin']),
   zValidator('json', OrderStatusUpdateSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
-    const user = c.get('user');
     const orderId = c.req.param('id');
     const { status: targetStatus, cancellation_reason } = c.req.valid('json');
 
@@ -302,7 +310,7 @@ adminOrdersRouter.patch(
       return c.json({ success: true, data: order });
     }
 
-    if (currentStage === 'COLLECTED' || currentStatus === 'completed' || currentStatus === 'cancelled') {
+    if (currentStage === 'COLLECTED' || currentStatus === 'completed') {
       return c.json(
         {
           success: false,
@@ -356,7 +364,7 @@ adminOrdersRouter.patch(
       updatePayload.completed_at = now;
       updatePayload.collected_at = now;
       updatePayload.qr_consumed_at = now;
-      updatePayload.collected_by = user.id;
+      updatePayload.collected_by = c.get('user').id;
     } else if (targetStatus === 'ORDER_PLACED') {
       updatePayload.order_stage = 'ORDER_PLACED';
       updatePayload.order_status = 'ORDER_PLACED';
@@ -367,37 +375,7 @@ adminOrdersRouter.patch(
     } else if (targetStatus === 'cancelled') {
       updatePayload.cancellation_reason = cancellation_reason?.trim() || 'Cancelled by canteen manager';
       updatePayload.cancelled_at = now;
-      updatePayload.cancelled_by = user.id;
-
-      const items = order.order_items || [];
-      for (const item of items) {
-        if (item.menu_item_id) {
-          const { data: menuItem } = await adminClient
-            .from('menu_items')
-            .select('id, track_inventory, stock_quantity')
-            .eq('id', item.menu_item_id)
-            .maybeSingle();
-
-          if (menuItem && menuItem.track_inventory) {
-            await adminClient
-              .from('menu_items')
-              .update({
-                stock_quantity: menuItem.stock_quantity + item.quantity,
-                is_available: true,
-                updated_at: now,
-              })
-              .eq('id', menuItem.id);
-
-            await adminClient.from('inventory_logs').insert({
-              menu_item_id: menuItem.id,
-              quantity_change: item.quantity,
-              reason: 'order_cancelled',
-              order_id: orderId,
-              actor_id: user.id,
-            });
-          }
-        }
-      }
+      updatePayload.cancelled_by = c.get('user').id;
     }
 
     const { data: updatedOrder, error: updateErr } = await adminClient
@@ -434,6 +412,7 @@ const VerifyQrSchema = z.object({
 
 adminOrdersRouter.post(
   '/verify-qr',
+  requireRole(['developer', 'admin', 'retail', 'staff']),
   zValidator('json', VerifyQrSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
@@ -479,14 +458,16 @@ adminOrdersRouter.post(
       );
     }
 
-    let customerProfile: { display_name?: string; account_type?: string } | null = null;
+    let customerProfile: { display_name?: string; account_type?: string; teacher_id?: string } | null = null;
     if (order.customer_id) {
-      const { data: profile } = await adminClient
-        .from('profiles')
-        .select('display_name, account_type')
-        .eq('id', order.customer_id)
-        .maybeSingle();
-      customerProfile = profile;
+      try {
+        const { data: profile } = await adminClient
+          .from('profiles')
+          .select('display_name, account_type, teacher_id')
+          .eq('id', order.customer_id)
+          .maybeSingle();
+        customerProfile = profile;
+      } catch {}
     }
 
     const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
@@ -515,7 +496,7 @@ adminOrdersRouter.post(
         order_stage: stage,
         order_status: stage,
         payment_status: order.payment_status,
-        payment_method: order.payment_method || 'testing_wallet',
+        payment_method: order.payment_method || 'razorpay',
         total: order.total,
         subtotal: order.subtotal,
         paid_at: order.paid_at,
@@ -529,6 +510,7 @@ adminOrdersRouter.post(
           id: order.customer_id,
           display_name: customerProfile?.display_name || 'Customer',
           account_type: customerProfile?.account_type || 'student',
+          teacher_id: customerProfile?.teacher_id || null,
         },
         items: order.order_items || [],
         is_eligible_for_collection: isEligible,
@@ -538,7 +520,7 @@ adminOrdersRouter.post(
   }
 );
 
-adminOrdersRouter.post('/:id/collect', async (c) => {
+adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retail', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const adminUser = c.get('user');
   const orderId = c.req.param('id');
@@ -551,9 +533,9 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
   }
 
   try {
-    const { data: rpcResult, error: rpcErr } = await adminClient.rpc('collect_order', {
+    const { data: rpcResult, error: rpcErr } = await adminClient.rpc('confirm_order_collection', {
       p_order_id: orderId,
-      p_operator_id: adminUser.id,
+      p_admin_id: adminUser.id,
     });
 
     if (!rpcErr && rpcResult) {
@@ -567,32 +549,14 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
       const errMsg = rpcErr.message || '';
       if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
         return c.json(
-          { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order already collected' } },
+          { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
           400
         );
       }
-      if (errMsg.includes('ERR_ORDER_NOT_READY')) {
+      if (errMsg.includes('ERR_NOT_READY_FOR_PICKUP')) {
         return c.json(
-          { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order is not ready for pickup yet' } },
+          { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
           400
-        );
-      }
-      if (errMsg.includes('ERR_ORDER_CANCELLED')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_CANCELLED', message: errMsg } },
-          400
-        );
-      }
-      if (errMsg.includes('ERR_ORDER_UNPAID')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
-          400
-        );
-      }
-      if (errMsg.includes('ERR_ORDER_NOT_FOUND')) {
-        return c.json(
-          { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
-          404
         );
       }
     }
@@ -600,7 +564,7 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
 
   const { data: order, error: orderErr } = await adminClient
     .from('orders')
-    .select('*')
+    .select('*, order_items(*)')
     .eq('id', orderId)
     .maybeSingle();
 
@@ -613,39 +577,20 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
 
   const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
 
-  if (stage === 'COLLECTED' || order.order_status === 'completed' || order.qr_consumed_at) {
+  if (stage === 'COLLECTED' || order.qr_consumed_at) {
     return c.json(
-      {
-        success: false,
-        error: {
-          code: 'ALREADY_COLLECTED',
-          message: 'Order already collected',
-        },
-      },
+      { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
       400
     );
   }
 
-  if (order.payment_status !== 'paid') {
-    return c.json(
-      {
-        success: false,
-        error: {
-          code: 'ORDER_UNPAID',
-          message: 'Cannot collect unpaid order',
-        },
-      },
-      400
-    );
-  }
-
-  if (stage === 'ORDER_PLACED') {
+  if (stage !== 'READY_TO_PICK') {
     return c.json(
       {
         success: false,
         error: {
           code: 'ORDER_NOT_READY',
-          message: 'Order is not ready for pickup yet',
+          message: `Order stage is "${stage}". It must be marked READY_TO_PICK before it can be collected.`,
         },
       },
       400
@@ -658,10 +603,10 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
     .update({
       order_stage: 'COLLECTED',
       order_status: 'COLLECTED',
-      qr_consumed_at: now,
-      collected_at: now,
-      collected_by: adminUser.id,
       completed_at: now,
+      collected_at: now,
+      qr_consumed_at: now,
+      collected_by: adminUser.id,
       updated_at: now,
     })
     .eq('id', orderId)
@@ -678,83 +623,10 @@ adminOrdersRouter.post('/:id/collect', async (c) => {
   return c.json({
     success: true,
     data: {
-      order_id: updatedOrder.id,
-      order_number: updatedOrder.order_number,
+      ...updatedOrder,
       order_stage: 'COLLECTED',
       order_status: 'COLLECTED',
-      payment_status: updatedOrder.payment_status,
-      qr_consumed_at: now,
-      collected_at: now,
-      collected_by: adminUser.id,
       items: updatedOrder.order_items || [],
-    },
-  });
-});
-
-adminOrdersRouter.get('/:id/receipt', async (c) => {
-  const adminClient = getSupabaseAdminClient(c.env);
-  const orderId = c.req.param('id');
-
-  if (!adminClient) {
-    return c.json(
-      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
-      500
-    );
-  }
-
-  const { data: order, error: orderErr } = await adminClient
-    .from('orders')
-    .select('*, order_items(*)')
-    .eq('id', orderId)
-    .maybeSingle();
-
-  if (orderErr || !order) {
-    return c.json(
-      { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
-      404
-    );
-  }
-
-  let customerProfile: { display_name?: string; account_type?: string } | null = null;
-  if (order.customer_id) {
-    const { data: profile } = await adminClient
-      .from('profiles')
-      .select('display_name, account_type')
-      .eq('id', order.customer_id)
-      .maybeSingle();
-    customerProfile = profile;
-  }
-
-  const receiptStage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
-
-  return c.json({
-    success: true,
-    data: {
-      id: order.id,
-      order_number: order.order_number,
-      created_at: order.created_at,
-      paid_at: order.paid_at,
-      payment_method: order.payment_method || 'testing_wallet',
-      payment_status: order.payment_status,
-      order_stage: receiptStage,
-      order_status: receiptStage,
-      subtotal: order.subtotal,
-      total: order.total,
-      qr_verification_token: order.qr_verification_token,
-      collected_at: order.collected_at,
-      collected_by: order.collected_by,
-      customer: {
-        id: order.customer_id,
-        display_name: customerProfile?.display_name || 'Customer',
-        account_type: customerProfile?.account_type || 'student',
-      },
-      items: order.order_items || [],
-      canteen: {
-        name: 'Cafteria College Canteen',
-        campus: 'Campus Main Facility',
-        address: 'Student Centre, Food Court Level 1',
-        notice: 'Testing Wallet Receipt — Demo Credits Only. No Real Money.',
-      },
     },
   });
 });

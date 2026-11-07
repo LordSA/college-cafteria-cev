@@ -12,6 +12,8 @@ import { adminInventoryRouter } from './adminInventory';
 import { customerWalletRouter } from './wallet';
 import { adminWalletRouter } from './adminWallet';
 import { cartRouter } from './cart';
+import { adminReportsRouter } from './reports';
+import { webhooksRouter } from './webhooks';
 
 export const apiV1Router = new Hono<{
   Bindings: Env;
@@ -20,6 +22,7 @@ export const apiV1Router = new Hono<{
 
 apiV1Router.route('/auth', authRouter);
 apiV1Router.route('/admin', adminRouter);
+apiV1Router.route('/admin/reports', adminReportsRouter);
 apiV1Router.route('/admin/staff-requests', staffRequestsRouter);
 apiV1Router.route('/categories', publicCategoriesRouter);
 apiV1Router.route('/admin/categories', adminCategoriesRouter);
@@ -32,19 +35,23 @@ apiV1Router.route('/admin/inventory', adminInventoryRouter);
 apiV1Router.route('/wallet', customerWalletRouter);
 apiV1Router.route('/admin/wallets', adminWalletRouter);
 apiV1Router.route('/cart', cartRouter);
+apiV1Router.route('/webhooks', webhooksRouter);
 
 apiV1Router.get('/', (c) => {
   return c.json(
     {
       name: 'Cafteria REST API',
-      version: '1.4.1',
+      version: '1.5.0',
       status: 'active',
-      phase: 'Phase 4.1 - Testing Wallet, QR Order Verification & Bill Printing',
+      phase: 'Phase 5 - Production Payments, Role-Based Access & Hardening',
       endpoints: {
         health: '/health',
         apiV1: '/api/v1',
         authMe: '/api/v1/auth/me',
         adminMe: '/api/v1/admin/me',
+        adminUsers: '/api/v1/admin/users',
+        adminReportsStats: '/api/v1/admin/reports/stats',
+        adminReportsExport: '/api/v1/admin/reports/export',
         staffRequests: '/api/v1/admin/staff-requests',
         categories: '/api/v1/categories',
         adminCategories: '/api/v1/admin/categories',
@@ -54,6 +61,7 @@ apiV1Router.get('/', (c) => {
         verifyUpload: '/api/v1/uploads/verify',
         avatarUrl: '/api/v1/uploads/avatar',
         orders: '/api/v1/orders',
+        ordersVerifyPayment: '/api/v1/orders/verify-payment',
         ordersMe: '/api/v1/orders/me',
         adminOrders: '/api/v1/admin/orders',
         adminInventory: '/api/v1/admin/inventory',
@@ -62,6 +70,7 @@ apiV1Router.get('/', (c) => {
         adminWallets: '/api/v1/admin/wallets',
         verifyQr: '/api/v1/admin/orders/verify-qr',
         collectOrder: '/api/v1/admin/orders/:id/collect',
+        webhooksRazorpay: '/api/v1/webhooks/razorpay',
       },
     },
     200

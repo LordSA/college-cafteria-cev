@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 
 export const staffRequestsRouter = new Hono<{
@@ -9,7 +9,7 @@ export const staffRequestsRouter = new Hono<{
 }>();
 
 staffRequestsRouter.use('*', requireAuth);
-staffRequestsRouter.use('*', requireAdmin);
+staffRequestsRouter.use('*', requireRole(['developer', 'admin']));
 
 staffRequestsRouter.get('/', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
@@ -30,7 +30,7 @@ staffRequestsRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('profiles')
-    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, email, display_name, avatar_key, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (statusFilter !== 'all') {
@@ -80,7 +80,7 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
 
   const { data: existing, error: checkError } = await adminClient
     .from('profiles')
-    .select('id, staff_approval_status')
+    .select('id, staff_approval_status, requested_account_type')
     .eq('id', targetId)
     .maybeSingle();
 
@@ -97,11 +97,13 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
     );
   }
 
+  const targetAccountType = existing.requested_account_type || 'staff';
+
   const { data, error } = await adminClient
     .from('profiles')
     .update({
-      approved_account_type: 'staff',
-      account_type: 'staff',
+      approved_account_type: targetAccountType,
+      account_type: targetAccountType,
       staff_approval_status: 'approved',
       reviewed_by: adminUser.id,
       reviewed_at: new Date().toISOString(),
@@ -171,8 +173,6 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
   const { data, error } = await adminClient
     .from('profiles')
     .update({
-      approved_account_type: 'student',
-      account_type: 'student',
       staff_approval_status: 'rejected',
       reviewed_by: adminUser.id,
       reviewed_at: new Date().toISOString(),
@@ -198,6 +198,6 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
   return c.json({
     success: true,
     data,
-    message: 'Staff request rejected successfully',
+    message: 'Staff request rejected',
   });
 });

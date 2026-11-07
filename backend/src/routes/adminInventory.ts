@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 
 const InventoryUpdateSchema = z.object({
@@ -18,7 +18,7 @@ export const adminInventoryRouter = new Hono<{
 }>();
 
 adminInventoryRouter.use('*', requireAuth);
-adminInventoryRouter.use('*', requireAdmin);
+adminInventoryRouter.use('*', requireRole(['developer', 'admin', 'retail']));
 
 adminInventoryRouter.get('/', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);

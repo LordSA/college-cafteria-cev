@@ -4,6 +4,11 @@ import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
 import { requireAuth } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
+import {
+  createRazorpayOrder,
+  fetchRazorpayPayment,
+  verifyRazorpayCheckoutSignature,
+} from '../lib/razorpay';
 
 const OrderItemInputSchema = z.object({
   menu_item_id: z.string().uuid('Invalid menu item ID format'),
@@ -13,11 +18,14 @@ const OrderItemInputSchema = z.object({
 const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
-  payment_method: z.enum(['testing_wallet', 'counter_cash', 'pay_later']).optional().default('counter_cash'),
+  payment_method: z.enum(['razorpay', 'testing_wallet', 'counter_cash', 'pay_later']).optional().default('razorpay'),
 });
 
-const OrderCancelSchema = z.object({
-  reason: z.string().max(300).optional().nullable(),
+const VerifyPaymentSchema = z.object({
+  order_id: z.string().uuid('Invalid order ID'),
+  razorpay_order_id: z.string().min(1, 'Razorpay order ID required'),
+  razorpay_payment_id: z.string().min(1, 'Razorpay payment ID required'),
+  razorpay_signature: z.string().min(1, 'Razorpay signature required'),
 });
 
 export const customerOrdersRouter = new Hono<{
@@ -60,6 +68,10 @@ customerOrdersRouter.post(
               ...existingOrder,
               items: existingOrder.order_items || [],
               is_idempotent_replay: true,
+              razorpay_order_id: existingOrder.razorpay_order_id,
+              razorpay_key_id: c.env?.RAZORPAY_KEY_ID || null,
+              amount: existingOrder.total,
+              currency: 'INR',
             },
           },
           200
@@ -67,7 +79,7 @@ customerOrdersRouter.post(
       }
     }
 
-    const paymentMethod = payload.payment_method || 'testing_wallet';
+    const paymentMethod = payload.payment_method || (c.env?.RAZORPAY_KEY_ID ? 'razorpay' : 'testing_wallet');
 
     if (paymentMethod === 'pay_later') {
       const { data: prof } = await adminClient
@@ -92,124 +104,6 @@ customerOrdersRouter.post(
           403
         );
       }
-    }
-
-    if (paymentMethod === 'testing_wallet') {
-      try {
-        const { data: rpcResult, error: rpcError } = await adminClient.rpc('pay_order_with_wallet', {
-          p_customer_id: user.id,
-          p_items: payload.items,
-          p_idempotency_key: idempotencyKey,
-        });
-
-        if (!rpcError && rpcResult) {
-          const orderId = rpcResult.id;
-          const { data: items } = await adminClient
-            .from('order_items')
-            .select('*')
-            .eq('order_id', orderId);
-
-          return c.json(
-            {
-              success: true,
-              data: {
-                ...rpcResult,
-                items: items || [],
-              },
-            },
-            rpcResult.is_idempotent_replay ? 200 : 201
-          );
-        }
-
-        if (rpcError) {
-          const errMsg = rpcError.message || '';
-          if (errMsg.includes('ERR_INSUFFICIENT_FUNDS')) {
-            return c.json(
-              { success: false, error: { code: 'INSUFFICIENT_FUNDS', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
-            return c.json(
-              { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
-              404
-            );
-          }
-          if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
-            return c.json(
-              { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
-              400
-            );
-          }
-        }
-      } catch {}
-    } else if (paymentMethod === 'counter_cash') {
-      try {
-        const { data: rpcResult, error: rpcError } = await adminClient.rpc('place_order', {
-          p_customer_id: user.id,
-          p_items: payload.items,
-          p_idempotency_key: idempotencyKey,
-        });
-
-        if (!rpcError && rpcResult) {
-          const orderId = rpcResult.id;
-          const { data: items } = await adminClient
-            .from('order_items')
-            .select('*')
-            .eq('order_id', orderId);
-
-          return c.json(
-            {
-              success: true,
-              data: {
-                ...rpcResult,
-                items: items || [],
-              },
-            },
-            rpcResult.is_idempotent_replay ? 200 : 201
-          );
-        }
-
-        if (rpcError) {
-          const errMsg = rpcError.message || '';
-          if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
-            return c.json(
-              { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
-              404
-            );
-          }
-          if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
-            return c.json(
-              { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
-              400
-            );
-          }
-        }
-      } catch {}
     }
 
     const itemIds = payload.items.map((i) => i.menu_item_id);
@@ -300,6 +194,32 @@ customerOrdersRouter.post(
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const orderNumber = `${datePrefix}${randomSuffix}`;
 
+    let razorpayOrderId: string | null = null;
+    if (paymentMethod === 'razorpay') {
+      try {
+        const rzpOrder = await createRazorpayOrder(c.env, {
+          amountPaise: calculatedTotal,
+          receipt: orderNumber,
+          notes: {
+            customer_id: user.id,
+            order_number: orderNumber,
+          },
+        });
+        razorpayOrderId = rzpOrder.id;
+      } catch (err: any) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'PAYMENT_GATEWAY_ERROR',
+              message: err?.message || 'Failed to initialize payment gateway order',
+            },
+          },
+          502
+        );
+      }
+    }
+
     const isWalletPaid = paymentMethod === 'testing_wallet';
     const isPayLater = paymentMethod === 'pay_later';
     const generatesQr = isWalletPaid || isPayLater;
@@ -322,6 +242,7 @@ customerOrdersRouter.post(
         total: calculatedTotal,
         idempotency_key: idempotencyKey,
         confirmed_at: (isWalletPaid || isPayLater) ? new Date().toISOString() : null,
+        razorpay_order_id: razorpayOrderId,
       })
       .select('*')
       .single();
@@ -393,6 +314,17 @@ customerOrdersRouter.post(
       });
     }
 
+    if (paymentMethod === 'razorpay' && razorpayOrderId) {
+      await adminClient.from('payments').insert({
+        order_id: createdOrder.id,
+        provider: 'razorpay',
+        amount: calculatedTotal,
+        currency: 'INR',
+        status: 'created',
+        razorpay_order_id: razorpayOrderId,
+      });
+    }
+
     return c.json(
       {
         success: true,
@@ -400,10 +332,163 @@ customerOrdersRouter.post(
           ...createdOrder,
           items: insertedItems || [],
           is_idempotent_replay: false,
+          razorpay_order_id: razorpayOrderId,
+          razorpay_key_id: c.env?.RAZORPAY_KEY_ID || null,
+          amount: calculatedTotal,
+          currency: 'INR',
         },
       },
       201
     );
+  }
+);
+
+customerOrdersRouter.post(
+  '/verify-payment',
+  zValidator('json', VerifyPaymentSchema),
+  async (c) => {
+    const user = c.get('user');
+    const { order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature } = c.req.valid('json');
+    const adminClient = getSupabaseAdminClient(c.env);
+
+    if (!adminClient) {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+        500
+      );
+    }
+
+    const { data: order, error: orderErr } = await adminClient
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('id', order_id)
+      .maybeSingle();
+
+    if (orderErr || !order) {
+      return c.json(
+        { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
+        404
+      );
+    }
+
+    if (order.customer_id !== user.id) {
+      return c.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'Access denied: You do not own this order' } },
+        403
+      );
+    }
+
+    if (order.razorpay_order_id && order.razorpay_order_id !== razorpay_order_id) {
+      return c.json(
+        { success: false, error: { code: 'INVALID_ORDER_LINKAGE', message: 'Payment does not correspond to this order' } },
+        400
+      );
+    }
+
+    if (order.payment_status === 'paid') {
+      return c.json({
+        success: true,
+        data: {
+          ...order,
+          items: order.order_items || [],
+          is_already_paid: true,
+        },
+      });
+    }
+
+    const keySecret = c.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      return c.json(
+        { success: false, error: { code: 'CONFIGURATION_ERROR', message: 'Payment secret unconfigured' } },
+        500
+      );
+    }
+
+    const isSignatureValid = await verifyRazorpayCheckoutSignature(
+      keySecret,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    );
+
+    if (!isSignatureValid) {
+      return c.json(
+        { success: false, error: { code: 'INVALID_SIGNATURE', message: 'Payment signature verification failed' } },
+        400
+      );
+    }
+
+    let paymentDetails: any;
+    try {
+      paymentDetails = await fetchRazorpayPayment(c.env, razorpay_payment_id);
+    } catch (err: any) {
+      return c.json(
+        { success: false, error: { code: 'PAYMENT_FETCH_FAILED', message: err?.message || 'Failed to verify payment status' } },
+        502
+      );
+    }
+
+    if (paymentDetails.order_id !== razorpay_order_id) {
+      return c.json(
+        { success: false, error: { code: 'ORDER_MISMATCH', message: 'Payment details mismatch with order' } },
+        400
+      );
+    }
+
+    if (!['captured', 'authorized'].includes(paymentDetails.status)) {
+      return c.json(
+        { success: false, error: { code: 'PAYMENT_NOT_CAPTURED', message: `Payment state is ${paymentDetails.status}` } },
+        400
+      );
+    }
+
+    const qrToken =
+      order.qr_verification_token ||
+      `CAF-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}${Date.now().toString(36).slice(-4).toUpperCase()}`;
+
+    const now = new Date().toISOString();
+
+    const { data: updatedOrder, error: updateErr } = await adminClient
+      .from('orders')
+      .update({
+        payment_status: 'paid',
+        order_stage: 'ORDER_PLACED',
+        order_status: 'ORDER_PLACED',
+        paid_at: now,
+        confirmed_at: now,
+        razorpay_order_id,
+        razorpay_payment_id,
+        qr_verification_token: qrToken,
+        updated_at: now,
+      })
+      .eq('id', order.id)
+      .select('*, order_items(*)')
+      .single();
+
+    if (updateErr) {
+      return c.json(
+        { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
+        500
+      );
+    }
+
+    await adminClient
+      .from('payments')
+      .update({
+        status: 'captured',
+        razorpay_payment_id,
+        payload: paymentDetails,
+        updated_at: now,
+      })
+      .eq('razorpay_order_id', razorpay_order_id);
+
+    return c.json({
+      success: true,
+      data: {
+        ...updatedOrder,
+        items: updatedOrder.order_items || [],
+      },
+    });
   }
 );
 
@@ -635,167 +720,6 @@ customerOrdersRouter.get('/:id', async (c) => {
   });
 });
 
-customerOrdersRouter.post(
-  '/:id/cancel',
-  zValidator('json', OrderCancelSchema.optional()),
-  async (c) => {
-    const user = c.get('user');
-    const orderId = c.req.param('id');
-    const body = (c.req.valid('json' as never) || {}) as { reason?: string };
-    const cancellationReason = body?.reason?.trim() || 'Customer requested cancellation';
-    const adminClient = getSupabaseAdminClient(c.env);
-
-    if (!adminClient) {
-      return c.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
-        500
-      );
-    }
-
-    try {
-      const { data: rpcResult, error: rpcError } = await adminClient.rpc('cancel_order', {
-        p_order_id: orderId,
-        p_user_id: user.id,
-        p_reason: cancellationReason,
-      });
-
-      if (!rpcError && rpcResult) {
-        return c.json({ success: true, data: rpcResult });
-      }
-
-      if (rpcError) {
-        const errMsg = rpcError.message || '';
-        if (errMsg.includes('ERR_ALREADY_CANCELLED')) {
-          return c.json(
-            { success: false, error: { code: 'ALREADY_CANCELLED', message: 'Order is already cancelled' } },
-            400
-          );
-        }
-        if (errMsg.includes('ERR_ALREADY_COMPLETED')) {
-          return c.json(
-            { success: false, error: { code: 'ALREADY_COMPLETED', message: 'Completed orders cannot be cancelled' } },
-            400
-          );
-        }
-        if (errMsg.includes('ERR_CANNOT_CANCEL')) {
-          return c.json(
-            { success: false, error: { code: 'CANNOT_CANCEL', message: errMsg } },
-            400
-          );
-        }
-        if (errMsg.includes('ERR_UNAUTHORIZED')) {
-          return c.json(
-            { success: false, error: { code: 'FORBIDDEN', message: 'Unauthorized to cancel this order' } },
-            403
-          );
-        }
-      }
-    } catch {}
-
-    const { data: order, error: orderErr } = await adminClient
-      .from('orders')
-      .select('*, order_items(*)')
-      .eq('id', orderId)
-      .maybeSingle();
-
-    if (orderErr || !order) {
-      return c.json(
-        { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
-        404
-      );
-    }
-
-    if (order.customer_id !== user.id) {
-      return c.json(
-        { success: false, error: { code: 'FORBIDDEN', message: 'Access denied: You do not own this order' } },
-        403
-      );
-    }
-
-    if (order.order_status === 'cancelled') {
-      return c.json(
-        { success: false, error: { code: 'ALREADY_CANCELLED', message: 'Order is already cancelled' } },
-        400
-      );
-    }
-
-    if (order.order_status === 'completed') {
-      return c.json(
-        { success: false, error: { code: 'ALREADY_COMPLETED', message: 'Completed orders cannot be cancelled' } },
-        400
-      );
-    }
-
-    if (!['pending', 'confirmed'].includes(order.order_status)) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'CANNOT_CANCEL',
-            message: `Orders in "${order.order_status}" status cannot be cancelled by customer`,
-          },
-        },
-        400
-      );
-    }
-
-    const { data: updatedOrder, error: updateErr } = await adminClient
-      .from('orders')
-      .update({
-        order_status: 'cancelled',
-        cancellation_reason: cancellationReason,
-        cancelled_at: new Date().toISOString(),
-        cancelled_by: user.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', orderId)
-      .select('*')
-      .single();
-
-    if (updateErr) {
-      return c.json(
-        { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
-        500
-      );
-    }
-
-    const items = order.order_items || [];
-    for (const item of items) {
-      if (item.menu_item_id) {
-        const { data: menuItem } = await adminClient
-          .from('menu_items')
-          .select('id, track_inventory, stock_quantity')
-          .eq('id', item.menu_item_id)
-          .maybeSingle();
-
-        if (menuItem && menuItem.track_inventory) {
-          await adminClient
-            .from('menu_items')
-            .update({
-              stock_quantity: menuItem.stock_quantity + item.quantity,
-              is_available: true,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', menuItem.id);
-
-          await adminClient.from('inventory_logs').insert({
-            menu_item_id: menuItem.id,
-            quantity_change: item.quantity,
-            reason: 'order_cancelled',
-            order_id: orderId,
-            actor_id: user.id,
-          });
-        }
-      }
-    }
-
-    return c.json({
-      success: true,
-      data: updatedOrder,
-    });
-  }
-);
-
 customerOrdersRouter.get('/:id/receipt', async (c) => {
   const user = c.get('user');
   const profile = c.get('profile');
@@ -822,7 +746,7 @@ customerOrdersRouter.get('/:id/receipt', async (c) => {
     );
   }
 
-  if (order.customer_id !== user.id && profile.app_role !== 'admin') {
+  if (order.customer_id !== user.id && !['developer', 'admin', 'retail'].includes(profile.app_role)) {
     return c.json(
       { success: false, error: { code: 'FORBIDDEN', message: 'Access denied: You do not own this order' } },
       403
@@ -836,7 +760,7 @@ customerOrdersRouter.get('/:id/receipt', async (c) => {
       order_number: order.order_number,
       created_at: order.created_at,
       paid_at: order.paid_at,
-      payment_method: order.payment_method || 'testing_wallet',
+      payment_method: order.payment_method || 'razorpay',
       payment_status: order.payment_status,
       order_stage: order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED'),
       order_status: order.order_status,
@@ -844,6 +768,8 @@ customerOrdersRouter.get('/:id/receipt', async (c) => {
       total: order.total,
       qr_verification_token: order.qr_verification_token,
       collected_at: order.collected_at,
+      razorpay_order_id: order.razorpay_order_id,
+      razorpay_payment_id: order.razorpay_payment_id,
       customer: {
         id: user.id,
         display_name: profile.display_name || 'Customer',
@@ -855,7 +781,7 @@ customerOrdersRouter.get('/:id/receipt', async (c) => {
         name: 'Cafteria College Canteen',
         campus: 'Campus Main Facility',
         address: 'Student Centre, Food Court Level 1',
-        notice: 'Testing Wallet Receipt — Demo Credits Only. No Real Money.',
+        notice: 'Official Cafteria Receipt.',
       },
     },
   });
