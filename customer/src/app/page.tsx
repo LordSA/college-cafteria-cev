@@ -17,7 +17,6 @@ import {
   Minus,
   ChevronRight,
   ChevronDown,
-  Menu as MenuIcon,
   Flame,
   Loader2,
   AlertCircle,
@@ -249,14 +248,6 @@ export default function CustomerHomePage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open navigation sidebar"
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 shadow-xs"
-            >
-              <MenuIcon className="h-6 w-6" />
-            </button>
           </div>
 
           <div className="mt-5 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-3 text-stone-800 shadow-xl shadow-black/5">

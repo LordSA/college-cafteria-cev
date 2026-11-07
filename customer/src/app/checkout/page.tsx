@@ -15,10 +15,24 @@ import {
   User,
   AlertTriangle,
   Wallet,
-  Info,
+  CreditCard,
+  Building2,
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve(false);
+    if ((window as any).Razorpay) return resolve(true);
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -29,14 +43,20 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [validating, setValidating] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'testing_wallet' | 'counter_cash' | 'pay_later'>('testing_wallet');
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'testing_wallet' | 'counter_cash' | 'pay_later'>('razorpay');
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [pendingPayLater, setPendingPayLater] = useState<number>(0);
 
+  const isLivePaymentMode = process.env.NEXT_PUBLIC_PAYMENT_MODE === 'live';
+
   const isFacultyOrStaff = ['faculty', 'staff'].includes(
     profile?.approved_account_type || profile?.account_type || ''
   );
+
+  useEffect(() => {
+    loadRazorpayScript();
+  }, []);
 
   useEffect(() => {
     async function validateCartItems() {
@@ -132,7 +152,7 @@ export default function CheckoutPage() {
 
     if (hasInsufficientWalletBalance) {
       setError(
-        `Insufficient testing wallet balance (₹${((walletBalance || 0) / 100).toFixed(2)}). Please choose Pay at Counter or request admin credits.`
+        `Insufficient testing wallet balance (₹${((walletBalance || 0) / 100).toFixed(2)}). Please choose Razorpay Online or Pay at Counter.`
       );
       return;
     }
@@ -163,6 +183,72 @@ export default function CheckoutPage() {
 
       if (!res.ok || !data.success) {
         throw new Error(data.error?.message || 'Failed to place order');
+      }
+
+      if (paymentMethod === 'razorpay') {
+        const scriptReady = await loadRazorpayScript();
+        if (!scriptReady || !(window as any).Razorpay) {
+          throw new Error('Payment gateway failed to load. Please check your network connection.');
+        }
+
+        const razorpayKeyId = data.data.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+        const options = {
+          key: razorpayKeyId,
+          amount: data.data.amount,
+          currency: data.data.currency || 'INR',
+          name: 'Cafteria CEV',
+          description: `Order #${data.data.order_number}`,
+          order_id: data.data.razorpay_order_id,
+          handler: async (response: any) => {
+            try {
+              const verifyRes = await fetch(`${API_BASE_URL}/api/v1/orders/verify-payment`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${session.access_token}`,
+                },
+                body: JSON.stringify({
+                  order_id: data.data.id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
+              });
+
+              const verifyData = await verifyRes.json();
+              if (!verifyRes.ok || !verifyData.success) {
+                throw new Error(verifyData.error?.message || 'Payment verification failed on server');
+              }
+
+              clearCart();
+              router.push(`/checkout/success/?id=${data.data.id}`);
+            } catch (vErr: any) {
+              setError(vErr?.message || 'Payment completed but server confirmation failed. Please refresh order tracker.');
+              setSubmitting(false);
+            }
+          },
+          prefill: {
+            name: profile?.display_name || '',
+            email: user?.email || '',
+          },
+          theme: {
+            color: '#ff5e3a',
+          },
+          modal: {
+            ondismiss: () => {
+              setSubmitting(false);
+            },
+          },
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', (failRes: any) => {
+          setError(failRes?.error?.description || 'Online payment failed. Please try again.');
+          setSubmitting(false);
+        });
+        rzp.open();
+        return;
       }
 
       clearCart();
@@ -336,54 +422,89 @@ export default function CheckoutPage() {
           <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h2 className="text-sm font-bold text-stone-900">Select Payment Method</h2>
-              <span className="text-[11px] text-stone-400">Phase 4.1 Development Flow</span>
+              <span className="text-[11px] font-semibold text-emerald-600">Official Campus Checkout</span>
             </div>
 
             <div className="space-y-3">
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
-                  paymentMethod === 'testing_wallet'
-                    ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500'
+                  paymentMethod === 'razorpay'
+                    ? 'border-[#ff5e3a] bg-orange-50/40 ring-1 ring-[#ff5e3a]'
                     : 'border-stone-200 hover:border-stone-300 bg-white'
                 }`}
               >
                 <input
                   type="radio"
                   name="payment_method"
-                  value="testing_wallet"
-                  checked={paymentMethod === 'testing_wallet'}
-                  onChange={() => setPaymentMethod('testing_wallet')}
-                  className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500"
+                  value="razorpay"
+                  checked={paymentMethod === 'razorpay'}
+                  onChange={() => setPaymentMethod('razorpay')}
+                  className="mt-1 h-4 w-4 text-[#ff5e3a] focus:ring-orange-500"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-stone-900">Testing Wallet</span>
-                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
-                        Instant QR Ticket
+                      <CreditCard className="h-4 w-4 text-[#ff5e3a]" />
+                      <span className="text-xs font-bold text-stone-900">Online Payment (Razorpay)</span>
+                      <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-[#ff5e3a]">
+                        Recommended
                       </span>
                     </div>
-                    {walletBalance !== null ? (
-                      <span className="font-mono text-xs font-bold text-emerald-700 tabular-nums">
-                        ₹{(walletBalance / 100).toFixed(2)} available
-                      </span>
-                    ) : walletLoading ? (
-                      <span className="text-[10px] text-stone-400">Checking balance...</span>
-                    ) : null}
+                    <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span>
                   </div>
                   <p className="mt-1 text-[11px] text-stone-500 leading-normal">
-                    Testing Wallet — Demo Credits Only. No Real Money. Automatically marks order paid and generates a secure pickup QR pass.
+                    Pay securely via Razorpay Standard Checkout in INR paise. Upon verified confirmation, your official QR pickup pass is generated instantly.
                   </p>
-                  {hasInsufficientWalletBalance && (
-                    <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-rose-600">
-                      <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                      <span>
-                        Insufficient demo balance (need ₹{(subtotal / 100).toFixed(2)}, have ₹{((walletBalance || 0) / 100).toFixed(2)}). Request admin top-up or select Pay at Counter.
-                      </span>
-                    </div>
-                  )}
                 </div>
               </label>
+
+              {!isLivePaymentMode && (
+                <label
+                  className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
+                    paymentMethod === 'testing_wallet'
+                      ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500'
+                      : 'border-stone-200 hover:border-stone-300 bg-white'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="payment_method"
+                    value="testing_wallet"
+                    checked={paymentMethod === 'testing_wallet'}
+                    onChange={() => setPaymentMethod('testing_wallet')}
+                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-emerald-600" />
+                        <span className="text-xs font-bold text-stone-900">Testing Wallet</span>
+                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                          Demo Credits Only
+                        </span>
+                      </div>
+                      {walletBalance !== null ? (
+                        <span className="font-mono text-xs font-bold text-emerald-700 tabular-nums">
+                          ₹{(walletBalance / 100).toFixed(2)} available
+                        </span>
+                      ) : walletLoading ? (
+                        <span className="text-[10px] text-stone-400">Checking balance...</span>
+                      ) : null}
+                    </div>
+                    <p className="mt-1 text-[11px] text-stone-500 leading-normal">
+                      Development mode credits only. Not usable as real tender.
+                    </p>
+                    {hasInsufficientWalletBalance && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-rose-600">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>
+                          Insufficient demo balance (need ₹{(subtotal / 100).toFixed(2)}, have ₹{((walletBalance || 0) / 100).toFixed(2)}). Select Razorpay Online.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </label>
+              )}
 
               {isFacultyOrStaff && (
                 <label
@@ -404,6 +525,7 @@ export default function CheckoutPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-indigo-600" />
                         <span className="text-xs font-bold text-stone-900">Pay Later (Faculty & Staff Credit)</span>
                         <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800">
                           Faculty Benefit
@@ -416,7 +538,7 @@ export default function CheckoutPage() {
                       )}
                     </div>
                     <p className="mt-1 text-[11px] text-stone-500 leading-normal">
-                      Order now without upfront payment. Pick up your food with instant QR pass and settle dues later via Wallet or UPI from your Profile.
+                      Order now with instant QR token without upfront payment. Settle dues from your profile.
                     </p>
                   </div>
                 </label>
@@ -425,7 +547,7 @@ export default function CheckoutPage() {
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
                   paymentMethod === 'counter_cash'
-                    ? 'border-orange-500 bg-orange-50/40 ring-1 ring-orange-500'
+                    ? 'border-stone-400 bg-stone-50 ring-1 ring-stone-400'
                     : 'border-stone-200 hover:border-stone-300 bg-white'
                 }`}
               >
@@ -435,12 +557,12 @@ export default function CheckoutPage() {
                   value="counter_cash"
                   checked={paymentMethod === 'counter_cash'}
                   onChange={() => setPaymentMethod('counter_cash')}
-                  className="mt-1 h-4 w-4 text-[#ff5e3a] focus:ring-orange-500"
+                  className="mt-1 h-4 w-4 text-stone-700 focus:ring-stone-500"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-900">Pay at Counter (Cash/UPI)</span>
-                    <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-800">
+                    <span className="text-xs font-bold text-stone-900">Pay at Counter (Cash/Physical UPI)</span>
+                    <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
                       Unpaid Order
                     </span>
                   </div>
@@ -452,31 +574,30 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-orange-200 bg-orange-50/80 p-4 text-xs text-orange-950 shadow-xs flex items-start gap-3">
-            <Info className="h-4 w-4 text-[#ff5e3a] flex-shrink-0 mt-0.5" />
-            <p className="text-[11px] text-orange-900 leading-relaxed">
-              Testing Wallet uses non-monetary demo credits only. Real payments will be activated in upcoming phases.
-            </p>
-          </div>
-
           <button
             onClick={handlePlaceOrder}
             disabled={submitting || validating || unavailableItems.length > 0 || hasInsufficientWalletBalance}
-            className={`w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
-              paymentMethod === 'testing_wallet'
-                ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25'
-                : 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] hover:opacity-95 shadow-orange-500/25'
-            }`}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] hover:opacity-95 shadow-orange-500/25"
           >
             {submitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Processing Order...</span>
               </>
+            ) : paymentMethod === 'razorpay' ? (
+              <>
+                <CreditCard className="h-4 w-4" />
+                <span>Pay ₹{(subtotal / 100).toFixed(2)} Online via Razorpay</span>
+              </>
             ) : paymentMethod === 'testing_wallet' ? (
               <>
                 <Wallet className="h-4 w-4" />
                 <span>Pay ₹{(subtotal / 100).toFixed(2)} with Testing Wallet</span>
+              </>
+            ) : paymentMethod === 'pay_later' ? (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Confirm Pay Later Order</span>
               </>
             ) : (
               <>

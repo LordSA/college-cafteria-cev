@@ -12,11 +12,11 @@ import {
   XCircle,
   ArrowLeft,
   Loader2,
-  AlertCircle,
   RefreshCw,
   ShieldAlert,
   Printer,
   QrCode,
+  Clock,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -60,9 +60,6 @@ function OrderTrackerContent() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState<string | null>(null);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const fetchOrder = async () => {
     if (!orderId || !session?.access_token) return;
@@ -99,36 +96,6 @@ function OrderTrackerContent() {
     }
   }, [session, orderId, authLoading]);
 
-  const handleCancelOrder = async () => {
-    if (!order || !session?.access_token) return;
-
-    setCancelling(true);
-    setCancelError(null);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/orders/${order.id}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ reason: 'Customer requested cancellation from tracker' }),
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error?.message || 'Failed to cancel order');
-      }
-
-      setShowCancelConfirm(false);
-      fetchOrder();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error cancelling order';
-      setCancelError(msg);
-    } finally {
-      setCancelling(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
@@ -156,9 +123,11 @@ function OrderTrackerContent() {
     );
   }
 
-  const isCollected = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || Boolean(order.qr_consumed_at);
+  const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+  const isCollected = stage === 'COLLECTED' || Boolean(order.qr_consumed_at);
+  const isReady = stage === 'READY_TO_PICK';
+  const isPlaced = stage === 'ORDER_PLACED';
   const isCancelled = order.order_status === 'cancelled';
-  const canCancel = !isCollected && !isCancelled;
 
   return (
     <div className="space-y-6">
@@ -200,13 +169,33 @@ function OrderTrackerContent() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">
+          Order Progress
+        </h2>
+        <div className="grid grid-cols-3 gap-2">
+          <div className={`p-3 rounded-2xl text-center border ${isPlaced || isReady || isCollected ? 'border-orange-300 bg-orange-50/70 text-[#ff5e3a]' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+            <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
+            <p className="text-xs font-bold">1. Placed</p>
+          </div>
+          <div className={`p-3 rounded-2xl text-center border ${isReady || isCollected ? 'border-amber-300 bg-amber-50/70 text-amber-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+            <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
+            <p className="text-xs font-bold">2. Ready</p>
+          </div>
+          <div className={`p-3 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 bg-emerald-50/70 text-emerald-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+            <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-current" />
+            <p className="text-xs font-bold">3. Collected</p>
+          </div>
+        </div>
+      </div>
+
       {isCancelled && (
         <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
           <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">This order was cancelled</p>
+            <p className="font-bold">This historical order was cancelled</p>
             <p className="mt-0.5">
-              Reason: {order.cancellation_reason || 'Cancelled upon request'}
+              Reason: {order.cancellation_reason || 'Cancelled'}
             </p>
             {order.cancelled_at && (
               <p className="mt-1 text-[11px] text-rose-600">
@@ -257,7 +246,7 @@ function OrderTrackerContent() {
               </div>
 
               <p className="text-xs text-stone-500 max-w-md mx-auto">
-                Present this QR code to the canteen counter staff to verify and receive your food.
+                Present this QR code to the canteen counter staff once your order is marked Ready to Pick.
               </p>
             </>
           )}
@@ -295,59 +284,6 @@ function OrderTrackerContent() {
           </span>
         </div>
       </div>
-
-      {canCancel && !isCancelled && (
-        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xs font-bold text-stone-900">Need to cancel this order?</h3>
-              <p className="text-[11px] text-stone-500">
-                You can cancel before collection. Reserved ingredients will be restored.
-              </p>
-            </div>
-
-            {!showCancelConfirm && (
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                className="rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition shadow-xs"
-              >
-                Cancel Order
-              </button>
-            )}
-          </div>
-
-          {cancelError && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <span>{cancelError}</span>
-            </div>
-          )}
-
-          {showCancelConfirm && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 space-y-2.5">
-              <p className="text-xs font-semibold text-rose-900">
-                Are you sure you want to cancel Order #{order.order_number}?
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleCancelOrder}
-                  disabled={cancelling}
-                  className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 transition disabled:opacity-50"
-                >
-                  {cancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
-                </button>
-                <button
-                  onClick={() => setShowCancelConfirm(false)}
-                  disabled={cancelling}
-                  className="rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition"
-                >
-                  Keep Order
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
