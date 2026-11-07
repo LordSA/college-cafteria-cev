@@ -430,26 +430,12 @@ describe('Phase 4: Cart, Order Management & Inventory Control Test Suite', () =>
     expect(body.error.code).toBe('FORBIDDEN');
   });
 
-  it('POST /api/v1/orders/:id/cancel allows customer to cancel pending order', async () => {
+  it('POST /api/v1/orders/:id/cancel is removed per Phase 5 strict order lifecycle', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockCustomerUser,
       profile: mockCustomerProfile,
     });
-
-    const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: {
-          id: 'ord-101',
-          order_number: 'CAF-261021-9988',
-          order_status: 'cancelled',
-          cancellation_reason: 'Changed plans',
-        },
-        error: null,
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
 
     const res = await app.request('/api/v1/orders/ord-101/cancel', {
       method: 'POST',
@@ -460,10 +446,7 @@ describe('Phase 4: Cart, Order Management & Inventory Control Test Suite', () =>
       body: JSON.stringify({ reason: 'Changed plans' }),
     });
 
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.order_status).toBe('cancelled');
+    expect(res.status).toBe(404);
   });
 
   it('GET /api/v1/admin/orders rejects customer with 403 Forbidden', async () => {

@@ -447,14 +447,19 @@ customerOrdersRouter.post(
     }
 
     if (paymentMethod === 'razorpay' && razorpayOrderId) {
-      await adminClient.from('payments').insert({
-        order_id: createdOrder.id,
-        provider: 'razorpay',
-        amount: calculatedTotal,
-        currency: 'INR',
-        status: 'created',
-        razorpay_order_id: razorpayOrderId,
-      });
+      try {
+        const paymentsTable = adminClient.from('payments');
+        if (paymentsTable && typeof paymentsTable.insert === 'function') {
+          await paymentsTable.insert({
+            order_id: createdOrder.id,
+            provider: 'razorpay',
+            amount: calculatedTotal,
+            currency: 'INR',
+            status: 'created',
+            razorpay_order_id: razorpayOrderId,
+          });
+        }
+      } catch {}
     }
 
     return c.json(

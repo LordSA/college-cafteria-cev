@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, UtensilsCrossed, ShoppingBag, ReceiptText, User } from 'lucide-react';
+import { Home, UtensilsCrossed, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export function MobileBottomNav() {
@@ -13,7 +13,6 @@ export function MobileBottomNav() {
     { label: 'Home', href: '/', icon: Home, isActive: pathname === '/' },
     { label: 'Menu', href: '/menu', icon: UtensilsCrossed, isActive: pathname.startsWith('/menu') },
     { label: 'Cart', href: '/cart', icon: ShoppingBag, isActive: pathname === '/cart', badge: itemCount },
-    { label: 'Orders', href: '/orders', icon: ReceiptText, isActive: pathname.startsWith('/orders') },
     { label: 'Profile', href: '/profile', icon: User, isActive: pathname.startsWith('/profile') },
   ];
 
