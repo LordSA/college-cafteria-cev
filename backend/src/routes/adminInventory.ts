@@ -85,92 +85,91 @@ adminInventoryRouter.get('/', async (c) => {
   });
 });
 
-adminInventoryRouter.patch(
-  '/:menuItemId',
-  zValidator('json', InventoryUpdateSchema),
-  async (c) => {
-    const adminClient = getSupabaseAdminClient(c.env);
-    const user = c.get('user');
-    const menuItemId = c.req.param('menuItemId');
-    const payload = c.req.valid('json');
+const handleInventoryUpdate = async (c: any) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  const user = c.get('user');
+  const menuItemId = c.req.param('menuItemId');
+  const payload = c.req.valid('json');
 
-    if (!adminClient) {
-      return c.json(
-        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
-        500
-      );
-    }
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
 
-    const { data: item, error: fetchErr } = await adminClient
-      .from('menu_items')
-      .select('*')
-      .eq('id', menuItemId)
-      .maybeSingle();
+  const { data: item, error: fetchErr } = await adminClient
+    .from('menu_items')
+    .select('*')
+    .eq('id', menuItemId)
+    .maybeSingle();
 
-    if (fetchErr || !item) {
-      return c.json(
-        { success: false, error: { code: 'ITEM_NOT_FOUND', message: 'Menu item not found' } },
-        404
-      );
-    }
+  if (fetchErr || !item) {
+    return c.json(
+      { success: false, error: { code: 'ITEM_NOT_FOUND', message: 'Menu item not found' } },
+      404
+    );
+  }
 
-    const nextTrack = payload.track_inventory !== undefined ? payload.track_inventory : item.track_inventory;
-    const nextStock = payload.stock_quantity !== undefined ? payload.stock_quantity : item.stock_quantity;
-    const nextThreshold = payload.low_stock_threshold !== undefined ? payload.low_stock_threshold : item.low_stock_threshold;
-    let nextAvailable = payload.is_available !== undefined ? payload.is_available : item.is_available;
+  const nextTrack = payload.track_inventory !== undefined ? payload.track_inventory : item.track_inventory;
+  const nextStock = payload.stock_quantity !== undefined ? payload.stock_quantity : item.stock_quantity;
+  const nextThreshold = payload.low_stock_threshold !== undefined ? payload.low_stock_threshold : item.low_stock_threshold;
+  let nextAvailable = payload.is_available !== undefined ? payload.is_available : item.is_available;
 
-    if (nextTrack && nextStock === 0 && payload.is_available === undefined) {
-      nextAvailable = false;
-    }
+  if (nextTrack && nextStock === 0 && payload.is_available === undefined) {
+    nextAvailable = false;
+  }
 
-    const qtyChange = nextStock - item.stock_quantity;
+  const qtyChange = nextStock - item.stock_quantity;
 
-    const { data: updatedItem, error: updateErr } = await adminClient
-      .from('menu_items')
-      .update({
-        track_inventory: nextTrack,
-        stock_quantity: nextStock,
-        low_stock_threshold: nextThreshold,
-        is_available: nextAvailable,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', menuItemId)
-      .select('*, categories(name)')
-      .single();
+  const { data: updatedItem, error: updateErr } = await adminClient
+    .from('menu_items')
+    .update({
+      track_inventory: nextTrack,
+      stock_quantity: nextStock,
+      low_stock_threshold: nextThreshold,
+      is_available: nextAvailable,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', menuItemId)
+    .select('*, categories(name)')
+    .single();
 
-    if (updateErr) {
-      return c.json(
-        { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
-        500
-      );
-    }
+  if (updateErr) {
+    return c.json(
+      { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
+      500
+    );
+  }
 
-    if (qtyChange !== 0) {
-      await adminClient.from('inventory_logs').insert({
-        menu_item_id: menuItemId,
-        quantity_change: qtyChange,
-        reason: 'manual_adjustment',
-        actor_id: user.id,
-      });
-    }
-
-    const isLowStock = nextTrack && nextStock <= nextThreshold;
-
-    return c.json({
-      success: true,
-      data: {
-        id: updatedItem.id,
-        name: updatedItem.name,
-        price: updatedItem.price,
-        category_id: updatedItem.category_id,
-        category_name: updatedItem.categories?.name,
-        is_available: updatedItem.is_available,
-        track_inventory: updatedItem.track_inventory,
-        stock_quantity: updatedItem.stock_quantity,
-        low_stock_threshold: updatedItem.low_stock_threshold,
-        is_low_stock: isLowStock,
-        updated_at: updatedItem.updated_at,
-      },
+  if (qtyChange !== 0) {
+    await adminClient.from('inventory_logs').insert({
+      menu_item_id: menuItemId,
+      quantity_change: qtyChange,
+      reason: 'manual_adjustment',
+      actor_id: user.id,
     });
   }
-);
+
+  const isLowStock = nextTrack && nextStock <= nextThreshold;
+
+  return c.json({
+    success: true,
+    data: {
+      id: updatedItem.id,
+      name: updatedItem.name,
+      price: updatedItem.price,
+      category_id: updatedItem.category_id,
+      category_name: updatedItem.categories?.name,
+      is_available: updatedItem.is_available,
+      track_inventory: updatedItem.track_inventory,
+      stock_quantity: updatedItem.stock_quantity,
+      low_stock_threshold: updatedItem.low_stock_threshold,
+      is_low_stock: isLowStock,
+      updated_at: updatedItem.updated_at,
+    },
+  });
+};
+
+adminInventoryRouter.patch('/:menuItemId', zValidator('json', InventoryUpdateSchema), handleInventoryUpdate);
+adminInventoryRouter.put('/:menuItemId', zValidator('json', InventoryUpdateSchema), handleInventoryUpdate);

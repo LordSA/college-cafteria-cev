@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [0.5.0] - 2026-11-08
 
 ### Added
+- **Inventory PUT and PATCH Support (`PUT /api/v1/admin/inventory/:menuItemId`)**:
+  - Registered both `PUT` and `PATCH` methods on `adminInventoryRouter` in `backend/src/routes/adminInventory.ts`.
+  - Fixes 404 error when admin inventory adjustments or availability toggles are submitted from `admin/src/app/inventory/page.tsx` via HTTP `PUT`.
+  - Added unit test in `backend/tests/phase4.test.ts` verifying inventory updates via `PUT`.
 - **Admin QR Order Collection Endpoint (`POST /api/v1/admin/orders/collect-qr`)**:
   - Implemented direct QR verification token collection endpoint in `backend/src/routes/adminOrders.ts` accepting `{ qr_token: string }`.
   - Supports `developer`, `admin`, `retail`, and `staff` roles.

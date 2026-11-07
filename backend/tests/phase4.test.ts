@@ -634,4 +634,78 @@ describe('Phase 4: Cart, Order Management & Inventory Control Test Suite', () =>
     expect(body.data.stock_quantity).toBe(20);
     expect(body.data.low_stock_threshold).toBe(8);
   });
+
+  it('PUT /api/v1/admin/inventory/:menuItemId updates stock via PUT request', async () => {
+    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
+      success: true,
+      user: mockAdminUser,
+      profile: mockAdminProfile,
+    });
+
+    const existingItem = {
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      name: 'Paneer Puff',
+      price: 2500,
+      category_id: 'cat-1',
+      is_available: true,
+      track_inventory: true,
+      stock_quantity: 10,
+      low_stock_threshold: 5,
+    };
+
+    const updatedItem = {
+      ...existingItem,
+      stock_quantity: 35,
+      low_stock_threshold: 10,
+      categories: { name: 'Snacks' },
+    };
+
+    const mockDb = {
+      from: vi.fn((table: string) => {
+        if (table === 'menu_items') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: existingItem, error: null }),
+              }),
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({ data: updatedItem, error: null }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'inventory_logs') {
+          return {
+            insert: vi.fn().mockResolvedValue({ error: null }),
+          };
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
+
+    const res = await app.request('/api/v1/admin/inventory/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer admin-token',
+      },
+      body: JSON.stringify({
+        stock_quantity: 35,
+        low_stock_threshold: 10,
+        track_inventory: true,
+      }),
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.stock_quantity).toBe(35);
+    expect(body.data.low_stock_threshold).toBe(10);
+  });
 });
