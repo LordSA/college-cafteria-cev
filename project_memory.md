@@ -104,7 +104,7 @@ college-canteen-cev/
 
 ### 2.3 Backend API (`backend/`)
 * **Role:** Single source of truth for database operations, authentication, payments, QR verification, uploads, menu catalog, reporting, and business logic.
-* **Stack:** Hono framework, TypeScript (Strict), Cloudflare Workers, Wrangler, Zod, Vitest, `xlsx`.
+* **Stack:** Hono framework, TypeScript (Strict), Cloudflare Workers, Wrangler (`^4.158.0`), `@cloudflare/workers-types` (`^5.20261107.1`), Zod, Vitest, `xlsx`.
 * **Target:** Cloudflare Workers (Global Edge Network).
 * **Dev Port:** `8787` (`http://localhost:8787`).
 * **Key Files:**

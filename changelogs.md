@@ -35,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Instagram-style circular profile avatar with camera edit overlay badge and direct file upload preview modal.
 
 ### Changed
+- **Wrangler & Cloudflare Workers Dependencies Upgrade**:
+  - Upgraded `wrangler` CLI to latest version `^4.158.0` in `backend/package.json`.
+  - Upgraded `@cloudflare/workers-types` to latest version `^5.20261107.1`.
+  - Documented full dependency tree and specifications across all three applications in `README.md`.
 - **Strict Order Lifecycle Preservation & Cancellation Removal**:
   - Preserved strict 3-stage order lifecycle: `ORDER_PLACED -> READY_TO_PICK -> COLLECTED`.
   - Completely removed customer order cancellation buttons, cancellation modal dialogs, and backend endpoint (`POST /api/v1/orders/:id/cancel`). Historical cancelled orders remain preserved for audit integrity.

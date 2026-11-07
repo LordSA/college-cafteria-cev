@@ -70,13 +70,64 @@ Frontends communicate exclusively with backend REST endpoints (`/api/v1/uploads/
 
 ---
 
-## 3. Technology Stack
+## 3. Technology Stack & Detailed Dependency Register
+
+### 3.1 Architecture Overview
 
 | Application | Framework / Runtime | Language | Styling / Validation | Target Platform | Local Port |
 |---|---|---|---|---|---|
-| **Customer** | Next.js 14 (App Router) | TypeScript (Strict) | Tailwind CSS | Cloudflare Pages (Static Export) | `3000` |
-| **Admin** | Next.js 14 (App Router) | TypeScript (Strict) | Tailwind CSS | Cloudflare Pages (Static Export) | `3001` |
-| **Backend** | Hono | TypeScript (Strict) | Zod | Cloudflare Workers | `8787` |
+| **Customer** | Next.js 16.4.3 (App Router) | TypeScript 5.7 (Strict) | Tailwind CSS 3.4 | Cloudflare Pages (Static Export) | `3000` |
+| **Admin** | Next.js 16.4.3 (App Router) | TypeScript 5.7 (Strict) | Tailwind CSS 3.4 | Cloudflare Pages (Static Export) | `3001` |
+| **Backend** | Hono 4.6 (Cloudflare Workers) | TypeScript 5.7 (Strict) | Zod 3.24 | Cloudflare Workers Edge | `8787` |
+
+### 3.2 Dependency Details by Application
+
+#### 1. Backend REST API (`backend/package.json`)
+* **Core Runtime & Web Framework:**
+  - `hono` (`^4.6.17`): Ultra-fast edge router with middleware binding.
+  - `@hono/zod-validator` (`^0.4.2`): Request body and query schema validation.
+  - `zod` (`^3.24.1`): Declarative runtime data validation and inference.
+* **Database & Authentication:**
+  - `@supabase/supabase-js` (`^2.48.1`): PostgreSQL database client and Supabase Auth admin SDK.
+* **Storage & Presigned URLs:**
+  - `@aws-sdk/client-s3` (`^3.717.0`): AWS S3 and Cloudflare R2 client.
+  - `@aws-sdk/s3-request-presigner` (`^3.717.0`): Direct upload URL presigning.
+* **Financial & Data Reporting:**
+  - `xlsx` (`^0.18.5`): Pure JavaScript multi-sheet spreadsheet workbook generator for auditable Excel exports.
+* **Developer Tooling & Cloudflare Worker CLI:**
+  - `wrangler` (`^4.158.0`): **Latest** Cloudflare developer platform CLI for Worker local emulation and global deployment.
+  - `@cloudflare/workers-types` (`^5.20261107.1`): **Latest** TypeScript definitions for Cloudflare Workers runtime APIs.
+  - `vitest` (`^2.1.8`): Fast unit and integration test runner (76 passing tests).
+  - `typescript` (`^5.7.2`): Strict static type checking.
+  - `@types/node` (`^22.10.5`): Node.js environment type declarations.
+
+#### 2. Customer Application (`customer/package.json`)
+* **Core Application & UI Framework:**
+  - `next` (`^16.4.3`): Next.js 16 App Router configured for static export (`output: 'export'`).
+  - `react` (`^19.3.1`): React 19 component library.
+  - `react-dom` (`^19.3.1`): React DOM renderer.
+* **State, Authentication & Helpers:**
+  - `@supabase/supabase-js` (`^2.118.0`): Supabase Auth client, OAuth session sync, and profile state.
+  - `lucide-react` (`^1.62.0`): Scalable UI icon library.
+  - `clsx` (`^2.1.1`) & `tailwind-merge` (`^3.7.0`): Conditional class composition.
+  - `qrcode` (`^1.5.4`) & `@types/qrcode` (`^1.5.6`): Zero-dependency SVG QR token generation.
+* **Styling & Build Tooling:**
+  - `tailwindcss` (`^3.4.17`), `postcss` (`^8.4.49`), `autoprefixer` (`^10.4.20`).
+  - `typescript` (`^5.7.2`), `@types/react` (`^19.3.0`), `@types/react-dom` (`^19.3.0`), `@types/node` (`^22.10.5`).
+
+#### 3. Admin Dashboard (`admin/package.json`)
+* **Core Application & UI Framework:**
+  - `next` (`^16.4.3`): Next.js 16 App Router for back-office dashboard (`output: 'export'`).
+  - `react` (`^19.3.1`): React 19 component library.
+  - `react-dom` (`^19.3.1`): React DOM renderer.
+* **State, Authentication & Security:**
+  - `@supabase/supabase-js` (`^2.118.0`): Supabase Auth admin verification and session evaluation.
+  - `lucide-react` (`^1.62.0`): Icon library for kitchen displays and operations metrics.
+  - `clsx` (`^2.1.1`) & `tailwind-merge` (`^3.7.0`): Class composing utilities.
+  - `qrcode` (`^1.5.4`) & `@types/qrcode` (`^1.5.6`): SVG QR generation for verification passes.
+* **Styling & Build Tooling:**
+  - `tailwindcss` (`^3.4.17`), `postcss` (`^8.4.49`), `autoprefixer` (`^10.4.20`).
+  - `typescript` (`^5.7.2`), `@types/react` (`^19.3.0`), `@types/react-dom` (`^19.3.0`), `@types/node` (`^22.10.5`).
 
 ---
 
