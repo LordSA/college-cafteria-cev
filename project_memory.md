@@ -1,22 +1,22 @@
 # Project Memory — Cafteria Platform
 
-> **Status:** Phase 4.2 Extended (Cart Item Locks, Customer Flow Reconfiguration & Direct Profile Editing) Complete  
-> **Last Updated:** 2026-11-06  
+> **Status:** Phase 5 (Production Razorpay Payments, 4-Tier Roles, Strict Order Lifecycle & Excel Reports) Complete  
+> **Last Updated:** 2026-11-08  
 > **Rule Requirement:** Developers and automated agents **MUST** read this document before making any changes and update it whenever files, schemas, endpoints, or conventions change.
 
 ---
 
 ## 1. System Overview
 
-Cafteria is a full-stack digital canteen ordering and management platform purpose-built for college campuses. It enables students and faculty to browse daily menu items, order meals ahead, pay digitally, and pick up without physical queueing, while providing canteen staff with real-time kitchen operations and inventory controls.
+Cafteria is a full-stack digital canteen ordering and management platform purpose-built for college campuses. It enables students and faculty to browse daily menu items, order meals ahead, pay digitally via Razorpay Standard Checkout or Faculty Pay Later, and pick up without physical queueing, while providing canteen staff with real-time kitchen operations, inventory controls, and auditable Excel reporting.
 
 ### Architectural Structure
 The repository contains **three completely decoupled, independent applications** without monorepo workspace baggage:
 
 ```
 college-canteen-cev/
-├── customer/                 # Port 3000: Next.js 14 App Router (Customer Ordering Web App)
-├── admin/                    # Port 3001: Next.js 14 App Router (Staff & Kitchen Management)
+├── customer/                 # Port 3000: Next.js 16 App Router (Customer Ordering Web App)
+├── admin/                    # Port 3001: Next.js 16 App Router (Staff & Kitchen Management)
 ├── backend/                  # Port 8787: Hono REST API on Cloudflare Workers
 ├── docs/                     # Technical specifications, design systems & rules
 ├── supabase/migrations/      # Supabase CLI-compatible SQL migration files
@@ -33,118 +33,107 @@ college-canteen-cev/
 
 ### 2.1 Customer Application (`customer/`)
 * **Role:** Student and faculty ordering portal.
-* **Stack:** Next.js 16.4.3 (App Router / Turbopack), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Stack:** Next.js 16.4.3 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3000` (`http://localhost:3000`).
-* **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+* **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`.
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` and `CartProvider` wrappers.
   - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
-  - `src/app/page.tsx`: Unified campus dining portal for our college canteen featuring warm coral/orange gradient theme across mobile and desktop PC, personalized greeting, 3-line hamburger sidebar trigger, search pill, circular categories, "Hot Products" (most ordered & clicked items), exclusive deals, live kitchen products, and rich footer.
-  - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, non-monetary testing wallet policy, and RLS data security.
-  - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, order cancellation rules, and demo wallet policies.
-  - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion answering questions on Testing Wallet demo credits, Counter #1 pickups, refunds, and QR pass security.
-  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 5 destinations (`Home`, `Menu`, `Cart`, `Orders`, `Profile`), active coral rounded highlight, and live cart count badge.
-  - `src/components/SidebarDrawer.tsx`: Accessible slide-over drawer triggered by hamburger button featuring user profile, quick navigation links, dining hours, and auth actions.
-  - `src/components/Navbar.tsx`: Desktop PC navigation header (`hidden md:block`) with clean `Home`, `Menu` links, wallet icon, cart button with item count badge, and user profile avatar / Login button. (Re-exported via `Header.tsx` as `Header`). Hidden on mobile devices where `MobileBottomNav` is used.
-  - `src/components/Header.tsx`: Re-exports `Navbar as Header` for 100% backward compatibility across all customer pages.
-  - `src/components/Footer.tsx`: Modern campus canteen footer with CEV shop identity, hours, canteen collection desk details, links to Privacy Policy, Terms, and Payment FAQs.
-  - `src/app/signup/page.tsx`: Registration page with confirm password, terms checkbox, and OTP redirect.
+  - `src/app/page.tsx`: Unified campus dining portal featuring warm coral/orange gradient theme across mobile and desktop PC, search pill, circular categories, "Hot Products" (most ordered items), exclusive deals, live kitchen products, and rich footer. Hamburger button removed on mobile for streamlined UI.
+  - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, payment processing, and RLS data security.
+  - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, payment policies, and collection verification.
+  - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion covering Razorpay payments, Counter #1 pickups, faculty pay later, and QR pass security.
+  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active coral rounded highlight, and live cart count badge. `Orders` tab removed.
+  - `src/components/SidebarDrawer.tsx`: Slide-over drawer with user profile, quick navigation links, dining hours, and auth actions.
+  - `src/components/Navbar.tsx`: Desktop PC navigation header (`hidden md:block`) with clean `Home`, `Menu` links, wallet icon, cart button with item count badge, and user profile avatar / Login button. (Re-exported via `Header.tsx` as `Header`).
+  - `src/components/Header.tsx`: Re-exports `Navbar as Header` for backward compatibility.
+  - `src/components/Footer.tsx`: Modern campus canteen footer hidden on mobile devices (`hidden md:block`).
+  - `src/app/login/page.tsx`: Sign-in page with email/password and "Continue with Google" OAuth button.
+  - `src/app/signup/page.tsx`: Registration page with student vs faculty selection, conditional Teacher ID capture (3-20 characters), confirm password, terms checkbox, and "Continue with Google" button.
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
+  - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Back button, Account Security (Change Password, Google Account Link/Unlink, Sign Out), and Account Information (Email, Role, Teacher ID input with verification status).
+  - `src/app/profile/page.tsx`: Account profile with role displayed under name, Instagram-style circular profile avatar with camera overlay badge and direct file upload preview modal, phone number input, Pay Later dues settlement, gear icon link to `/settings`, and prominent bottom red Sign Out button.
   - `src/app/menu/page.tsx`: Vertical column layout menu page with category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar.
-  - `src/app/cart/page.tsx`: Full shopping cart management page with line items, line totals, 5-minute lock countdown, and clear cart control.
-  - `src/app/checkout/page.tsx`: Order review page with testing wallet balance check, payment method selector ("Testing Wallet — Demo Credits" vs "Pay Later"), and atomic order placement.
+  - `src/app/cart/page.tsx`: Shopping cart management page with line items, line totals, 5-minute lock countdown, and clear cart control.
+  - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later.
   - `src/app/checkout/success/page.tsx`: Order confirmation screen displaying pickup token, high-contrast SVG QR pass for counter verification on top, and itemized ordered dishes directly below.
-  - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance, non-monetary notice, and auditable transaction ledger.
+  - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.
   - `src/app/orders/page.tsx`: Customer order record list with status badges and links to trackers.
-  - `src/app/orders/track/page.tsx`: Live order tracking page with counter pickup QR pass on top, ordered dishes directly below, and self-cancellation button.
+  - `src/app/orders/track/page.tsx`: Live order tracking page with counter pickup QR pass on top, ordered dishes directly below, and 3-stage progress indicator. Customer cancellation buttons and modal dialogs completely removed.
   - `src/app/orders/receipt/page.tsx`: Print-friendly (`@media print`) bill layout with Cafteria branding, itemization, and verification QR code.
-  - `src/app/profile/page.tsx`: Account profile with role displayed under name, 5 local preset avatar selector (`/avatars/avatar-X.svg`), phone number input, Google account binding option in Settings, Pay Later dues settlement, and prominent bottom red Sign Out button.
-  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes, with profile phone update and preset avatar key updater.
+  - `src/app/not-found.tsx`: Clean 404 error page.
+  - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes, Google OAuth sign-in, profile phone and avatar key update, and Teacher ID capture.
   - `src/context/CartContext.tsx`: Client-side persistent cart with atomic server locking (`/api/v1/cart/lock`, `/unlock`, `/release-all`), 5-minute auto-expiry countdown, and automatic stock restoration.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
   - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
 
 ### 2.2 Admin Application (`admin/`)
-* **Role:** Management, kitchen order dispatch queue (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, and menu catalog.
-* **Stack:** Next.js 16.4.3 (App Router / Turbopack), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Role:** Operations management, kitchen dispatch (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, catalog, and developer console.
+* **Stack:** Next.js 16.4.3 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Theme:** Neo-Dark Obsidian & Pastel Rose/Purple (`#101114` canvas, `#17181f` surfaces, `#22242e` borders, `#f5a4c6` pink active pills, `#9d8bf0` purple secondary accents, `#ea9955` amber indicators).
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
-  - `src/app/layout.tsx`: Root HTML shell for the back-office command center with `AdminAuthProvider` and neo-dark background.
+  - `src/app/layout.tsx`: Root HTML shell with `AdminAuthProvider` and neo-dark background.
   - `src/app/globals.css`: Dark obsidian base styling (`#101114`).
-  - `src/app/page.tsx`: Modern obsidian dark Operations Command Center with slim icon navigation rail, rose pill active indicator, "My Dashboard" search header, 3 quick-action metric cards (Tariff/Kitchen Queue, Additional Options, Subscription/Staff Management), interactive dual-line SVG wave velocity chart (Daily/Weekly/Monthly), partnerships cards, online operator consultation card, message feed, and update news broadcaster.
-  - `src/app/orders/page.tsx`: Neo-dark kitchen dispatch and live order management dashboard with status tab pills, search pill, stage badges (`ORDER_PLACED`, `READY_TO_PICK`, `COLLECTED`), Pay Later payment indicators, items checklist drawer, and receipt print buttons.
-  - `src/app/orders/receipt/page.tsx`: Neo-dark header shell with high-contrast, cashier printable register bill layout (`@media print`).
-  - `src/app/scan/page.tsx`: Neo-dark camera scanner viewport with manual token fallback, order verification card with item checklist, and 1-click "Confirm Order Collection" action.
-  - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal (credit/debit with mandatory audit reason), and customer ledger dialog in neo-dark design.
-  - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click 86 toggles.
-  - `src/app/login/page.tsx`: Restricted admin sign-in with neo-dark container card and password recovery link.
+  - `src/app/page.tsx`: Operations Command Center with icon navigation rail, rose active pill, search header, quick-action cards, velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, and dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`.
+  - `src/app/developer/page.tsx`: Developer Console with system diagnostics (payment mode, webhook health, runtime) and user role management table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`).
+  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills, search pill, stage badges (`ORDER_PLACED`, `READY_TO_PICK`, `COLLECTED`), Pay Later payment indicators, items checklist drawer, and receipt print buttons.
+  - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`).
+  - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and "Confirm Order Collection" action.
+  - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in neo-dark design.
+  - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click toggles.
+  - `src/app/login/page.tsx`: Restricted admin sign-in with neo-dark container card.
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request card.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
-  - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals.
+  - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals displaying applicant Teacher ID badge alongside email and registration date.
   - `src/app/categories/page.tsx`: Category management (list, add card, active toggle).
-  - `src/app/menu/page.tsx`: Menu item catalog management (list, add card with presigned food image upload, toggle availability, archive).
+  - `src/app/menu/page.tsx`: Menu item catalog management.
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
-  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying role against `/api/v1/admin/me`.
+  - `src/app/not-found.tsx`: Clean 404 administration error page.
+  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 4-tier roles (`developer`, `admin`, `retail`, `staff`) with permission flags (`isDeveloper`, `isAdmin`, `isRetail`, `isStaff`, `canManageUsers`, `canManageInventory`, `canManageOrders`, `canScanQr`, `canViewReports`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
-  - `src/components/Header.tsx`: Neo-dark admin header with infinity logo, active rose navigation pills, user avatar, and logout.
+  - `src/components/Header.tsx`: Neo-dark admin header with logo, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), role-filtered navigation tabs, user avatar, and logout.
   - `src/components/Footer.tsx`: Neo-dark audit footer.
-  - `src/components/ApiHealthBadge.tsx`: Pill badge monitoring Cloudflare Worker `/health` status.
+  - `src/components/ApiHealthBadge.tsx`: Pill badge monitoring `/health` status.
 
 ### 2.3 Backend API (`backend/`)
-* **Role:** Single source of truth for database operations, authentication, testing wallets, QR verification, uploads, menu catalog, and business logic.
-* **Stack:** Hono framework, TypeScript (Strict), Cloudflare Workers, Wrangler, Zod, Vitest.
+* **Role:** Single source of truth for database operations, authentication, payments, QR verification, uploads, menu catalog, reporting, and business logic.
+* **Stack:** Hono framework, TypeScript (Strict), Cloudflare Workers, Wrangler, Zod, Vitest, `xlsx`.
 * **Target:** Cloudflare Workers (Global Edge Network).
 * **Dev Port:** `8787` (`http://localhost:8787`).
-* **Configuration:** `wrangler.toml` and `.dev.vars`.
 * **Key Files:**
   - `src/index.ts`: Primary Hono router, global middleware binding, route mounting, and 404/error handler.
-  - `src/middleware/auth.ts`: Reusable `requireAuth` (Bearer token verification) and `requireAdmin` (RBAC) middlewares.
+  - `src/middleware/auth.ts`: Reusable `requireAuth` (Bearer token verification), `requireRole(allowedRoles)`, `requireAdmin`, and `requireDeveloper` middlewares with context caching.
   - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding.
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
+  - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, and webhook signature verification using Web Crypto HMAC SHA-256 and constant-time comparison.
   - `src/lib/supabase.ts`: Token verification and database profile retrieval via Supabase Admin/User clients.
   - `src/lib/storage/`: Provider-independent storage service (`types.ts`, `supabaseProvider.ts`, `r2Provider.ts`, `index.ts`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
-  - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers (v1.4.1).
-  - `src/routes/auth.ts`: `GET /api/v1/auth/me` returning authenticated user profile.
-  - `src/routes/admin.ts`: `GET /api/v1/admin/me` admin-only test endpoint returning verified admin identity.
-  - `src/routes/staffRequests.ts`: Admin endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject`.
+  - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.
+  - `src/routes/auth.ts`: `GET /api/v1/auth/me` and `PATCH /api/v1/auth/me/profile` for updating display name, avatar key, and Teacher ID.
+  - `src/routes/admin.ts`: `GET /api/v1/admin/me`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`, and `GET /api/v1/admin/diagnostics`.
+  - `src/routes/reports.ts`: Financial metrics `GET /api/v1/admin/reports/stats`, fund flow `GET /api/v1/admin/reports/funds`, and 5-sheet Excel workbook export `GET /api/v1/admin/reports/export` in `Asia/Kolkata` timezone.
+  - `src/routes/webhooks.ts`: Razorpay webhook listener `POST /api/v1/webhooks/razorpay` with raw payload HMAC SHA-256 signature verification and event deduplication via `payment_webhook_events`.
+  - `src/routes/staffRequests.ts`: Admin endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject` with Teacher ID and email support.
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.
   - `src/routes/cart.ts`: Cart item locking endpoints `POST /api/v1/cart/lock`, `POST /api/v1/cart/unlock`, `POST /api/v1/cart/release-all`, `GET /api/v1/cart/status`.
-  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `testing_wallet`, `counter_cash`, and faculty/staff `pay_later`), `GET /api/v1/orders/me` (returns `order_stage`), `GET /api/v1/orders/pay-later/pending` (retrieves customer's outstanding Pay Later dues), `POST /api/v1/orders/pay-later/settle` (atomic settlement via Testing Wallet or UPI), `GET /:id`, `POST /:id/cancel`, `GET /:id/receipt`.
-  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (strict stage filtering via `?stage=`), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (non-mutating pre-flight returning stage eligibility), `POST /:id/collect` (atomic collection, sets `qr_consumed_at`), `GET /:id/receipt`.
-  - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId`.
+  - `src/routes/orders.ts`: Customer endpoints `POST /api/v1/orders` (supports `razorpay`, `testing_wallet`, `counter_cash`, and faculty `pay_later`), `POST /api/v1/orders/verify-payment`, `GET /api/v1/orders/me` (returns `order_stage`), `GET /api/v1/orders/pay-later/pending`, `POST /api/v1/orders/pay-later/settle`, `GET /:id`, `GET /:id/receipt`. Customer cancellation endpoint permanently removed.
+  - `src/routes/adminOrders.ts`: Admin endpoints `GET /api/v1/admin/orders` (role-checked), `GET /:id`, `POST /:id/ready` (`ORDER_PLACED` -> `READY_TO_PICK`), `PATCH /:id/status`, `POST /verify-qr` (accessible to `staff`), `POST /:id/collect` (accessible to `staff`), `GET /:id/receipt`.
+  - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId` (protected with `requireRole(['developer', 'admin', 'retail'])`).
   - `src/routes/wallet.ts`: Customer endpoints `GET /api/v1/wallet/me`, `GET /api/v1/wallet/transactions`.
   - `src/routes/adminWallet.ts`: Admin endpoints `GET /api/v1/admin/wallets`, `GET /:customerId`, `POST /:customerId/adjust`.
-  - `src/types/env.ts`: TypeScript environment, profile, `OrderStage = 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED'`, order, inventory, and wallet interfaces.
-  - `tests/auth.test.ts`: 12 automated auth and RBAC test cases.
-  - `tests/phase3.test.ts`: 12 automated menu, category, and staff approval test cases.
-  - `tests/storage.test.ts`: 14 automated storage provider and upload security test cases.
-  - `tests/phase4.test.ts`: 12 automated order creation, inventory deduction, idempotency, and status transition test cases.
-  - `tests/phase4_1.test.ts`: 13 automated wallet credit/debit, negative balance prevention, QR verification, collection, and receipt test cases.
-  - `tests/phase4_2.test.ts`: 13 automated strict order stages, QR invalidation, duplicate prevention, and collection flow test cases (76/76 passing total).
-  - `migrations/0001_create_profiles.sql`: Initial profile schema and RBAC triggers.
-  - `migrations/0002_staff_approvals_and_menu.sql`: Categories, menu items, and staff approval state fields.
-  - `migrations/0003_storage_buckets.sql`: Storage buckets and Storage RLS policies.
-  - `migrations/0004_orders_and_inventory.sql`: Orders, order items, inventory movement logs, RLS, and transactional stored procedures.
-  - `migrations/0005_wallet_and_qr_verification.sql`: Wallets, ledger transactions, orders QR verification fields, and PL/pgSQL stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`, `verify_qr_token`, `collect_order`).
-  - `migrations/0006_foreign_keys_profiles.sql`: Explicit foreign key relationships between `orders`, `wallets`, `wallet_transactions` and `public.profiles(id)` enabling PostgREST schema cache detection and decoupled batch profile lookups.
-  - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict 3-stage order enum, single-use QR lifecycle, and optical scan verification procedures.
-  - `migrations/0008_remove_profile_role_lock.sql`: Removes restrictive `protect_profile_roles` trigger and enables direct table/dashboard editing of position/roles and admin staff approvals.
-  - `migrations/0009_cart_item_locks.sql`: Cart item locks table and 5-minute atomic inventory reservation system (`lock_cart_item`, `release_cart_locks`, `cleanup_expired_cart_locks`).
-  - `migrations/0007_phase4_2_order_stages_and_qr_lifecycle.sql`: Strict `order_stage` constraint, `qr_consumed_at` column, and stage-aware `mark_order_ready`, `verify_qr_token`, and `collect_order` stored procedures.
-  - `migrations/0008_remove_profile_role_lock.sql`: Drops restrictive `trg_protect_profile_roles` trigger and `protect_profile_roles` function, unlocking direct position/role updates in Supabase and enabling admin staff approvals.
-  - `migrations/20261028000001_pay_later_feature.sql`: Adds `'pay_later'` payment method, `pay_later_settled_at`, and `pay_later_settled_via` tracking.
+  - `src/types/env.ts`: AppRole enum (`developer`, `admin`, `retail`, `staff`, `customer`), Payment interface, PaymentWebhookEvent interface, Teacher ID field.
+  - `supabase/migrations/20261107000001_phase_5_security_and_roles.sql`: Phase 5 schema updates adding `teacher_id`, `payments` table, `payment_webhook_events` table, `app_role` check constraint, and `set_user_role` stored procedure.
 
 ---
 
@@ -169,8 +158,8 @@ college-canteen-cev/
 | **Phase 3** | Menu Engine, Staff Approval & Storage | **Completed** | Categories, menu items, integer paise pricing, availability toggles, staff approval review board, OTP email verification, password recovery, temporary Supabase Storage provider with preserved R2 support. |
 | **Phase 4** | Order Lifecycle & Inventory Control | **Completed** | Shopping cart, checkout validation, atomic inventory decrement and restock on cancel, order number generation, kitchen order display queue. |
 | **Phase 4.1** | Testing Wallet, QR Order Verification & Bill Printing | **Completed** | Demo credit testing wallet with auditable ledger, non-negative balance enforcement, instant wallet checkout, QR verification pass, admin scanner, atomic order collection, and printable receipts. |
-| **Phase 5** | Production Media Migration & Payment Gateways | Planned | Cloudflare R2 bucket activation, Razorpay checkout gateway, webhook verification. |
-| **Phase 6** | Analytics & Sales Reporting | Planned | Financial auditing, peak rush traffic heatmaps, settlement reconciliation. |
+| **Phase 5** | Production Payment Integration, 4-Tier Roles & Excel Reports | **Completed** | Razorpay Standard Checkout in integer paise, Webhook HMAC SHA-256 deduplication, 4-tier roles (developer/admin/retail/staff), developer console, strict 3-stage order lifecycle, customer settings, circular avatar upload, and multi-sheet Excel reporting. |
+| **Phase 6** | Advanced Analytics & Predictive Inventory | Planned | Rush hour predictive modeling, demand forecasting, automated re-ordering triggers. |
 
 ---
 

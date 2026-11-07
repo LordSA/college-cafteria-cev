@@ -81,7 +81,7 @@ export default function CustomerHomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Kaliraj';
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Guest';
 
   useEffect(() => {
     try {

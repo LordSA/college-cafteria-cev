@@ -26,7 +26,6 @@ import {
   ExternalLink,
   Download,
   Terminal,
-  IndianRupee,
 } from 'lucide-react';
 
 interface OperationalStats {

@@ -131,6 +131,18 @@ For full color scales, component anatomy, layout grids, and interactive states:
   - Surfaces current outstanding balance in customer checkout and profile.
   - Interactive settlement drawer allowing 1-click clearance via Testing Wallet or UPI.
 
+### 4.6 Phase 5 Design Upgrades: Razorpay Checkout, 4-Tier Roles, Settings & Developer Console
+- **Razorpay Standard Checkout:** Responsive popup modal integration via Razorpay SDK with INR integer paise calculations. Seamless error recovery and instant verification redirect.
+- **Instagram-Style Circular Profile Photo:** Circular avatar layout with bottom-right camera overlay badge, file picker (JPEG/PNG/WebP), crop/preview modal, presigned direct S3/R2 upload, and removal of preset grids.
+- **Customer Settings Page (`/settings`):** Clean stone-900 typography, light card layout with Back button, Account Security (Password change, Google Link/Unlink, Sign out), and Account Information (Email, Role, Teacher ID).
+- **Admin 4-Tier Role Badges:** Color-coded role pills:
+  - Developer: Purple/Indigo pill (`bg-purple-500/15 border-purple-500/30 text-purple-300`)
+  - Admin: Rose/Pink pill (`bg-pink-500/15 border-pink-500/30 text-pink-300`)
+  - Retail: Amber pill (`bg-amber-500/15 border-amber-500/30 text-amber-300`)
+  - Staff: Emerald pill (`bg-emerald-500/15 border-emerald-500/30 text-emerald-300`)
+- **Developer Console (`/developer`):** Obsidian dark system telemetry cards, user role assignment dropdowns, and diagnostic metrics.
+- **Excel Report Export UI:** Quick-action `.xlsx` download button with loading spinner positioned alongside velocity chart timeframe filters.
+
 ---
 
 ## 5. Subsystem Behavioral Guides

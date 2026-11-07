@@ -11,6 +11,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [0.5.0] - 2026-11-08
+
+### Added
+- **Production Payment Integration (Razorpay)**:
+  - Integrated Razorpay Standard Checkout in integer paise (INR).
+  - Secure backend order creation (`POST /api/v1/orders`), signature verification endpoint (`POST /api/v1/orders/verify-payment`), and webhook handler (`POST /api/v1/webhooks/razorpay`) with constant-time HMAC SHA-256 validation.
+  - Added webhook deduplication tracking table `payment_webhook_events` and payment tracking records in `payments` table.
+  - Configurable payment provider and modes (`PAYMENT_PROVIDER=razorpay`, `PAYMENT_MODE=test|live`) with safe test-mode testing wallet and faculty pay-later fallback.
+- **4-Tier Admin Role System & Authorization**:
+  - Enforced 4 distinct operational roles: `developer`, `admin`, `retail`, and `staff` (with `customer` as default diner role).
+  - Backend role validation middleware `requireRole(['developer', 'admin', 'retail', 'staff'])` across routes.
+  - Dedicated Developer Console (`admin/src/app/developer/page.tsx`) with user role re-assignment (`PATCH /api/v1/admin/users/:id/role`) and infrastructure diagnostics (`GET /api/v1/admin/diagnostics`).
+  - Added role badges in Admin header and role-gated navigation tabs.
+- **Financial Overview & Multi-Sheet Excel Export**:
+  - Backend financial statistics endpoint `GET /api/v1/admin/reports/stats` and fund flow breakdown `GET /api/v1/admin/reports/funds` in `Asia/Kolkata` timezone.
+  - Multi-sheet `.xlsx` report export `GET /api/v1/admin/reports/export` generating: Executive Summary, Orders Ledger, Payments Ledger, Inventory Valuation, and User Directory.
+  - Admin dashboard export button with dynamic range filtering (`daily`, `weekly`, `monthly`, `all`).
+- **Customer Auth & Settings Upgrades**:
+  - Google OAuth integration on Customer Login and Signup pages.
+  - Teacher ID capture on signup for faculty/staff classification (`profiles.teacher_id`) with 3–20 character format validation and admin review queue.
+  - Dedicated Customer Settings page (`customer/src/app/settings/page.tsx`) providing Account Security (password change, Google linking, sign out) and Account Information (email, role, teacher ID verification status).
+  - Instagram-style circular profile avatar with camera edit overlay badge and direct file upload preview modal.
+
+### Changed
+- **Strict Order Lifecycle Preservation & Cancellation Removal**:
+  - Preserved strict 3-stage order lifecycle: `ORDER_PLACED -> READY_TO_PICK -> COLLECTED`.
+  - Completely removed customer order cancellation buttons, cancellation modal dialogs, and backend endpoint (`POST /api/v1/orders/:id/cancel`). Historical cancelled orders remain preserved for audit integrity.
+- **Mobile Experience Refinements**:
+  - Customer global footer hidden on mobile viewports (`hidden md:block`).
+  - Mobile bottom navigation (`MobileBottomNav.tsx`) refined to 4 primary tabs: `Home`, `Menu`, `Cart`, and `Profile` (removed redundant `Orders` tab).
+  - Removed obsolete hamburger menu button from mobile landing page header.
+- **Admin Staff Requests Review (`admin/src/app/staff-requests/page.tsx`)**:
+  - Displays applicant's Teacher ID badge alongside email and registration date.
+
+---
+
 ## [0.4.10] - 2026-11-06
 
 ### Added

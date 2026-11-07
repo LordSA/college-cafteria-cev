@@ -286,3 +286,4 @@ SELECT tgname, relname FROM pg_trigger t
 JOIN pg_class c ON c.oid = t.tgrelid 
 WHERE tgname = 'trg_protect_profile_fields';
 ```
+
