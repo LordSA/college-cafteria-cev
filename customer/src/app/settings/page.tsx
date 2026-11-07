@@ -16,7 +16,6 @@ import {
   Loader2,
   LogOut,
   User,
-  GraduationCap,
   Building2,
   Check,
   Link as LinkIcon,

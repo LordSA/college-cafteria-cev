@@ -6,13 +6,15 @@ import { supabase } from '../lib/supabase';
 
 export type AccountType = 'student' | 'staff';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
-export type AppRole = 'customer' | 'admin';
+export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'customer';
 
 export interface UserProfile {
   id: string;
   display_name: string | null;
   phone?: string | null;
   avatar_key: string | null;
+  avatar_url?: string | null;
+  teacher_id?: string | null;
   account_type: AccountType;
   requested_account_type: AccountType;
   approved_account_type: AccountType;
@@ -29,6 +31,7 @@ interface SignUpParams {
   password: string;
   displayName: string;
   accountType: AccountType;
+  teacherId?: string;
 }
 
 interface SignInParams {
@@ -44,6 +47,7 @@ interface AuthContextType {
   error: string | null;
   signUp: (params: SignUpParams) => Promise<{ success: boolean; error?: string }>;
   signIn: (params: SignInParams) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<{ success: boolean; error?: string }>;
   updateProfileInfo: (params: { displayName: string; phone?: string }) => Promise<{ success: boolean; error?: string }>;
@@ -78,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           display_name: data.display_name,
           phone: data.phone || userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: data.avatar_key,
+          teacher_id: data.teacher_id || userMeta?.teacher_id || null,
           account_type: data.account_type || 'student',
           requested_account_type: data.requested_account_type || 'student',
           approved_account_type: data.approved_account_type || 'student',
@@ -95,6 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
           phone: userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: null,
+          teacher_id: userMeta?.teacher_id || null,
           account_type: 'student',
           requested_account_type: reqType,
           approved_account_type: 'student',
@@ -111,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
         phone: userMeta?.phone || userMeta?.phone_number || null,
         avatar_key: null,
+        teacher_id: userMeta?.teacher_id || null,
         account_type: 'student',
         requested_account_type: reqType,
         approved_account_type: 'student',
@@ -183,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [fetchProfile]);
 
-  const signUp = async ({ email, password, displayName, accountType }: SignUpParams) => {
+  const signUp = async ({ email, password, displayName, accountType, teacherId }: SignUpParams) => {
     setError(null);
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -193,6 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             display_name: displayName,
             account_type: accountType,
+            teacher_id: accountType === 'staff' ? teacherId : undefined,
           },
         },
       });
@@ -205,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user) {
         setUser(data.user);
         setSession(data.session);
-        await fetchProfile(data.user.id, { display_name: displayName, account_type: accountType }, email);
+        await fetchProfile(data.user.id, { display_name: displayName, account_type: accountType, teacher_id: teacherId }, email);
       }
 
       return { success: true };
@@ -238,6 +246,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: true };
     } catch (err: any) {
       const msg = err.message || 'Login failed';
+      setError(msg);
+      return { success: false, error: msg };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setError(null);
+    try {
+      const { error: oAuthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/profile` : undefined,
+        },
+      });
+
+      if (oAuthError) {
+        setError(oAuthError.message);
+        return { success: false, error: oAuthError.message };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      const msg = err.message || 'Google sign-in failed';
       setError(msg);
       return { success: false, error: msg };
     }
@@ -345,6 +376,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
         updateDisplayName,
         updateProfileInfo,
