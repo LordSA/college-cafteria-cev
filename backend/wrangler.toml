@@ -6,7 +6,7 @@ keep_vars = true
 
 [vars]
 ENVIRONMENT = "development"
-ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,https://cafeteria.campus.shibili.xyz"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,https://cafeteria.campus.shibili.xyz,https://admin.cafeteria.campus.shibili.xyz"
 
 [dev]
 port = 8787

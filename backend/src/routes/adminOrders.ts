@@ -538,6 +538,152 @@ adminOrdersRouter.post(
   }
 );
 
+const CollectQrSchema = z.object({
+  qr_token: z.string().trim().min(1, 'QR verification token is required'),
+});
+
+adminOrdersRouter.post(
+  '/collect-qr',
+  requireRole(['developer', 'admin', 'retail', 'staff']),
+  zValidator('json', CollectQrSchema),
+  async (c) => {
+    const adminClient = getSupabaseAdminClient(c.env);
+    const adminUser = c.get('user');
+    const { qr_token } = c.req.valid('json');
+
+    if (!adminClient) {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+        500
+      );
+    }
+
+    if (typeof adminClient.from !== 'function') {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database operation failed' } },
+        500
+      );
+    }
+
+    const { data: order, error: orderErr } = await adminClient
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('qr_verification_token', qr_token)
+      .maybeSingle();
+
+    if (orderErr || !order) {
+      return c.json(
+        { success: false, error: { code: 'INVALID_QR_TOKEN', message: 'Order with this QR token was not found' } },
+        404
+      );
+    }
+
+    const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+
+    if (stage === 'COLLECTED' || order.qr_consumed_at) {
+      return c.json(
+        { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
+        400
+      );
+    }
+
+    if (order.payment_status !== 'paid') {
+      return c.json(
+        { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
+        400
+      );
+    }
+
+    if (stage !== 'READY_TO_PICK') {
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: 'ORDER_NOT_READY',
+            message: `Order stage is "${stage}". It must be marked READY_TO_PICK before it can be collected.`,
+          },
+        },
+        400
+      );
+    }
+
+    if (typeof adminClient.rpc === 'function') {
+      try {
+        const { data: rpcResult, error: rpcErr } = await adminClient.rpc('confirm_order_collection', {
+          p_order_id: order.id,
+          p_admin_id: adminUser.id,
+        });
+
+        if (!rpcErr && rpcResult) {
+          return c.json({
+            success: true,
+            data: {
+              ...order,
+              ...rpcResult,
+              order_stage: 'COLLECTED',
+              order_status: 'COLLECTED',
+              items: order.order_items || [],
+            },
+          });
+        }
+      } catch {}
+
+      try {
+        const { data: rpcResult, error: rpcErr } = await adminClient.rpc('collect_order', {
+          p_order_id: order.id,
+          p_operator_id: adminUser.id,
+        });
+
+        if (!rpcErr && rpcResult) {
+          return c.json({
+            success: true,
+            data: {
+              ...order,
+              ...rpcResult,
+              order_stage: 'COLLECTED',
+              order_status: 'COLLECTED',
+              items: order.order_items || [],
+            },
+          });
+        }
+      } catch {}
+    }
+
+    const now = new Date().toISOString();
+    const { data: updatedOrder, error: updateErr } = await adminClient
+      .from('orders')
+      .update({
+        order_stage: 'COLLECTED',
+        order_status: 'COLLECTED',
+        completed_at: now,
+        collected_at: now,
+        qr_consumed_at: now,
+        collected_by: adminUser.id,
+        updated_at: now,
+      })
+      .eq('id', order.id)
+      .select('*, order_items(*)')
+      .single();
+
+    if (updateErr) {
+      return c.json(
+        { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
+        500
+      );
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        ...updatedOrder,
+        order_stage: 'COLLECTED',
+        order_status: 'COLLECTED',
+        items: updatedOrder.order_items || [],
+      },
+    });
+  }
+);
+
 adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retail', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const adminUser = c.get('user');
@@ -555,6 +701,36 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
       const { data: rpcResult, error: rpcErr } = await adminClient.rpc('confirm_order_collection', {
         p_order_id: orderId,
         p_admin_id: adminUser.id,
+      });
+
+      if (!rpcErr && rpcResult) {
+        return c.json({
+          success: true,
+          data: rpcResult,
+        });
+      }
+
+      if (rpcErr) {
+        const errMsg = rpcErr.message || '';
+        if (errMsg.includes('ERR_ALREADY_COLLECTED')) {
+          return c.json(
+            { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
+            400
+          );
+        }
+        if (errMsg.includes('ERR_ORDER_NOT_READY') || errMsg.includes('ERR_NOT_READY_FOR_PICKUP') || errMsg.includes('ERR_NOT_READY')) {
+          return c.json(
+            { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
+            400
+          );
+        }
+      }
+    } catch {}
+
+    try {
+      const { data: rpcResult, error: rpcErr } = await adminClient.rpc('collect_order', {
+        p_order_id: orderId,
+        p_operator_id: adminUser.id,
       });
 
       if (!rpcErr && rpcResult) {

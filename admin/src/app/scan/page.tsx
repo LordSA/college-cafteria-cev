@@ -120,7 +120,7 @@ function AdminScanContent() {
     setCollectError(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/collect-qr`, {
+      let res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/collect-qr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -128,6 +128,15 @@ function AdminScanContent() {
         },
         body: JSON.stringify({ qr_token: result.qr_verification_token }),
       });
+
+      if (res.status === 404 && result.order_id) {
+        res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${result.order_id}/collect`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+      }
 
       const json = await res.json();
       if (!res.ok || !json.success) {
