@@ -13,12 +13,15 @@ export interface Env {
   R2_PUBLIC_URL?: string;
   RAZORPAY_KEY_ID?: string;
   RAZORPAY_KEY_SECRET?: string;
+  RAZORPAY_WEBHOOK_SECRET?: string;
+  PAYMENT_PROVIDER?: string;
+  PAYMENT_MODE?: 'test' | 'live' | string;
 }
 
 export type StorageProviderType = 'supabase' | 'r2';
-export type AccountType = 'student' | 'staff';
+export type AccountType = 'student' | 'staff' | 'faculty';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
-export type AppRole = 'customer' | 'admin';
+export type AppRole = 'customer' | 'developer' | 'admin' | 'retail' | 'staff';
 
 export interface UserProfile {
   id: string;
@@ -28,9 +31,11 @@ export interface UserProfile {
   requested_account_type: AccountType;
   approved_account_type: AccountType;
   staff_approval_status: StaffApprovalStatus;
+  teacher_id?: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   app_role: AppRole;
+  phone?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -113,9 +118,42 @@ export interface Order {
   preparing_at?: string | null;
   ready_at?: string | null;
   completed_at?: string | null;
+  razorpay_order_id?: string | null;
+  razorpay_payment_id?: string | null;
+  pay_later_settled_at?: string | null;
+  pay_later_settled_via?: string | null;
   created_at: string;
   updated_at: string;
   items?: OrderItem[];
+}
+
+export interface Payment {
+  id: string;
+  order_id: string;
+  customer_id: string;
+  razorpay_order_id: string;
+  razorpay_payment_id?: string | null;
+  razorpay_signature?: string | null;
+  amount: number;
+  currency: string;
+  status: 'created' | 'authorized' | 'captured' | 'failed' | 'refunded';
+  payment_method: string;
+  error_code?: string | null;
+  error_description?: string | null;
+  captured_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentWebhookEvent {
+  id: string;
+  event_id: string;
+  event_type: string;
+  payload: Record<string, unknown>;
+  status: 'received' | 'processed' | 'ignored' | 'failed';
+  processed_at?: string | null;
+  error_message?: string | null;
+  created_at: string;
 }
 
 export interface InventoryLog {

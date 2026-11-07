@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory';
-import type { Env, AuthContextVariables } from '../types/env';
+import type { Env, AuthContextVariables, AppRole } from '../types/env';
 import { verifySupabaseToken } from '../lib/supabase';
 
 export const requireAuth = createMiddleware<{
@@ -56,37 +56,42 @@ export const requireAuth = createMiddleware<{
   return await next();
 });
 
-export const requireAdmin = createMiddleware<{
-  Bindings: Env;
-  Variables: AuthContextVariables;
-}>(async (c, next) => {
-  const profile = c.get('profile');
+export function requireRole(allowedRoles: AppRole[]) {
+  return createMiddleware<{
+    Bindings: Env;
+    Variables: AuthContextVariables;
+  }>(async (c, next) => {
+    const profile = c.get('profile');
 
-  if (!profile) {
-    return c.json(
-      {
-        success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'User authentication required',
+    if (!profile) {
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'User authentication required',
+          },
         },
-      },
-      401
-    );
-  }
+        401
+      );
+    }
 
-  if (profile.app_role !== 'admin') {
-    return c.json(
-      {
-        success: false,
-        error: {
-          code: 'FORBIDDEN',
-          message: 'Access denied: Administrator privileges required',
+    if (!allowedRoles.includes(profile.app_role)) {
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: `Access denied. Required role: ${allowedRoles.join(' or ')}. Your role: ${profile.app_role}`,
+          },
         },
-      },
-      403
-    );
-  }
+        403
+      );
+    }
 
-  return await next();
-});
+    return await next();
+  });
+}
+
+export const requireAdmin = requireRole(['developer', 'admin']);
+export const requireDeveloper = requireRole(['developer']);

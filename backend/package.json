@@ -17,6 +17,7 @@
     "@hono/zod-validator": "^0.4.2",
     "@supabase/supabase-js": "^2.48.1",
     "hono": "^4.6.17",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
