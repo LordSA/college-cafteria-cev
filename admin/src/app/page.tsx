@@ -294,7 +294,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">ALEXATEL • Cafteria</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">Cafeteria.cev</span>
             <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">Operations Command</h1>
             <p className="mt-2 text-xs text-stone-400 leading-relaxed">
               Real-time kitchen orders, pantry portion inventory, QR counter collection, and auditable finance reports.
@@ -332,7 +332,7 @@ export default function AdminDashboardPage() {
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
-                ALEXATEL • Operations Command Center
+                Cafeteria.cev • Operations Command Center
               </span>
               <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white mt-1">
                 Kitchen & Financial Overview

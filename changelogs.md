@@ -9,6 +9,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Database Query Fix for Staff Requests & Admin Users (`backend/src/routes/staffRequests.ts`, `backend/src/routes/admin.ts`, `backend/src/routes/adminOrders.ts`, `backend/src/routes/reports.ts`)**:
+  - Resolved `column profiles.email does not exist` PostgreSQL error in staff requests endpoint (`GET /api/v1/admin/staff-requests`) by removing direct `email` column selection on `public.profiles`.
+  - Enriched user records dynamically with their email addresses fetched from `auth.users` via `adminClient.auth.admin.listUsers()` / `getUserById()`.
+  - Added migration `supabase/migrations/20261111000000_add_email_to_profiles.sql` and updated `supabase/complete_setup.sql` to include `email text` on `public.profiles` populated automatically from `auth.users` in `handle_new_user()`.
+
+### Changed
+- **Branding Update from ALEXATEL to Cafeteria.cev (`admin/`)**:
+  - Replaced all legacy `ALEXATEL` branding, tags, and titles across the admin suite with `Cafeteria.cev` (including `AdminSidebar.tsx`, `Header.tsx`, `Footer.tsx`, and all pages: `page.tsx`, `categories`, `developer`, `inventory`, `menu`, `orders`, `scan`, `staff-requests`, `wallets`, `login`, `forgot-password`, `reset-password`).
+- **Removed API Operational Badge from Admin Header (`admin/src/components/Header.tsx`)**:
+  - Removed `<ApiHealthBadge />` component from the top admin navigation header for a cleaner, unified administrative interface.
+
 ### Added
 - **Customer Floating Cart Bar on Home (`customer/src/app/page.tsx`)**:
   - Added floating bottom cart checkout pill on the home page when items are selected or in the cart, matching the menu page experience.

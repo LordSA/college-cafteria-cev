@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { LogOut, LogIn } from 'lucide-react';
-import { ApiHealthBadge } from './ApiHealthBadge';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export function Header() {
@@ -45,15 +44,13 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xs font-black uppercase tracking-wider text-white hover:text-[#f5a4c6] transition">
-              ALEXATEL OPS
+              Cafeteria.cev
             </span>
           </Link>
           {renderRoleBadge()}
         </div>
 
         <div className="flex items-center gap-3">
-          <ApiHealthBadge />
-
           {!loading && !adminUser && (
             <Link
               href="/login"

@@ -144,13 +144,20 @@ adminOrdersRouter.get('/:id/receipt', requireRole(['developer', 'admin', 'retail
     try {
       const { data: profile } = await adminClient
         .from('profiles')
-        .select('display_name, account_type, email')
+        .select('display_name, account_type')
         .eq('id', order.customer_id)
         .maybeSingle();
       if (profile) {
         customerName = profile.display_name || customerName;
         accountType = profile.account_type || accountType;
-        customerEmail = profile.email || null;
+      }
+      if (adminClient.auth?.admin?.getUserById) {
+        try {
+          const { data: userData } = await adminClient.auth.admin.getUserById(order.customer_id);
+          if (userData?.user?.email) {
+            customerEmail = userData.user.email;
+          }
+        } catch {}
       }
     } catch {}
   }

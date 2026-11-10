@@ -21,11 +21,17 @@ CREATE INDEX IF NOT EXISTS idx_profiles_app_role ON public.profiles(app_role);
 CREATE INDEX IF NOT EXISTS idx_profiles_account_type ON public.profiles(account_type);
 
 ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS email text,
   ADD COLUMN IF NOT EXISTS requested_account_type text DEFAULT 'student' CHECK (requested_account_type IN ('student', 'staff')),
   ADD COLUMN IF NOT EXISTS approved_account_type text DEFAULT 'student' CHECK (approved_account_type IN ('student', 'staff')),
   ADD COLUMN IF NOT EXISTS staff_approval_status text DEFAULT 'not_requested' CHECK (staff_approval_status IN ('not_requested', 'pending', 'approved', 'rejected')),
   ADD COLUMN IF NOT EXISTS reviewed_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS reviewed_at timestamptz;
+
+UPDATE public.profiles p
+SET email = u.email
+FROM auth.users u
+WHERE p.id = u.id AND (p.email IS NULL OR p.email = '');
 
 UPDATE public.profiles
 SET requested_account_type = COALESCE(account_type, 'student'),
@@ -67,6 +73,7 @@ BEGIN
 
   INSERT INTO public.profiles (
     id,
+    email,
     display_name,
     avatar_key,
     account_type,
@@ -79,6 +86,7 @@ BEGIN
   )
   VALUES (
     NEW.id,
+    NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
     NULL,
     v_approved_type,
@@ -90,7 +98,8 @@ BEGIN
     now()
   )
   ON CONFLICT (id) DO UPDATE
-  SET display_name = EXCLUDED.display_name,
+  SET email = EXCLUDED.email,
+      display_name = EXCLUDED.display_name,
       updated_at = now();
 
   RETURN NEW;

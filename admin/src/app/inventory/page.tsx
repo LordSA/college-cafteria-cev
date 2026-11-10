@@ -202,7 +202,7 @@ export default function AdminInventoryPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div>
               <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
-                ALEXATEL • Kitchen Stock & Roster
+                Cafeteria.cev • Kitchen Stock & Roster
               </span>
               <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
                 Real-Time Inventory & 86 Management

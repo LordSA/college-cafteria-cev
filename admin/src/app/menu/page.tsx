@@ -329,7 +329,7 @@ export default function AdminMenuPage() {
               </Link>
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
-                  ALEXATEL • Catalog Roster
+                  Cafeteria.cev • Catalog Roster
                 </span>
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
                   Menu Item Management

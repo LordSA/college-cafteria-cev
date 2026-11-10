@@ -172,7 +172,7 @@ export default function DeveloperPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#9d8bf0]">
-                    ALEXATEL • Developer Authority
+                    Cafeteria.cev • Developer Authority
                   </span>
                   <span className="rounded-full bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 text-[9px] font-bold text-purple-300">
                     SUPERADMIN

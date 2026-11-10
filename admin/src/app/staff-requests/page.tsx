@@ -154,7 +154,7 @@ export default function StaffRequestsPage() {
               </Link>
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
-                  ALEXATEL • Access Verification
+                  Cafeteria.cev • Access Verification
                 </span>
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
                   Staff Verification Requests

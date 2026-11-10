@@ -54,7 +54,7 @@ export default function AdminForgotPasswordPage() {
               <KeyRound className="h-6 w-6" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6] block mt-4">
-              ALEXATEL • Account Recovery
+              Cafeteria.cev • Account Recovery
             </span>
             <h1 className="mt-1 text-2xl font-black tracking-tight text-white">Reset Admin Credentials</h1>
             <p className="mt-1 text-xs text-stone-400">

@@ -44,8 +44,8 @@ export function AdminSidebar() {
               <path d="M 22 16 C 26 16, 26 22, 22 22 C 18 22, 14 16, 10 16 C 6 16, 6 22, 10 22" />
             </svg>
           </div>
-          <span className="text-[8px] font-black tracking-widest uppercase text-stone-400 group-hover:text-white transition">
-            ALEXATEL
+          <span className="text-[8px] font-black tracking-wider text-stone-400 group-hover:text-white transition">
+            Cafeteria.cev
           </span>
         </Link>
 

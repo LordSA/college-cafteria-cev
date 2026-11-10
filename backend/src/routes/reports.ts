@@ -199,11 +199,28 @@ adminReportsRouter.get('/export', async (c) => {
   if (customerIds.length > 0) {
     const { data: profiles } = await adminClient
       .from('profiles')
-      .select('id, display_name, email, account_type, teacher_id')
+      .select('id, display_name, account_type, teacher_id')
       .in('id', customerIds);
 
+    const emailMap = new Map<string, string>();
+    if (adminClient.auth?.admin?.listUsers) {
+      try {
+        const { data: userList } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+        if (userList?.users) {
+          for (const u of userList.users) {
+            if (u.id && u.email) {
+              emailMap.set(u.id, u.email);
+            }
+          }
+        }
+      } catch {}
+    }
+
     (profiles || []).forEach((p: any) => {
-      customerMap.set(p.id, p);
+      customerMap.set(p.id, {
+        ...p,
+        email: emailMap.get(p.id) || p.email || null,
+      });
     });
   }
 

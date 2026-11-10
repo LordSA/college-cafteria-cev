@@ -45,7 +45,7 @@ adminRouter.get('/users', requireDeveloper, async (c) => {
 
   const { data: users, error } = await adminClient
     .from('profiles')
-    .select('id, email, display_name, app_role, account_type, approved_account_type, teacher_id, created_at, updated_at')
+    .select('id, display_name, app_role, account_type, approved_account_type, teacher_id, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -55,9 +55,29 @@ adminRouter.get('/users', requireDeveloper, async (c) => {
     );
   }
 
+  let results = users || [];
+
+  if (results.length > 0 && adminClient.auth?.admin?.listUsers) {
+    try {
+      const { data: userList } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+      if (userList?.users) {
+        const emailMap = new Map<string, string>();
+        for (const u of userList.users) {
+          if (u.id && u.email) {
+            emailMap.set(u.id, u.email);
+          }
+        }
+        results = results.map((p: any) => ({
+          ...p,
+          email: emailMap.get(p.id) || p.email || null,
+        }));
+      }
+    } catch {}
+  }
+
   return c.json({
     success: true,
-    data: users || [],
+    data: results,
   });
 });
 
@@ -79,7 +99,7 @@ adminRouter.patch(
 
     const { data: userProfile, error: fetchErr } = await adminClient
       .from('profiles')
-      .select('id, email, app_role')
+      .select('id, app_role')
       .eq('id', targetUserId)
       .maybeSingle();
 
@@ -100,7 +120,7 @@ adminRouter.patch(
         .from('profiles')
         .update({ app_role: role, updated_at: new Date().toISOString() })
         .eq('id', targetUserId)
-        .select('id, email, display_name, app_role')
+        .select('id, display_name, app_role')
         .single();
 
       if (updateErr) {

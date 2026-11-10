@@ -30,7 +30,7 @@ staffRequestsRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('profiles')
-    .select('id, email, display_name, avatar_key, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (statusFilter !== 'all') {
@@ -54,9 +54,29 @@ staffRequestsRouter.get('/', async (c) => {
     );
   }
 
+  let results = data || [];
+
+  if (results.length > 0 && adminClient.auth?.admin?.listUsers) {
+    try {
+      const { data: userList } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+      if (userList?.users) {
+        const emailMap = new Map<string, string>();
+        for (const u of userList.users) {
+          if (u.id && u.email) {
+            emailMap.set(u.id, u.email);
+          }
+        }
+        results = results.map((p: any) => ({
+          ...p,
+          email: emailMap.get(p.id) || p.email || null,
+        }));
+      }
+    } catch {}
+  }
+
   return c.json({
     success: true,
-    data: data || [],
+    data: results,
   });
 });
 

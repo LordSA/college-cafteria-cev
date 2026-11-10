@@ -99,10 +99,10 @@ college-canteen-cev/
   - `src/app/not-found.tsx`: Clean 404 administration error page.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 4-tier roles (`developer`, `admin`, `retail`, `staff`) with permission flags (`isDeveloper`, `isAdmin`, `isRetail`, `isStaff`, `canManageUsers`, `canManageInventory`, `canManageOrders`, `canScanQr`, `canViewReports`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/AdminSidebar.tsx`: Persistent 80px left-side vertical navbar rail with role-gated icon navigation, active pink highlight, and sign out control across all admin pages.
-  - `src/components/Header.tsx`: Content area top header featuring page identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), API health indicator, user profile avatar, and sign out.
-  - `src/components/Footer.tsx`: Neo-dark audit footer.
-  - `src/components/ApiHealthBadge.tsx`: Pill badge monitoring `/health` status.
+  - `src/components/AdminSidebar.tsx`: Persistent 80px left-side vertical navbar rail with Cafeteria.cev branding, role-gated icon navigation, active pink highlight, and sign out control across all admin pages.
+  - `src/components/Header.tsx`: Content area top header featuring Cafeteria.cev identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), user profile avatar, and sign out control.
+  - `src/components/Footer.tsx`: Neo-dark audit footer with Cafeteria.cev branding.
+  - `src/components/ApiHealthBadge.tsx`: Standalone pill badge monitoring `/health` status (removed from top header per requirements).
 
 ### 2.3 Backend API (`backend/`)
 * **Role:** Single source of truth for database operations, authentication, payments, QR verification, uploads, menu catalog, reporting, and business logic.
