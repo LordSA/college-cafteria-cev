@@ -8,12 +8,10 @@ import { getSupabaseAdminClient } from '../lib/supabase';
 const OrderStatusUpdateSchema = z.object({
   status: z.enum([
     'ORDER_PLACED',
-    'READY_TO_PICK',
     'COLLECTED',
     'pending',
     'confirmed',
     'preparing',
-    'ready_for_pickup',
     'completed',
     'cancelled',
   ]),
@@ -48,9 +46,7 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async 
 
   if (stageFilter !== 'all') {
     if (stageFilter === 'ORDER_PLACED') {
-      query = query.in('order_status', ['ORDER_PLACED', 'pending', 'confirmed', 'preparing']);
-    } else if (stageFilter === 'READY_TO_PICK') {
-      query = query.in('order_status', ['READY_TO_PICK', 'ready_for_pickup']);
+      query = query.in('order_status', ['ORDER_PLACED', 'pending', 'confirmed', 'preparing', 'READY_TO_PICK', 'ready_for_pickup']);
     } else if (stageFilter === 'COLLECTED') {
       query = query.in('order_status', ['COLLECTED', 'completed']);
     } else {
@@ -93,7 +89,7 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async 
 
   const formatted = (orders || []).map((o: any) => {
     const profile = profilesMap.get(o.customer_id);
-    const stage = o.order_stage || (o.order_status === 'ready_for_pickup' || o.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : o.order_status === 'completed' || o.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+    const stage = o.order_stage === 'COLLECTED' || o.order_status === 'completed' || o.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
     return {
       ...o,
       order_stage: stage,
@@ -152,7 +148,7 @@ adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), asy
     } catch {}
   }
 
-  const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+  const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
 
   return c.json({
     success: true,
@@ -333,10 +329,10 @@ adminOrdersRouter.patch(
     }
 
     const validTransitions: Record<string, string[]> = {
-      pending: ['confirmed', 'cancelled', 'ORDER_PLACED'],
-      confirmed: ['preparing', 'cancelled', 'READY_TO_PICK', 'ready_for_pickup'],
-      preparing: ['ready_for_pickup', 'cancelled', 'READY_TO_PICK'],
-      ORDER_PLACED: ['READY_TO_PICK', 'ready_for_pickup', 'confirmed', 'preparing', 'cancelled'],
+      pending: ['confirmed', 'cancelled', 'ORDER_PLACED', 'COLLECTED'],
+      confirmed: ['preparing', 'cancelled', 'ORDER_PLACED', 'COLLECTED'],
+      preparing: ['COLLECTED', 'cancelled'],
+      ORDER_PLACED: ['COLLECTED', 'completed', 'confirmed', 'preparing', 'cancelled'],
       ready_for_pickup: ['completed', 'COLLECTED', 'cancelled'],
       READY_TO_PICK: ['COLLECTED', 'completed', 'cancelled'],
       completed: [],
@@ -488,7 +484,7 @@ adminOrdersRouter.post(
       } catch {}
     }
 
-    const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+    const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
     let isEligible = false;
     let ineligibilityReason: string | null = null;
 
@@ -498,10 +494,7 @@ adminOrdersRouter.post(
     } else if (stage === 'COLLECTED' || order.qr_consumed_at) {
       isEligible = false;
       ineligibilityReason = 'Order already collected';
-    } else if (stage === 'ORDER_PLACED') {
-      isEligible = false;
-      ineligibilityReason = 'Order is not ready for pickup yet';
-    } else if (stage === 'READY_TO_PICK') {
+    } else {
       isEligible = true;
       ineligibilityReason = null;
     }
@@ -578,7 +571,7 @@ adminOrdersRouter.post(
       );
     }
 
-    const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+    const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
 
     if (stage === 'COLLECTED' || order.qr_consumed_at) {
       return c.json(
@@ -590,19 +583,6 @@ adminOrdersRouter.post(
     if (order.payment_status !== 'paid') {
       return c.json(
         { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
-        400
-      );
-    }
-
-    if (stage !== 'READY_TO_PICK') {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'ORDER_NOT_READY',
-            message: `Order stage is "${stage}". It must be marked READY_TO_PICK before it can be collected.`,
-          },
-        },
         400
       );
     }
@@ -718,9 +698,9 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
             400
           );
         }
-        if (errMsg.includes('ERR_ORDER_NOT_READY') || errMsg.includes('ERR_NOT_READY_FOR_PICKUP') || errMsg.includes('ERR_NOT_READY')) {
+        if (errMsg.includes('ERR_ORDER_UNPAID')) {
           return c.json(
-            { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
+            { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
             400
           );
         }
@@ -748,9 +728,9 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
             400
           );
         }
-        if (errMsg.includes('ERR_ORDER_NOT_READY') || errMsg.includes('ERR_NOT_READY_FOR_PICKUP') || errMsg.includes('ERR_NOT_READY')) {
+        if (errMsg.includes('ERR_ORDER_UNPAID')) {
           return c.json(
-            { success: false, error: { code: 'ORDER_NOT_READY', message: 'Order must be READY_TO_PICK before collection' } },
+            { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
             400
           );
         }
@@ -778,7 +758,7 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
     );
   }
 
-  const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+  const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
 
   if (stage === 'COLLECTED' || order.qr_consumed_at) {
     return c.json(
@@ -787,15 +767,9 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retai
     );
   }
 
-  if (stage !== 'READY_TO_PICK') {
+  if (order.payment_status !== 'paid') {
     return c.json(
-      {
-        success: false,
-        error: {
-          code: 'ORDER_NOT_READY',
-          message: `Order stage is "${stage}". It must be marked READY_TO_PICK before it can be collected.`,
-        },
-      },
+      { success: false, error: { code: 'ORDER_UNPAID', message: 'Cannot collect unpaid order' } },
       400
     );
   }

@@ -86,8 +86,8 @@ adminReportsRouter.get('/stats', async (c) => {
   const totalRevenuePaise = paidOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
   const totalOrders = orderList.length;
   const collectedOrders = orderList.filter((o: any) => o.order_stage === 'COLLECTED' || o.order_status === 'completed').length;
-  const readyOrders = orderList.filter((o: any) => o.order_stage === 'READY_TO_PICK').length;
-  const placedOrders = orderList.filter((o: any) => o.order_stage === 'ORDER_PLACED' || o.order_status === 'pending').length;
+  const readyOrders = 0;
+  const placedOrders = orderList.filter((o: any) => o.order_stage !== 'COLLECTED' && o.order_status !== 'completed').length;
 
   const uniqueCustomers = new Set(orderList.map((o: any) => o.customer_id).filter(Boolean)).size;
   const avgOrderValuePaise = paidOrders.length > 0 ? Math.round(totalRevenuePaise / paidOrders.length) : 0;

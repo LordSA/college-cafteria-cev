@@ -79,7 +79,7 @@ export interface MenuItem {
   updated_at: string;
 }
 
-export type OrderStage = 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+export type OrderStage = 'ORDER_PLACED' | 'COLLECTED';
 export type OrderStatus = OrderStage | 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
 export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
 export type PaymentMethod = 'testing_wallet' | 'counter_cash' | 'razorpay' | 'pay_later';

@@ -167,7 +167,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(body.error.code).toBe('ALREADY_COLLECTED');
   });
 
-  it('POST /api/v1/admin/orders/verify-qr returns not ready reason when order is in ORDER_PLACED', async () => {
+  it('POST /api/v1/admin/orders/verify-qr returns eligible when order is in ORDER_PLACED and paid', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockAdminUser,
@@ -196,8 +196,8 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
           customer_name: 'Alex Student',
           customer_account_type: 'student',
           items: [],
-          is_eligible_for_collection: false,
-          ineligibility_reason: 'Order is not ready for pickup yet',
+          is_eligible_for_collection: true,
+          ineligibility_reason: null,
         },
         error: null,
       }),
@@ -220,11 +220,11 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.order_stage).toBe('ORDER_PLACED');
-    expect(body.data.is_eligible_for_collection).toBe(false);
-    expect(body.data.ineligibility_reason).toBe('Order is not ready for pickup yet');
+    expect(body.data.is_eligible_for_collection).toBe(true);
+    expect(body.data.ineligibility_reason).toBeNull();
   });
 
-  it('POST /api/v1/admin/orders/verify-qr returns eligible when order is READY_TO_PICK', async () => {
+  it('POST /api/v1/admin/orders/verify-qr returns ineligible when order is unpaid', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockAdminUser,
@@ -234,27 +234,27 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     const mockDb = {
       rpc: vi.fn().mockResolvedValue({
         data: {
-          order_id: 'ord-ready-1',
-          order_number: 'CAF-261022-R200',
-          order_stage: 'READY_TO_PICK',
-          order_status: 'READY_TO_PICK',
-          payment_status: 'paid',
+          order_id: 'ord-unpaid-1',
+          order_number: 'CAF-261022-U500',
+          order_stage: 'ORDER_PLACED',
+          order_status: 'ORDER_PLACED',
+          payment_status: 'unpaid',
           payment_method: 'testing_wallet',
           total: 15000,
           subtotal: 15000,
-          paid_at: '2026-10-22T00:50:00Z',
-          ready_at: '2026-10-22T01:05:00Z',
+          paid_at: null,
+          ready_at: null,
           collected_at: null,
           collected_by: null,
-          qr_verification_token: 'CAF-QR-READY-5678',
+          qr_verification_token: 'CAF-QR-UNPAID-5678',
           qr_consumed_at: null,
           created_at: '2026-10-22T00:50:00Z',
           customer_id: 'usr-customer-1',
           customer_name: 'Alex Student',
           customer_account_type: 'student',
           items: [],
-          is_eligible_for_collection: true,
-          ineligibility_reason: null,
+          is_eligible_for_collection: false,
+          ineligibility_reason: 'Order has not been paid yet',
         },
         error: null,
       }),
@@ -269,16 +269,15 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
         Authorization: 'Bearer valid-admin-token',
       },
       body: JSON.stringify({
-        qr_token: 'CAF-QR-READY-5678',
+        qr_token: 'CAF-QR-UNPAID-5678',
       }),
     });
 
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.data.order_stage).toBe('READY_TO_PICK');
-    expect(body.data.is_eligible_for_collection).toBe(true);
-    expect(body.data.ineligibility_reason).toBeNull();
+    expect(body.data.is_eligible_for_collection).toBe(false);
+    expect(body.data.ineligibility_reason).toBe('Order has not been paid yet');
   });
 
   it('POST /api/v1/admin/orders/verify-qr returns already collected reason when order is COLLECTED', async () => {
@@ -338,7 +337,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(body.data.ineligibility_reason).toBe('Order already collected');
   });
 
-  it('POST /api/v1/admin/orders/:id/collect rejects ORDER_PLACED order with 400 ORDER_NOT_READY', async () => {
+  it('POST /api/v1/admin/orders/:id/collect rejects unpaid order with 400 ORDER_UNPAID', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockAdminUser,
@@ -348,13 +347,13 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     const mockDb = {
       rpc: vi.fn().mockResolvedValue({
         data: null,
-        error: new Error('ERR_ORDER_NOT_READY: Order must be in READY_TO_PICK stage before it can be collected'),
+        error: new Error('ERR_ORDER_UNPAID: Cannot collect unpaid order'),
       }),
     };
 
     vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
 
-    const res = await app.request('/api/v1/admin/orders/ord-placed-1/collect', {
+    const res = await app.request('/api/v1/admin/orders/ord-unpaid-1/collect', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid-admin-token',
@@ -364,10 +363,10 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.success).toBe(false);
-    expect(body.error.code).toBe('ORDER_NOT_READY');
+    expect(body.error.code).toBe('ORDER_UNPAID');
   });
 
-  it('POST /api/v1/admin/orders/:id/collect transitions READY_TO_PICK order to COLLECTED and consumes QR', async () => {
+  it('POST /api/v1/admin/orders/:id/collect transitions ORDER_PLACED order to COLLECTED and consumes QR', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockAdminUser,
@@ -377,8 +376,8 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     const mockDb = {
       rpc: vi.fn().mockResolvedValue({
         data: {
-          order_id: 'ord-ready-1',
-          order_number: 'CAF-261022-R200',
+          order_id: 'ord-placed-1',
+          order_number: 'CAF-261022-P100',
           order_stage: 'COLLECTED',
           order_status: 'COLLECTED',
           payment_status: 'paid',
@@ -392,7 +391,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
 
     vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
 
-    const res = await app.request('/api/v1/admin/orders/ord-ready-1/collect', {
+    const res = await app.request('/api/v1/admin/orders/ord-placed-1/collect', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer valid-admin-token',
@@ -436,7 +435,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(body.error.code).toBe('ALREADY_COLLECTED');
   });
 
-  it('POST /api/v1/admin/orders/collect-qr transitions READY_TO_PICK order to COLLECTED', async () => {
+  it('POST /api/v1/admin/orders/collect-qr transitions ORDER_PLACED order to COLLECTED', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockAdminUser,
@@ -444,12 +443,12 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     });
 
     const mockOrder = {
-      id: 'ord-ready-1',
-      order_number: 'CAF-261022-R200',
-      order_stage: 'READY_TO_PICK',
-      order_status: 'READY_TO_PICK',
+      id: 'ord-placed-1',
+      order_number: 'CAF-261022-P100',
+      order_stage: 'ORDER_PLACED',
+      order_status: 'ORDER_PLACED',
       payment_status: 'paid',
-      qr_verification_token: 'CAF-QR-READY-5678',
+      qr_verification_token: 'CAF-QR-PLACED-1234',
       qr_consumed_at: null,
       collected_at: null,
       order_items: [],
@@ -631,7 +630,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
 
     vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
 
-    const res = await app.request('/api/v1/admin/orders?stage=READY_TO_PICK', {
+    const res = await app.request('/api/v1/admin/orders?stage=ORDER_PLACED', {
       headers: {
         Authorization: 'Bearer valid-admin-token',
       },
@@ -640,7 +639,7 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.data[0].order_stage).toBe('READY_TO_PICK');
+    expect(body.data[0].order_stage).toBe('ORDER_PLACED');
   });
 
   it('GET /api/v1/orders/me returns order_stage for customer orders', async () => {
