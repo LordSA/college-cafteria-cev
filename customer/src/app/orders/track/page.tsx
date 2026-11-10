@@ -31,7 +31,7 @@ interface OrderDetail {
   id: string;
   order_number: string;
   order_status?: string;
-  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
   qr_consumed_at?: string | null;
   collected_at?: string | null;
   collected_by?: string | null;
@@ -43,9 +43,6 @@ interface OrderDetail {
   cancellation_reason?: string | null;
   cancelled_at?: string | null;
   confirmed_at?: string | null;
-  preparing_at?: string | null;
-  ready_at?: string | null;
-  completed_at?: string | null;
   created_at: string;
   items: OrderItem[];
 }
@@ -123,9 +120,8 @@ function OrderTrackerContent() {
     );
   }
 
-  const stage = order.order_stage || (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
+  const stage = order.order_stage || (order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
   const isCollected = stage === 'COLLECTED' || Boolean(order.qr_consumed_at);
-  const isReady = stage === 'READY_TO_PICK';
   const isPlaced = stage === 'ORDER_PLACED';
   const isCancelled = order.order_status === 'cancelled';
 
@@ -173,18 +169,14 @@ function OrderTrackerContent() {
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">
           Order Progress
         </h2>
-        <div className="grid grid-cols-3 gap-2">
-          <div className={`p-3 rounded-2xl text-center border ${isPlaced || isReady || isCollected ? 'border-orange-300 bg-orange-50/70 text-[#ff5e3a]' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+        <div className="grid grid-cols-2 gap-3">
+          <div className={`p-3.5 rounded-2xl text-center border ${isPlaced || isCollected ? 'border-orange-300 bg-orange-50/70 text-[#ff5e3a]' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
             <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
-            <p className="text-xs font-bold">1. Placed</p>
+            <p className="text-xs font-bold">1. Order Placed</p>
           </div>
-          <div className={`p-3 rounded-2xl text-center border ${isReady || isCollected ? 'border-amber-300 bg-amber-50/70 text-amber-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
-            <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
-            <p className="text-xs font-bold">2. Ready</p>
-          </div>
-          <div className={`p-3 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 bg-emerald-50/70 text-emerald-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+          <div className={`p-3.5 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 bg-emerald-50/70 text-emerald-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
             <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-current" />
-            <p className="text-xs font-bold">3. Collected</p>
+            <p className="text-xs font-bold">2. Collected</p>
           </div>
         </div>
       </div>
@@ -246,7 +238,7 @@ function OrderTrackerContent() {
               </div>
 
               <p className="text-xs text-stone-500 max-w-md mx-auto">
-                Present this QR code to the canteen counter staff once your order is marked Ready to Pick.
+                Present this QR code to the canteen counter staff to collect your order.
               </p>
             </>
           )}

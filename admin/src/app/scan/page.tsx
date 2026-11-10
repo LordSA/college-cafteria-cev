@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Clock,
   Printer,
   PackageCheck,
   Loader2,
@@ -29,14 +28,13 @@ interface OrderItem {
 interface VerificationResult {
   order_id: string;
   order_number: string;
-  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
   order_status: string;
   payment_status: string;
   payment_method: string;
   total: number;
   subtotal: number;
   paid_at: string | null;
-  ready_at?: string | null;
   collected_at: string | null;
   collected_by: string | null;
   qr_verification_token: string;
@@ -68,7 +66,6 @@ function AdminScanContent() {
   const [collectError, setCollectError] = useState<string | null>(null);
   const [collectSuccess, setCollectSuccess] = useState<string | null>(null);
 
-  const [markingReady, setMarkingReady] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -140,7 +137,7 @@ function AdminScanContent() {
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error?.message || 'Failed to confirm meal collection');
+        throw new Error(json.error?.message || 'Failed to complete order collection');
       }
 
       setCollectSuccess(`Order ${result.order_number} marked as COLLECTED successfully!`);
@@ -160,44 +157,6 @@ function AdminScanContent() {
       setCollectError(msg);
     } finally {
       setCollecting(false);
-    }
-  };
-
-  const handleMarkReady = async () => {
-    if (!result || !session?.access_token) return;
-
-    setMarkingReady(true);
-    setCollectError(null);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${result.order_id}/ready`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      const json = await res.json();
-      if (!res.ok || !json.success) {
-        throw new Error(json.error?.message || 'Failed to mark order as ready');
-      }
-
-      setResult((prev) =>
-        prev
-          ? {
-              ...prev,
-              order_stage: 'READY_TO_PICK',
-              order_status: 'READY_TO_PICK',
-              ready_at: new Date().toISOString(),
-              is_eligible_for_collection: prev.payment_status === 'paid',
-            }
-          : null
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error marking order ready';
-      setCollectError(msg);
-    } finally {
-      setMarkingReady(false);
     }
   };
 
@@ -234,7 +193,7 @@ function AdminScanContent() {
     };
   }, []);
 
-  const stage = result?.order_stage || (result?.order_status === 'READY_TO_PICK' || result?.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' : result?.order_status === 'COLLECTED' || result?.order_status === 'completed' ? 'COLLECTED' : 'ORDER_PLACED');
+  const stage = result?.order_stage || (result?.order_status === 'COLLECTED' || result?.order_status === 'completed' ? 'COLLECTED' : 'ORDER_PLACED');
 
   return (
     <div className="min-h-screen flex flex-col bg-[#101114] text-slate-100">
@@ -385,9 +344,7 @@ function AdminScanContent() {
                       {result.payment_status}
                     </span>
                     <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                      stage === 'READY_TO_PICK'
-                        ? 'bg-[#f5a4c6]/15 text-[#f5a4c6] border-[#f5a4c6]/30 animate-pulse'
-                        : stage === 'COLLECTED'
+                      stage === 'COLLECTED'
                         ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                         : 'bg-[#9d8bf0]/15 text-[#9d8bf0] border-[#9d8bf0]/30'
                     }`}>
@@ -422,46 +379,24 @@ function AdminScanContent() {
               )}
 
               {stage === 'COLLECTED' && (
-                <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300 flex items-center gap-2.5">
-                  <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0" />
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-xs text-emerald-300 flex items-center gap-2.5">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
                   <div>
-                    <p className="font-bold">Order already collected</p>
-                    <p className="text-[11px] text-rose-400 mt-0.5">
-                      This QR token was consumed at {result.collected_at ? new Date(result.collected_at).toLocaleTimeString() : 'earlier'}. It cannot be collected again.
+                    <p className="font-bold">Order Collected</p>
+                    <p className="text-[11px] text-emerald-400/80 mt-0.5">
+                      This order was collected {result.collected_at ? `at ${new Date(result.collected_at).toLocaleTimeString()}` : 'successfully'}. The QR pass has been fulfilled.
                     </p>
                   </div>
                 </div>
               )}
 
-              {stage === 'ORDER_PLACED' && (
-                <div className="rounded-2xl border border-[#ea9955]/30 bg-[#ea9955]/10 p-4 text-xs text-[#ea9955] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <Clock className="h-5 w-5 text-[#ea9955] flex-shrink-0" />
-                    <div>
-                      <p className="font-bold">Order is not ready for pickup yet</p>
-                      <p className="text-[11px] text-[#ea9955]/80 mt-0.5">
-                        Order is currently in ORDER_PLACED stage. Mark as ready to enable counter collection.
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleMarkReady}
-                    disabled={markingReady}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#ea9955] px-4 py-2 text-xs font-bold text-[#101114] hover:opacity-90 transition shadow-xs self-start sm:self-auto disabled:opacity-50"
-                  >
-                    {markingReady ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PackageCheck className="h-3.5 w-3.5" />}
-                    <span>Mark Ready to Pick</span>
-                  </button>
-                </div>
-              )}
-
-              {result.is_eligible_for_collection && stage === 'READY_TO_PICK' && (
-                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 text-xs text-emerald-300 flex items-center gap-2.5">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+              {result.payment_status !== 'paid' && (
+                <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300 flex items-center gap-2.5">
+                  <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0" />
                   <div>
-                    <p className="font-bold">Ready for Collection</p>
-                    <p className="text-[11px] text-emerald-400 mt-0.5">
-                      Customer payment confirmed and order is in READY_TO_PICK stage.
+                    <p className="font-bold">Payment Unconfirmed</p>
+                    <p className="text-[11px] text-rose-400/80 mt-0.5">
+                      Payment status is {result.payment_status}. Order cannot be dispatched until payment is verified.
                     </p>
                   </div>
                 </div>
@@ -498,12 +433,12 @@ function AdminScanContent() {
                     {collecting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Confirming Collection...</span>
+                        <span>Completing Order...</span>
                       </>
                     ) : (
                       <>
                         <PackageCheck className="h-4 w-4" />
-                        <span>Confirm Order Collection</span>
+                        <span>Complete Order (Mark as Collected)</span>
                       </>
                     )}
                   </button>

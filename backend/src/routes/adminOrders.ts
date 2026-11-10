@@ -359,11 +359,7 @@ adminOrdersRouter.patch(
       updated_at: now,
     };
 
-    if (targetStatus === 'READY_TO_PICK' || targetStatus === 'ready_for_pickup') {
-      updatePayload.order_stage = 'READY_TO_PICK';
-      updatePayload.order_status = 'READY_TO_PICK';
-      updatePayload.ready_at = now;
-    } else if (targetStatus === 'COLLECTED' || targetStatus === 'completed') {
+    if (targetStatus === 'COLLECTED' || targetStatus === 'completed') {
       updatePayload.order_stage = 'COLLECTED';
       updatePayload.order_status = 'COLLECTED';
       updatePayload.completed_at = now;

@@ -2059,15 +2059,9 @@ BEGIN
   ELSIF v_order.order_stage = 'COLLECTED' OR v_order.qr_consumed_at IS NOT NULL THEN
     v_is_eligible := false;
     v_ineligibility_reason := 'Order already collected';
-  ELSIF v_order.order_stage = 'ORDER_PLACED' THEN
-    v_is_eligible := false;
-    v_ineligibility_reason := 'Order is not ready for pickup yet';
-  ELSIF v_order.order_stage = 'READY_TO_PICK' THEN
+  ELSE
     v_is_eligible := true;
     v_ineligibility_reason := NULL;
-  ELSE
-    v_is_eligible := false;
-    v_ineligibility_reason := 'Order is not eligible for collection';
   END IF;
 
   RETURN jsonb_build_object(
@@ -2133,14 +2127,6 @@ BEGIN
 
   IF v_order.payment_status != 'paid' THEN
     RAISE EXCEPTION 'ERR_ORDER_UNPAID: Cannot collect order % because payment status is "%"', v_order.order_number, v_order.payment_status;
-  END IF;
-
-  IF v_order.order_stage = 'ORDER_PLACED' THEN
-    RAISE EXCEPTION 'ERR_ORDER_NOT_READY: Order % is not ready for pickup yet', v_order.order_number;
-  END IF;
-
-  IF v_order.order_stage != 'READY_TO_PICK' THEN
-    RAISE EXCEPTION 'ERR_INVALID_STAGE: Order % must be in READY_TO_PICK stage to collect (current: %)', v_order.order_number, v_order.order_stage;
   END IF;
 
   UPDATE public.orders

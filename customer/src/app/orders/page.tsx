@@ -14,7 +14,6 @@ import {
   Utensils,
   CheckCircle2,
   XCircle,
-  PackageCheck,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -29,7 +28,7 @@ interface Order {
   id: string;
   order_number: string;
   order_status?: string;
-  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
   payment_status: string;
   subtotal: number;
   total: number;
@@ -84,10 +83,9 @@ export default function CustomerOrdersPage() {
 
   const renderStatusBadge = (order: Order) => {
     const stage = order.order_stage || (
-      order.order_status === 'completed' ? 'COLLECTED' :
-        order.order_status === 'ready_for_pickup' ? 'READY_TO_PICK' :
-          order.order_status === 'cancelled' ? 'CANCELLED' :
-            'ORDER_PLACED'
+      order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' :
+        order.order_status === 'cancelled' ? 'CANCELLED' :
+          'ORDER_PLACED'
     );
 
     switch (stage) {
@@ -96,13 +94,6 @@ export default function CustomerOrdersPage() {
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
             <Clock className="h-3 w-3" />
             <span>Order Placed</span>
-          </span>
-        );
-      case 'READY_TO_PICK':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 animate-pulse ring-2 ring-emerald-500/20">
-            <PackageCheck className="h-3 w-3" />
-            <span>Ready to Pick Up</span>
           </span>
         );
       case 'COLLECTED':
@@ -177,7 +168,7 @@ export default function CustomerOrdersPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
               >
                 <Utensils className="h-4 w-4" />
-                <span>Explore Today's Menu</span>
+                <span>Explore Today&apos;s Menu</span>
               </Link>
             </div>
           ) : (

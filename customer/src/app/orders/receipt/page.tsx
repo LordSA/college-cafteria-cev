@@ -31,7 +31,7 @@ interface ReceiptData {
   payment_method: string;
   payment_status: string;
   order_status?: string;
-  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
   subtotal: number;
   total: number;
   qr_verification_token: string | null;

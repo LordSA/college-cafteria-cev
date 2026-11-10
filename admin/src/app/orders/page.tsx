@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Clock,
   CheckCircle2,
-  PackageCheck,
   QrCode,
   Loader2,
   AlertCircle,
@@ -32,7 +31,7 @@ interface OrderItem {
 interface AdminOrder {
   id: string;
   order_number: string;
-  order_stage?: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED';
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
   order_status: string;
   payment_status: string;
   payment_method?: string;
@@ -60,7 +59,6 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -123,61 +121,18 @@ export default function AdminOrdersPage() {
     });
   };
 
-  const getOrderStage = (order: AdminOrder): 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED' => {
-    if (order.order_stage) return order.order_stage;
-    if (order.order_status === 'ready_for_pickup' || order.order_status === 'READY_TO_PICK') return 'READY_TO_PICK';
-    if (order.order_status === 'completed' || order.order_status === 'COLLECTED') return 'COLLECTED';
+  const getOrderStage = (order: AdminOrder): 'ORDER_PLACED' | 'COLLECTED' => {
+    if (order.order_status === 'completed' || order.order_status === 'COLLECTED' || order.order_stage === 'COLLECTED') return 'COLLECTED';
     return 'ORDER_PLACED';
   };
 
-  const handleMarkReady = async (orderId: string) => {
-    if (!session?.access_token) return;
-
-    setUpdatingOrderId(orderId);
-    setError(null);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/orders/${orderId}/ready`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error?.message || 'Failed to mark order as ready');
-      }
-
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId
-            ? { ...o, order_stage: 'READY_TO_PICK', order_status: 'READY_TO_PICK' }
-            : o
-        )
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to mark order as ready';
-      setError(msg);
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  const renderStageBadge = (stage: 'ORDER_PLACED' | 'READY_TO_PICK' | 'COLLECTED') => {
+  const renderStageBadge = (stage: 'ORDER_PLACED' | 'COLLECTED') => {
     switch (stage) {
       case 'ORDER_PLACED':
         return (
           <span className="inline-flex items-center gap-1 rounded-full bg-[#9d8bf0]/15 border border-[#9d8bf0]/30 px-2.5 py-0.5 text-[11px] font-bold text-[#9d8bf0]">
             <Clock className="h-3 w-3" />
             <span>Order Placed</span>
-          </span>
-        );
-      case 'READY_TO_PICK':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-[#f5a4c6]/15 border border-[#f5a4c6]/30 px-2.5 py-0.5 text-[11px] font-bold text-[#f5a4c6] animate-pulse">
-            <PackageCheck className="h-3 w-3" />
-            <span>Ready to Pick</span>
           </span>
         );
       case 'COLLECTED':
@@ -193,7 +148,6 @@ export default function AdminOrdersPage() {
   const stageTabs = [
     { key: 'all', label: 'All Orders' },
     { key: 'ORDER_PLACED', label: 'Order Placed' },
-    { key: 'READY_TO_PICK', label: 'Ready to Pick' },
     { key: 'COLLECTED', label: 'Collected' },
   ];
 
@@ -281,7 +235,6 @@ export default function AdminOrdersPage() {
             <div className="space-y-4">
               {orders.map((order) => {
                 const isExpanded = expandedOrders.has(order.id);
-                const isUpdating = updatingOrderId === order.id;
                 const stage = getOrderStage(order);
 
                 return (
@@ -355,23 +308,12 @@ export default function AdminOrdersPage() {
 
                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#22242e]">
                       {stage === 'ORDER_PLACED' && (
-                        <button
-                          onClick={() => handleMarkReady(order.id)}
-                          disabled={isUpdating}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#f5a4c6] px-3.5 py-1.5 text-xs font-bold text-[#101114] shadow-sm shadow-[#f5a4c6]/20 hover:opacity-90 transition disabled:opacity-50"
-                        >
-                          <PackageCheck className="h-3.5 w-3.5" />
-                          <span>Mark Ready to Pick</span>
-                        </button>
-                      )}
-
-                      {stage === 'READY_TO_PICK' && (
                         <Link
                           href={`/scan?token=${encodeURIComponent(order.qr_verification_token || '')}`}
                           className="inline-flex items-center gap-1.5 rounded-xl bg-[#9d8bf0] px-3.5 py-1.5 text-xs font-bold text-[#101114] shadow-sm shadow-[#9d8bf0]/20 hover:opacity-90 transition"
                         >
                           <QrCode className="h-3.5 w-3.5" />
-                          <span>Scan QR / Collect Order</span>
+                          <span>Scan QR / Complete Order</span>
                         </Link>
                       )}
 
@@ -383,8 +325,6 @@ export default function AdminOrdersPage() {
                           </span>
                         </span>
                       )}
-
-                      {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-[#9d8bf0] ml-2" />}
                     </div>
 
                     {isExpanded && (
