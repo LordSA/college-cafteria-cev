@@ -327,7 +327,7 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
       <AdminSidebar />
 
-      <div className="flex-1 p-5 sm:p-7 lg:p-9 grid grid-cols-1 xl:grid-cols-12 gap-7 overflow-x-hidden min-w-0">
+      <div className="flex-1 p-5 pb-24 sm:p-7 md:pb-7 lg:p-9 grid grid-cols-1 xl:grid-cols-12 gap-7 overflow-x-hidden min-w-0">
         <main className="xl:col-span-8 space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>

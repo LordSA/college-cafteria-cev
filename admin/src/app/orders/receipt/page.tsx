@@ -318,7 +318,7 @@ export default function AdminReceiptPage() {
         <div className="print:hidden">
           <Header />
         </div>
-        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:bg-white">
+        <main className="flex-1 pt-10 pb-24 md:py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:bg-white">
           <Suspense
             fallback={
               <div className="flex items-center justify-center py-24">

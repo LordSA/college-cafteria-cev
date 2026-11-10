@@ -16,6 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Added migration `supabase/migrations/20261111000000_add_email_to_profiles.sql` and updated `supabase/complete_setup.sql` to include `email text` on `public.profiles` populated automatically from `auth.users` in `handle_new_user()`.
 
 ### Changed
+- **Admin Mobile Bottom Navigation Bar (`admin/src/components/AdminSidebar.tsx`, `admin/src/app/globals.css`)**:
+  - Moved mobile view navigation buttons from the top bar to a docked bottom navigation bar (`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#121316]/95 backdrop-blur-md border-t border-[#1e1f25] px-2 py-1.5 shadow-2xl safe-area-bottom print:hidden`).
+  - Added role-gated buttons with clean icons, concise 1-word labels (`Dashboard`, `Orders`, `Scanner`, `Inventory`, `Menu`, `Categories`, `Staff`, `Wallets`, `Developer`), active `#f5a4c6` pink pill highlight, and smooth horizontal scrolling support (`.no-scrollbar`).
+  - Retained the 80px left-side vertical navigation rail on desktop (`hidden md:flex md:w-20`).
+  - Updated all admin page content containers (`admin/src/app/page.tsx`, `orders`, `scan`, `inventory`, `menu`, `categories`, `staff-requests`, `wallets`, `developer`, `orders/receipt`) with bottom padding (`pb-24 md:pb-7` / `pt-8 pb-24 md:py-8`) so fixed bottom navigation never obscures content or action buttons.
+  - Added `.safe-area-bottom` utility in `admin/src/app/globals.css` for mobile viewport clearance.
+
 - **Branding Update from ALEXATEL to Cafeteria.cev (`admin/`)**:
   - Replaced all legacy `ALEXATEL` branding, tags, and titles across the admin suite with `Cafeteria.cev` (including `AdminSidebar.tsx`, `Header.tsx`, `Footer.tsx`, and all pages: `page.tsx`, `categories`, `developer`, `inventory`, `menu`, `orders`, `scan`, `staff-requests`, `wallets`, `login`, `forgot-password`, `reset-password`).
 - **Removed API Operational Badge from Admin Header (`admin/src/components/Header.tsx`)**:

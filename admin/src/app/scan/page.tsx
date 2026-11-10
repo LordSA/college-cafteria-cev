@@ -202,7 +202,7 @@ function AdminScanContent() {
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
 
-        <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="border-b border-[#22242e] pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>

@@ -83,6 +83,9 @@ For full color scales, component anatomy, layout grids, and interactive states:
 
 - **Admin & KDS Design System Specification:** [docs/design_admin.md](docs/design_admin.md)
   - Neo-Dark Obsidian Canvas (`#101114`) with elevated surfaces (`#17181f`) and subtle borders (`#22242e`)
+  - Dual-Mode Responsive Navigation:
+    - Desktop (`md:` and above): 80px left-side vertical rail (`hidden md:flex md:w-20`) with Cafeteria.cev branding, role-gated vertical icon list, active `#f5a4c6` pink pill highlight, and bottom sign out.
+    - Mobile (`< md`): Fixed docked bottom bar (`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#121316]/95 backdrop-blur-md border-t border-[#1e1f25]`) with icon + 1-word label, active highlight, safe area spacing, and smooth horizontal scrolling (`.no-scrollbar`).
   - Pastel Rose Active Pills (`#f5a4c6`), Purple Accents (`#9d8bf0`), and Amber Warnings (`#ea9955`)
   - High-density rounded table containers with neon portion alerts and 1-click availability ("86") toggles
   - Order State Machine badges (Order Placed, Ready to Pick, Collected, Pay Later Due)
