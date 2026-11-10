@@ -5,9 +5,6 @@ const nextConfig = {
   },
   trailingSlash: true,
   reactStrictMode: true,
-  turbopack: {
-    root: './',
-  },
   experimental: {
     cpus: 1,
   },

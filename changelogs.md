@@ -9,6 +9,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Thermal Receipt Printer Checkout Animation (`customer/src/components/ReceiptPrinterAnimation.tsx`)**:
+  - Implemented mechanical takeaway printer component on the checkout success screen (`customer/src/app/checkout/success/page.tsx`).
+  - Stepped feed mechanical paper animation via pure CSS keyframes (`@keyframes receipt-printer-feed`) matching exact timing (0.9s verification -> 2.4s stepped feed -> completion).
+  - Dark hardware chassis (`ReceiptPrinterMachine`), internal screen (`ReceiptPrinterScreen`), dynamic status label with loader/checkmark transitions, and serrated zig-zag tooth tear edge (`clipPath: polygon(...)`).
+  - Integrated zero-dependency `QRCodeSvg` component rendering pickup pass, itemized dish list, breakdown, and quick actions ("Track Order", "Print Receipt", "Return to Menu").
+
+### Changed
+- **Two-Stage Order Lifecycle Simplification (`ORDER_PLACED` & `COLLECTED`)**:
+  - Simplified order fulfillment lifecycle from 3 stages down to 2 stages: `ORDER_PLACED` and `COLLECTED`. Completely removed intermediate `READY_TO_PICK` (`ready_for_pickup`) stage across backend, admin, and customer apps.
+  - **Backend (`backend/src/routes/adminOrders.ts`, `orders.ts`, `reports.ts`, `types/env.ts`)**:
+    - `OrderStage` type simplified to `'ORDER_PLACED' | 'COLLECTED'`.
+    - `POST /api/v1/admin/orders/verify-qr` returns `is_eligible_for_collection: true` directly for `ORDER_PLACED` orders when paid.
+    - `POST /api/v1/admin/orders/collect-qr` and `POST /:id/collect` allow direct collection from `ORDER_PLACED`.
+    - Updated PostgreSQL / Supabase functions `verify_qr_token` and `collect_order` to permit direct collection from `ORDER_PLACED`.
+  - **Admin Scanner (`admin/src/app/scan/page.tsx`)**:
+    - Removed `READY_TO_PICK` stage checks and "not ready" warning banner.
+    - Upon scanning customer QR code, order data is shown with a prominent action button directly beneath it: "Complete Order (Mark as Collected)".
+    - Confirming collection updates the order to `COLLECTED` and displays collection timestamp.
+  - **Admin Orders (`admin/src/app/orders/page.tsx`)**:
+    - Simplified filter tabs to `All`, `Order Placed`, and `Collected`. Removed "Mark Ready" button and replaced action on `ORDER_PLACED` orders with a direct link to scan/complete the order.
+  - **Customer Order Tracking & List (`customer/src/app/orders/track/page.tsx`, `orders/page.tsx`, `orders/receipt/page.tsx`)**:
+    - Tracking progress indicator simplified to 2 steps: `1. Order Placed` -> `2. Collected`.
+    - Active pickup QR pass displayed in `Order Placed` stage; collection badge displayed in `Collected` stage.
+
 ---
 
 ## [0.5.0] - 2026-11-08

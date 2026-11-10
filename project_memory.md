@@ -59,15 +59,16 @@ college-canteen-cev/
   - `src/app/menu/page.tsx`: Vertical column layout menu page with category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar.
   - `src/app/cart/page.tsx`: Shopping cart management page with line items, line totals, 5-minute lock countdown, clear cart control, and "My Orders" access buttons in the header, empty state, and summary sidebar.
   - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later.
-  - `src/app/checkout/success/page.tsx`: Order confirmation screen displaying pickup token, high-contrast SVG QR pass for counter verification on top, and itemized ordered dishes directly below.
+  - `src/app/checkout/success/page.tsx`: Order confirmation screen featuring the mechanical `ReceiptPrinterAnimation` thermal takeaway ticket, live pickup token, and quick action buttons.
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.
-  - `src/app/orders/page.tsx`: Customer order record list with status badges and links to trackers.
-  - `src/app/orders/track/page.tsx`: Live order tracking page with counter pickup QR pass on top, ordered dishes directly below, and 3-stage progress indicator. Customer cancellation buttons and modal dialogs completely removed.
+  - `src/app/orders/page.tsx`: Customer order record list with 2-stage status badges (`ORDER_PLACED`, `COLLECTED`) and links to trackers.
+  - `src/app/orders/track/page.tsx`: Live order tracking page with counter pickup QR pass, ordered dishes list, and 2-stage progress indicator (`1. Order Placed` -> `2. Collected`).
   - `src/app/orders/receipt/page.tsx`: Print-friendly (`@media print`) bill layout with Cafteria branding, itemization, and verification QR code.
   - `src/app/not-found.tsx`: Clean 404 error page.
   - `src/context/AuthContext.tsx`: Client authentication provider listening to Supabase session changes, Google OAuth sign-in, profile phone and avatar key update, and Teacher ID capture.
   - `src/context/CartContext.tsx`: Client-side persistent cart with atomic server locking (`/api/v1/cart/lock`, `/unlock`, `/release-all`), 5-minute auto-expiry countdown, and automatic stock restoration.
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
+  - `src/components/ReceiptPrinterAnimation.tsx`: Mechanical thermal receipt printer component with stepped feed CSS keyframes, dark machine housing, digital screen status, serrated tooth clip-path edge, and embedded SVG QR code.
   - `src/components/QRCodeSvg.tsx`: Zero-dependency SVG QR code generator component.
   - `src/components/ApiHealthBadge.tsx`: Client-side polling component testing connectivity to `/health`.
 
@@ -83,9 +84,9 @@ college-canteen-cev/
   - `src/app/globals.css`: Dark obsidian base styling (`#101114`).
   - `src/app/page.tsx`: Operations Command Center with icon navigation rail, rose active pill, search header, quick-action cards, velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, and dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`.
   - `src/app/developer/page.tsx`: Developer Console with system diagnostics (payment mode, webhook health, runtime) and user role management table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`).
-  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills, search pill, stage badges (`ORDER_PLACED`, `READY_TO_PICK`, `COLLECTED`), Pay Later payment indicators, items checklist drawer, and receipt print buttons.
+  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills (`all`, `ORDER_PLACED`, `COLLECTED`), search pill, stage badges, Pay Later payment indicators, items checklist drawer, and direct links to scan/complete orders.
   - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`).
-  - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and "Confirm Order Collection" action.
+  - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and direct "Complete Order (Mark as Collected)" one-click action.
   - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in neo-dark design.
   - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click toggles.
   - `src/app/login/page.tsx`: Restricted admin sign-in with neo-dark container card.
