@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { AdminSidebar } from '../components/AdminSidebar';
 import {
   ShieldAlert,
   Lock,
@@ -11,21 +12,22 @@ import {
   Search,
   Bell,
   LogOut,
-  Send,
-  Phone,
-  MoreVertical,
-  Link as LinkIcon,
   Timer,
   Trophy,
   Calendar,
   Bookmark,
   Settings,
-  Home,
-  X,
   Sparkles,
   ExternalLink,
   Download,
   Terminal,
+  AlertTriangle,
+  QrCode,
+  Users,
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  Layers,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -51,11 +53,41 @@ interface FinancialStats {
   };
 }
 
+interface DashboardOrder {
+  id: string;
+  order_number: string;
+  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
+  order_status: string;
+  payment_status: string;
+  total: number;
+  created_at: string;
+  customer_name?: string;
+  customer_account_type?: string;
+  qr_verification_token?: string | null;
+  items?: Array<{ id: string; item_name: string; quantity: number }>;
+}
+
+interface DashboardInventoryItem {
+  id: string;
+  name: string;
+  stock_quantity: number;
+  low_stock_threshold: number;
+  is_available: boolean;
+}
+
+interface DashboardStaffRequest {
+  id: string;
+  display_name: string;
+  email: string;
+  teacher_id?: string | null;
+  created_at: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
 
 export default function AdminDashboardPage() {
-  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, isDeveloper } = useAdminAuth();
+  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, isDeveloper, role } = useAdminAuth();
 
   const [stats, setStats] = useState<OperationalStats>({
     totalMenu: 0,
@@ -66,15 +98,12 @@ export default function AdminDashboardPage() {
     lowStockCount: 0,
   });
   const [financialStats, setFinancialStats] = useState<FinancialStats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<DashboardInventoryItem[]>([]);
+  const [pendingStaffList, setPendingStaffList] = useState<DashboardStaffRequest[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
-  const [newsInput, setNewsInput] = useState('');
-  const [newsSent, setNewsSent] = useState(false);
-  const [recipientTags, setRecipientTags] = useState([
-    { id: '1', name: 'Lolita M.', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces' },
-    { id: '2', name: 'Obin D.', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=faces' },
-  ]);
 
   useEffect(() => {
     if (!session?.access_token || !adminUser || isUnauthorized) return;
@@ -124,15 +153,22 @@ export default function AdminDashboardPage() {
           const staffData = await staffRes.json();
           if (staffData.success && Array.isArray(staffData.data)) {
             pendingStaffCount = staffData.data.length;
+            if (isMounted) {
+              setPendingStaffList(staffData.data.slice(0, 3));
+            }
           }
         }
 
         if (ordersRes && ordersRes.ok) {
           const ordersData = await ordersRes.json();
           if (ordersData.success && Array.isArray(ordersData.data)) {
-            activeOrdersCount = ordersData.data.filter((o: any) =>
-              ['ORDER_PLACED', 'READY_TO_PICK', 'pending', 'confirmed', 'preparing', 'ready_for_pickup'].includes(o.order_stage || o.order_status)
+            const rawOrders = ordersData.data;
+            activeOrdersCount = rawOrders.filter((o: any) =>
+              ['ORDER_PLACED', 'pending', 'confirmed', 'preparing'].includes(o.order_stage || o.order_status)
             ).length;
+            if (isMounted) {
+              setRecentOrders(rawOrders.slice(0, 5));
+            }
           }
         }
 
@@ -140,12 +176,15 @@ export default function AdminDashboardPage() {
           const invData = await invRes.json();
           if (invData.success && Array.isArray(invData.data)) {
             lowStockTotal = invData.data.length;
+            if (isMounted) {
+              setLowStockItems(invData.data.slice(0, 4));
+            }
           }
         }
 
         if (finRes && finRes.ok) {
           const finData = await finRes.json();
-          if (finData.success && finData.data) {
+          if (finData.success && finData.data && isMounted) {
             setFinancialStats(finData.data);
           }
         }
@@ -198,18 +237,6 @@ export default function AdminDashboardPage() {
     } finally {
       setExporting(false);
     }
-  };
-
-  const handleNewsSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newsInput.trim()) return;
-    setNewsSent(true);
-    setNewsInput('');
-    setTimeout(() => setNewsSent(false), 3000);
-  };
-
-  const removeTag = (id: string) => {
-    setRecipientTags((prev) => prev.filter((t) => t.id !== id));
   };
 
   if (loading) {
@@ -272,9 +299,9 @@ export default function AdminDashboardPage() {
 
           <div>
             <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">ALEXATEL • Cafteria</span>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">My Dashboard</h1>
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">Operations Command</h1>
             <p className="mt-2 text-xs text-stone-400 leading-relaxed">
-              Operations control, tariff subscriptions, network velocity, and online operator consultation.
+              Real-time kitchen orders, pantry portion inventory, QR counter collection, and auditable finance reports.
             </p>
           </div>
 
@@ -300,278 +327,181 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const messageFeed = [
-    {
-      id: '1',
-      name: 'David S.',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=96&h=96&fit=crop&crop=faces',
-      text: 'Your mobile internet is amazing!',
-    },
-    {
-      id: '2',
-      name: 'David S.',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&crop=faces',
-      text: 'Alexatel, your service is awe...',
-    },
-    {
-      id: '3',
-      name: 'David S.',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=96&h=96&fit=crop&crop=faces',
-      text: 'Thanks for the great mobile...',
-    },
-    {
-      id: '4',
-      name: 'David S.',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=96&h=96&fit=crop&crop=faces',
-      text: 'Wow, Alexatel, your internet...',
-    },
-    {
-      id: '5',
-      name: 'David S.',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=96&h=96&fit=crop&crop=faces',
-      text: 'Alexatel - the best mobile...',
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
-      <aside className="w-full md:w-20 bg-[#121316] border-b md:border-b-0 md:border-r border-[#1e1f25] flex md:flex-col items-center justify-between py-6 px-3 flex-shrink-0 z-30">
-        <div className="flex md:flex-col items-center gap-7">
-          <Link href="/" className="flex flex-col items-center gap-1.5 group">
-            <div className="flex h-10 w-10 items-center justify-center">
-              <svg viewBox="0 0 32 32" className="h-8 w-8 text-[#9d8bf0] fill-none stroke-current stroke-2">
-                <path d="M 10 10 C 6 10, 6 16, 10 16 C 14 16, 18 10, 22 10 C 26 10, 26 16, 22 16" />
-                <path d="M 22 16 C 26 16, 26 22, 22 22 C 18 22, 14 16, 10 16 C 6 16, 6 22, 10 22" />
-              </svg>
-            </div>
-            <span className="text-[8px] font-black tracking-widest uppercase text-stone-400 group-hover:text-white transition">
-              ALEXATEL
-            </span>
-          </Link>
+      <AdminSidebar />
 
-          <nav className="flex md:flex-col items-center gap-4">
-            <Link
-              href="/"
-              title="Dashboard"
-              className="flex h-12 w-12 items-center justify-center rounded-[20px] bg-[#f5a4c6] text-[#101114] shadow-lg shadow-[#f5a4c6]/20 transition active:scale-95"
-            >
-              <Home className="h-5 w-5 fill-[#101114] stroke-[#101114]" />
-            </Link>
-
-            <Link
-              href="/orders"
-              title="Orders & Timer"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-            >
-              <Timer className="h-5 w-5" />
-            </Link>
-
-            <Link
-              href="/inventory"
-              title="Inventory & Rankings"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-            >
-              <Trophy className="h-5 w-5" />
-            </Link>
-
-            <Link
-              href="/scan"
-              title="Calendar & QR"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-            >
-              <Calendar className="h-5 w-5" />
-            </Link>
-
-            <Link
-              href="/menu"
-              title="Bookmarks & Menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-            >
-              <Bookmark className="h-5 w-5" />
-            </Link>
-
-            <Link
-              href="/staff-requests"
-              title="Settings"
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-            >
-              <Settings className="h-5 w-5" />
-            </Link>
-
-            {isDeveloper && (
-              <Link
-                href="/developer"
-                title="Developer Console"
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-[#9d8bf0] transition"
-              >
-                <Terminal className="h-5 w-5" />
-              </Link>
-            )}
-          </nav>
-        </div>
-
-        <div className="flex md:flex-col items-center gap-3">
-          <button
-            onClick={signOut}
-            title="Sign Out"
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-500 hover:text-white transition"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </aside>
-
-      <div className="flex-1 p-5 sm:p-7 lg:p-9 grid grid-cols-1 xl:grid-cols-12 gap-7 overflow-x-hidden">
+      <div className="flex-1 p-5 sm:p-7 lg:p-9 grid grid-cols-1 xl:grid-cols-12 gap-7 overflow-x-hidden min-w-0">
         <main className="xl:col-span-8 space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white">
-              My Dashboard
-            </h1>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
+                ALEXATEL • Operations Command Center
+              </span>
+              <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white mt-1">
+                Kitchen & Financial Overview
+              </h1>
+            </div>
 
-            <div className="flex items-center gap-4">
-              <div className="relative w-full sm:w-80">
+            <div className="flex items-center gap-3">
+              <div className="relative w-full sm:w-64">
                 <input
                   type="text"
-                  placeholder="Search..."
-                  className="w-full rounded-full bg-[#17181f] border border-[#23242e] pl-5 pr-10 py-2.5 text-xs font-medium text-white placeholder-stone-500 focus:outline-none focus:border-[#a78bfa]/60"
+                  placeholder="Search orders, dishes..."
+                  className="w-full rounded-full bg-[#17181f] border border-[#23242e] pl-4 pr-9 py-2 text-xs font-medium text-white placeholder-stone-500 focus:outline-none focus:border-[#f5a4c6]/60"
                 />
-                <Search className="absolute right-4 top-3 h-4 w-4 text-stone-500" />
+                <Search className="absolute right-3.5 top-2.5 h-3.5 w-3.5 text-stone-500" />
               </div>
 
-              <button
-                type="button"
-                title="Notifications"
-                className="relative flex h-9 w-9 items-center justify-center rounded-full text-stone-300 hover:text-white transition"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1.5 h-1.5 w-1.5 rounded-full bg-[#f5a4c6]" />
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full overflow-hidden border border-white/10 shadow-sm">
+              <div className="flex items-center gap-2.5 rounded-full bg-[#17181f] border border-[#23242e] p-1 pr-3">
+                <div className="h-7 w-7 rounded-full overflow-hidden border border-white/10 shadow-xs">
                   <img
                     src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces"
                     alt="Admin user avatar"
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <span className="hidden sm:inline text-xs font-bold text-stone-200">
-                  {adminProfile?.display_name || 'Admin'}
-                </span>
-
-                <button
-                  onClick={signOut}
-                  title="Sign Out"
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-stone-400 hover:text-white transition"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs font-bold text-stone-200 hidden sm:inline max-w-[110px] truncate">
+                    {adminProfile?.display_name || adminUser.email?.split('@')[0]}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold text-[#f5a4c6] hidden sm:inline">
+                    {role || 'Admin'}
+                  </span>
+                </div>
               </div>
+
+              <button
+                onClick={signOut}
+                title="Sign Out"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17181f] border border-[#23242e] text-stone-400 hover:text-white hover:bg-rose-500/20 transition"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </header>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
+            <Link
+              href="/orders"
+              className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between hover:border-[#f5a4c6]/40 transition group"
+            >
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f5a4c6]/20 text-[#f5a4c6]">
-                      <div className="grid grid-cols-2 gap-0.5">
-                        <span className="h-1 w-1 rounded-full bg-current" />
-                        <span className="h-1 w-1 rounded-full bg-current" />
-                        <span className="h-1 w-1 rounded-full bg-current" />
-                        <span className="h-1 w-1 rounded-full bg-current" />
-                      </div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#f5a4c6]/20 text-[#f5a4c6]">
+                      <Timer className="h-4 w-4" />
                     </div>
-                    <h3 className="text-xs font-bold text-white tracking-wide">Tariff Plans</h3>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Live Orders Queue</h3>
                   </div>
                   {statsLoading ? (
-                    <span className="text-[10px] text-stone-500">...</span>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-stone-500" />
                   ) : (
                     <span className="rounded-full bg-[#f5a4c6]/15 text-[#f5a4c6] text-[10px] font-bold px-2 py-0.5 border border-[#f5a4c6]/30">
-                      {stats.activeOrders} Active
+                      {stats.activeOrders} Placed
                     </span>
                   )}
                 </div>
 
-                <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">
+                <div className="mt-4 space-y-2 text-[11px] text-stone-400">
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Choice of base tariff</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>Real-time counter tickets</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Ability to add additional options</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>Instant optical QR collection</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>View and compare available tariff plans</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>Zero middle-stage latency</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
+              <div className="mt-4 pt-3 border-t border-[#22242e] flex items-center justify-between text-[11px] text-[#f5a4c6] font-bold">
+                <span>View Kitchen Queue</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
+              </div>
+            </Link>
+
+            <Link
+              href="/inventory"
+              className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between hover:border-[#9d8bf0]/40 transition group"
+            >
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#9d8bf0]/20 text-[#9d8bf0]">
-                      <div className="h-3 w-3 border border-current rounded-sm" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#9d8bf0]/20 text-[#9d8bf0]">
+                      <Trophy className="h-4 w-4" />
                     </div>
-                    <h3 className="text-xs font-bold text-white tracking-wide">Additional Options</h3>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Pantry Inventory</h3>
                   </div>
                   <span className="rounded-full bg-[#9d8bf0]/15 text-[#9d8bf0] text-[10px] font-bold px-2 py-0.5 border border-[#9d8bf0]/30">
-                    {stats.totalMenu} Items
+                    {stats.availableMenu}/{stats.totalMenu} Live
                   </span>
                 </div>
 
-                <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">
+                <div className="mt-4 space-y-2 text-[11px] text-stone-400">
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Increase internet speed</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>Atomic portion decrement on cart</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Adding additional minutes and sms</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>5-min customer hold reservation</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Connection of special service packages</span>
+                    <Check className="h-3 w-3 text-[#ea9955] flex-shrink-0" />
+                    <span>{stats.lowStockCount} items near threshold</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between">
+              <div className="mt-4 pt-3 border-t border-[#22242e] flex items-center justify-between text-[11px] text-[#9d8bf0] font-bold">
+                <span>Manage Pantry Portions</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
+              </div>
+            </Link>
+
+            <Link
+              href="/staff-requests"
+              className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg flex flex-col justify-between hover:border-[#ea9955]/40 transition group"
+            >
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ea9955]/20 text-[#ea9955]">
-                      <div className="h-3 w-3 rounded-full border border-current" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#ea9955]/20 text-[#ea9955]">
+                      <Settings className="h-4 w-4" />
                     </div>
-                    <h3 className="text-xs font-bold text-white tracking-wide">Subscription Management</h3>
+                    <h3 className="text-xs font-bold text-white tracking-wide">Staff & Governance</h3>
                   </div>
                   <span className="rounded-full bg-[#ea9955]/15 text-[#ea9955] text-[10px] font-bold px-2 py-0.5 border border-[#ea9955]/30">
                     {stats.pendingStaff} Pending
                   </span>
                 </div>
 
-                <div className="mt-4 space-y-2.5 text-[11px] text-stone-400">
+                <div className="mt-4 space-y-2 text-[11px] text-stone-400">
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Disable/enable subscriptions to various services</span>
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>Teacher ID verification queue</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />
+                    <span>4-tier RBAC authorization</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Control access to content</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-stone-400 flex-shrink-0" />
-                    <span>Cancel services</span>
+                    <span>Faculty credit ledger access</span>
                   </div>
                 </div>
               </div>
-            </div>
+
+              <div className="mt-4 pt-3 border-t border-[#22242e] flex items-center justify-between text-[11px] text-[#ea9955] font-bold">
+                <span>Review Staff Requests</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
+              </div>
+            </Link>
           </div>
 
           <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-6 shadow-lg">
@@ -579,14 +509,14 @@ export default function AdminDashboardPage() {
               <div>
                 <h2 className="text-sm font-bold text-white tracking-wide">Financial Overview & Velocity</h2>
                 <div className="flex items-center gap-4 mt-1 text-[11px] text-stone-400">
-                  <span>Revenue: <strong className="text-white">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
-                  <span>Online: <strong className="text-[#f5a4c6]">₹{((financialStats?.paymentBreakdown?.razorpayPaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
+                  <span>Gross: <strong className="text-white">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
+                  <span>UPI: <strong className="text-[#f5a4c6]">₹{((financialStats?.paymentBreakdown?.razorpayPaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
                   <span>Pay Later: <strong className="text-[#ea9955]">₹{((financialStats?.paymentBreakdown?.payLaterPaise || 0) / 100).toLocaleString('en-IN')}</strong></span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-4 text-xs font-medium">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 text-xs font-medium">
                   <button
                     type="button"
                     onClick={() => setTimeframe('daily')}
@@ -606,7 +536,7 @@ export default function AdminDashboardPage() {
                     onClick={() => setTimeframe('monthly')}
                     className={`relative pb-1 transition ${
                       timeframe === 'monthly'
-                        ? 'text-white font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#8e75db]'
+                        ? 'text-white font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#f5a4c6]'
                         : 'text-stone-500 hover:text-stone-300'
                     }`}
                   >
@@ -630,17 +560,17 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="mt-6 relative h-60 w-full">
+            <div className="mt-6 relative h-56 w-full">
               <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[11px] font-mono text-stone-600">
-                <span>200</span>
-                <span>150</span>
-                <span>100</span>
-                <span>50</span>
-                <span>0</span>
+                <span>₹25k</span>
+                <span>₹18k</span>
+                <span>₹12k</span>
+                <span>₹6k</span>
+                <span>₹0</span>
               </div>
 
-              <div className="ml-9 h-full">
-                <svg viewBox="0 0 1000 220" className="h-52 w-full overflow-visible" preserveAspectRatio="none">
+              <div className="ml-10 h-full">
+                <svg viewBox="0 0 1000 200" className="h-44 w-full overflow-visible" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#9d8bf0" stopOpacity="0.25" />
@@ -653,12 +583,12 @@ export default function AdminDashboardPage() {
                   </defs>
 
                   <line x1="0" y1="10" x2="1000" y2="10" stroke="#1d1e27" strokeDasharray="2 2" />
-                  <line x1="0" y1="60" x2="1000" y2="60" stroke="#1d1e27" strokeDasharray="2 2" />
-                  <line x1="0" y1="110" x2="1000" y2="110" stroke="#1d1e27" strokeDasharray="2 2" />
-                  <line x1="0" y1="160" x2="1000" y2="160" stroke="#1d1e27" strokeDasharray="2 2" />
+                  <line x1="0" y1="55" x2="1000" y2="55" stroke="#1d1e27" strokeDasharray="2 2" />
+                  <line x1="0" y1="100" x2="1000" y2="100" stroke="#1d1e27" strokeDasharray="2 2" />
+                  <line x1="0" y1="145" x2="1000" y2="145" stroke="#1d1e27" strokeDasharray="2 2" />
 
                   <path
-                    d="M 0 140 C 130 180, 180 70, 240 80 C 300 90, 340 170, 410 160 C 480 150, 500 180, 580 135 C 650 95, 700 110, 770 130 C 840 150, 870 70, 930 35 L 1000 60 L 1000 220 L 0 220 Z"
+                    d="M 0 140 C 130 180, 180 70, 240 80 C 300 90, 340 170, 410 160 C 480 150, 500 180, 580 135 C 650 95, 700 110, 770 130 C 840 150, 870 70, 930 35 L 1000 60 L 1000 200 L 0 200 Z"
                     fill="url(#purpleGradient)"
                   />
                   <path
@@ -669,7 +599,7 @@ export default function AdminDashboardPage() {
                   />
 
                   <path
-                    d="M 0 170 C 120 150, 170 125, 240 90 C 300 60, 340 110, 410 120 C 480 130, 510 75, 580 95 C 650 115, 680 170, 760 175 C 840 180, 880 160, 940 135 L 1000 145 L 1000 220 L 0 220 Z"
+                    d="M 0 170 C 120 150, 170 125, 240 90 C 300 60, 340 110, 410 120 C 480 130, 510 75, 580 95 C 650 115, 680 170, 760 175 C 840 180, 880 160, 940 135 L 1000 145 L 1000 200 L 0 200 Z"
                     fill="url(#pinkGradient)"
                   />
                   <path
@@ -679,197 +609,211 @@ export default function AdminDashboardPage() {
                     strokeWidth="2.5"
                   />
 
-                  <circle cx="240" cy="80" r="4.5" fill="#f5a4c6" stroke="#17181f" strokeWidth="2" />
-                  <circle cx="410" cy="160" r="4.5" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
-                  <circle cx="580" cy="95" r="4.5" fill="#f5a4c6" stroke="#17181f" strokeWidth="2" />
-                  <circle cx="760" cy="175" r="4.5" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
-                  <circle cx="930" cy="35" r="5" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
+                  <circle cx="240" cy="80" r="4" fill="#f5a4c6" stroke="#17181f" strokeWidth="2" />
+                  <circle cx="410" cy="160" r="4" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
+                  <circle cx="580" cy="95" r="4" fill="#f5a4c6" stroke="#17181f" strokeWidth="2" />
+                  <circle cx="760" cy="175" r="4" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
+                  <circle cx="930" cy="35" r="4.5" fill="#9d8bf0" stroke="#17181f" strokeWidth="2" />
                 </svg>
 
                 <div className="flex justify-between text-[11px] font-mono text-stone-500 pt-2">
-                  <span>Jan</span>
-                  <span>Feb</span>
-                  <span>Mar</span>
-                  <span>Apr</span>
-                  <span>May</span>
-                  <span>Jun</span>
-                  <span>Jul</span>
-                  <span>Aug</span>
-                  <span>Sep</span>
-                  <span>Oct</span>
-                  <span>Nov</span>
-                  <span>Dec</span>
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                  <span>Sun</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
-            <h2 className="text-sm font-bold text-white tracking-wide">Current Partnerships</h2>
-
-            <div className="space-y-3">
-              <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-4 flex items-center justify-between shadow-md">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f39c6b]/20 text-[#f39c6b]">
-                    <div className="h-5 w-5 rounded-full border-2 border-current flex items-center justify-center">
-                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Bowl Club</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">1 partner</p>
-                  </div>
-                </div>
-
-                <div className="hidden sm:flex flex-col text-xs">
-                  <span className="text-stone-300 font-medium">Read more on the website</span>
-                  <div className="flex items-center gap-1 text-[11px] text-[#9d8bf0]">
-                    <LinkIcon className="h-3 w-3" />
-                    <span className="underline">alexatel/partnerships</span>
-                  </div>
-                </div>
-
-                <div className="rounded-full bg-[#1b251f] text-[#6ee7b7] border border-[#6ee7b7]/20 px-4 py-1.5 text-xs font-semibold">
-                  Since 2024
-                </div>
+          <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#f5a4c6]" />
+                <h2 className="text-sm font-bold text-white tracking-wide">Live Kitchen Stream</h2>
               </div>
-
-              <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-4 flex items-center justify-between shadow-md">
-                <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-full overflow-hidden border border-white/10">
-                    <img
-                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=faces"
-                      alt="Edward S."
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Edward S.</h4>
-                    <p className="text-[11px] text-stone-500 mt-0.5">2 partner</p>
-                  </div>
-                </div>
-
-                <div className="hidden sm:flex flex-col text-xs">
-                  <span className="text-stone-300 font-medium">Read more on the website</span>
-                  <div className="flex items-center gap-1 text-[11px] text-[#9d8bf0]">
-                    <LinkIcon className="h-3 w-3" />
-                    <span className="underline">alexatel/partnerships</span>
-                  </div>
-                </div>
-
-                <div className="rounded-full bg-[#271f2a] text-[#d8b4fe] border border-[#d8b4fe]/20 px-4 py-1.5 text-xs font-semibold">
-                  Since 2019
-                </div>
-              </div>
+              <Link
+                href="/orders"
+                className="text-xs font-bold text-[#f5a4c6] hover:underline"
+              >
+                View all orders &rarr;
+              </Link>
             </div>
+
+            {recentOrders.length === 0 ? (
+              <p className="text-xs text-stone-500 py-4 text-center">No canteen orders placed yet today.</p>
+            ) : (
+              <div className="divide-y divide-[#22242e]">
+                {recentOrders.map((order) => {
+                  const stage = order.order_stage || (order.order_status === 'COLLECTED' || order.order_status === 'completed' ? 'COLLECTED' : 'ORDER_PLACED');
+                  return (
+                    <div key={order.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono font-extrabold text-white">{order.order_number}</span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border ${
+                            stage === 'COLLECTED'
+                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                              : 'bg-[#9d8bf0]/15 text-[#9d8bf0] border-[#9d8bf0]/30 animate-pulse'
+                          }`}>
+                            {stage}
+                          </span>
+                          <span className="text-[10px] text-stone-400">
+                            {order.customer_name} ({order.customer_account_type || 'student'})
+                          </span>
+                        </div>
+                        {order.items && order.items.length > 0 && (
+                          <p className="text-[11px] text-stone-500">
+                            {order.items.map((i) => `${i.quantity}× ${i.item_name}`).join(', ')}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-3 self-end sm:self-auto">
+                        <span className="font-mono font-bold text-white tabular-nums">
+                          ₹{(order.total / 100).toFixed(2)}
+                        </span>
+                        {stage === 'ORDER_PLACED' ? (
+                          <Link
+                            href={`/scan?token=${encodeURIComponent(order.qr_verification_token || '')}`}
+                            className="rounded-full bg-[#f5a4c6] px-3 py-1 text-[11px] font-bold text-[#101114] hover:opacity-90 transition"
+                          >
+                            Scan / Collect
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/orders/receipt/?id=${order.id}`}
+                            className="rounded-full border border-[#282a38] bg-[#101114] px-3 py-1 text-[11px] font-bold text-stone-300 hover:text-white transition"
+                          >
+                            Receipt
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </main>
 
-        <aside className="xl:col-span-4 space-y-7">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-stone-200">Online consultation with an operator</h3>
-              <button
-                type="button"
-                className="text-xs font-bold text-stone-400 hover:text-white transition"
-              >
-                + Join
-              </button>
+        <aside className="xl:col-span-4 space-y-6">
+          <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg space-y-3">
+            <div className="flex items-center justify-between border-b border-[#22242e] pb-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-[#ea9955]" />
+                <h3 className="text-xs font-bold text-white tracking-wide">Pantry Portion Alerts</h3>
+              </div>
+              <Link href="/inventory" className="text-[11px] font-bold text-[#ea9955] hover:underline">
+                Manage
+              </Link>
             </div>
 
-            <div className="rounded-2xl bg-[#8587e8] text-[#121316] p-4 flex items-center justify-between shadow-lg">
-              <div className="flex items-center gap-3.5">
-                <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white/40 shadow-xs">
-                  <img
-                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=96&h=96&fit=crop&crop=faces"
-                    alt="Monika S."
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-stone-950">Monika S.</h4>
-                </div>
+            {lowStockItems.length === 0 ? (
+              <div className="p-4 text-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto mb-1" />
+                <p className="text-xs text-stone-400">All pantry inventory portions healthy</p>
               </div>
-
-              <div className="flex items-center gap-3 text-stone-900">
-                <button type="button" title="Call operator" className="hover:opacity-75 transition">
-                  <Phone className="h-4 w-4" />
-                </button>
-                <button type="button" title="Options" className="hover:opacity-75 transition">
-                  <MoreVertical className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-stone-200">Messages</h3>
-
-            <div className="space-y-4 pt-1">
-              {messageFeed.map((msg) => (
-                <div key={msg.id} className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full overflow-hidden border border-white/10 flex-shrink-0">
-                    <img src={msg.avatar} alt={msg.name} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h5 className="text-xs font-bold text-stone-200">{msg.name}</h5>
-                    <p className="text-[11px] text-stone-500 truncate leading-tight mt-0.5">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            <h3 className="text-xs font-bold text-stone-200">Update News</h3>
-
-            <form onSubmit={handleNewsSubmit} className="relative">
-              <input
-                type="text"
-                value={newsInput}
-                onChange={(e) => setNewsInput(e.target.value)}
-                placeholder="Guys, there's a new rate plan"
-                className="w-full rounded-2xl bg-[#17181f] border border-[#22242e] pl-4 pr-11 py-3 text-xs font-medium text-white placeholder-stone-500 focus:outline-none focus:border-[#a78bfa]/60"
-              />
-              <button
-                type="submit"
-                title="Send update"
-                className="absolute right-3 top-3 text-stone-400 hover:text-white transition"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </form>
-
-            {newsSent && (
-              <div className="text-[11px] text-[#6ee7b7] font-semibold">
-                Update dispatched successfully!
-              </div>
-            )}
-
-            <div className="pt-2">
-              <span className="block text-xs font-bold text-stone-200 mb-2.5">Send Messages</span>
-              <div className="flex flex-wrap gap-2.5">
-                {recipientTags.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#17181f] border border-[#22242e] pl-1.5 pr-3 py-1 text-xs font-semibold text-stone-300"
-                  >
-                    <div className="h-5 w-5 rounded-full overflow-hidden">
-                      <img src={tag.avatar} alt={tag.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="space-y-2.5">
+                {lowStockItems.map((item) => (
+                  <div key={item.id} className="rounded-xl bg-[#101114] p-3 border border-[#282a38] flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-semibold text-white">{item.name}</p>
+                      <p className="text-[10px] text-stone-500">
+                        Remaining: <strong className="text-rose-400">{item.stock_quantity}</strong> portions (min {item.low_stock_threshold})
+                      </p>
                     </div>
-                    <span>{tag.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag.id)}
-                      className="text-stone-500 hover:text-white transition"
+                    <Link
+                      href="/inventory"
+                      className="rounded-full bg-rose-500/15 border border-rose-500/30 px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-500/25 transition"
                     >
-                      <X className="h-3 w-3" />
-                    </button>
+                      Restock
+                    </Link>
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg space-y-3">
+            <div className="flex items-center justify-between border-b border-[#22242e] pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-[#9d8bf0]" />
+                <h3 className="text-xs font-bold text-white tracking-wide">Staff Authorization Queue</h3>
+              </div>
+              <Link href="/staff-requests" className="text-[11px] font-bold text-[#9d8bf0] hover:underline">
+                Review All
+              </Link>
+            </div>
+
+            {pendingStaffList.length === 0 ? (
+              <div className="p-4 text-center">
+                <CheckCircle2 className="h-6 w-6 text-emerald-400 mx-auto mb-1" />
+                <p className="text-xs text-stone-400">No pending staff applications</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {pendingStaffList.map((req) => (
+                  <div key={req.id} className="rounded-xl bg-[#101114] p-3 border border-[#282a38] flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-semibold text-white">{req.display_name || req.email}</p>
+                      <p className="text-[10px] text-stone-500">
+                        Teacher ID: <span className="font-mono text-stone-300">{req.teacher_id || 'Not specified'}</span>
+                      </p>
+                    </div>
+                    <Link
+                      href="/staff-requests"
+                      className="rounded-full bg-[#9d8bf0]/20 border border-[#9d8bf0]/30 px-2.5 py-1 text-[10px] font-bold text-[#9d8bf0] hover:bg-[#9d8bf0]/30 transition"
+                    >
+                      Verify
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-2xl bg-[#17181f] border border-[#22242e] p-5 shadow-lg space-y-3">
+            <h3 className="text-xs font-bold text-white tracking-wide border-b border-[#22242e] pb-2">
+              Counter Fast Dispatch
+            </h3>
+
+            <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+              <Link
+                href="/scan"
+                className="rounded-xl bg-[#f5a4c6] p-3 text-[#101114] text-center shadow-sm hover:opacity-95 transition flex flex-col items-center justify-center gap-1.5"
+              >
+                <QrCode className="h-4 w-4" />
+                <span>Scan QR Pass</span>
+              </Link>
+
+              <Link
+                href="/orders"
+                className="rounded-xl bg-[#9d8bf0] p-3 text-[#101114] text-center shadow-sm hover:opacity-95 transition flex flex-col items-center justify-center gap-1.5"
+              >
+                <Timer className="h-4 w-4" />
+                <span>Orders Queue</span>
+              </Link>
+
+              <Link
+                href="/inventory"
+                className="rounded-xl bg-[#101114] border border-[#282a38] p-3 text-stone-200 text-center hover:border-stone-500 transition flex flex-col items-center justify-center gap-1.5"
+              >
+                <Trophy className="h-4 w-4 text-[#ea9955]" />
+                <span>Portions & 86</span>
+              </Link>
+
+              <Link
+                href="/menu"
+                className="rounded-xl bg-[#101114] border border-[#282a38] p-3 text-stone-200 text-center hover:border-stone-500 transition flex flex-col items-center justify-center gap-1.5"
+              >
+                <Bookmark className="h-4 w-4 text-[#9d8bf0]" />
+                <span>Menu Dishes</span>
+              </Link>
             </div>
           </div>
         </aside>

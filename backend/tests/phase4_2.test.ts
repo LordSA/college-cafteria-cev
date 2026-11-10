@@ -687,4 +687,81 @@ describe('Phase 4.2: Strict Order Stages, QR Lifecycle and Collection Flow', () 
     expect(body.success).toBe(true);
     expect(body.data[0].order_stage).toBe('ORDER_PLACED');
   });
+
+  it('GET /api/v1/admin/orders/:id/receipt returns receipt data for admin', async () => {
+    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
+      success: true,
+      user: mockAdminUser,
+      profile: mockAdminProfile,
+    });
+
+    const mockOrder = {
+      id: 'ord-receipt-1',
+      order_number: 'CAF-261022-R100',
+      created_at: '2026-10-22T01:00:00Z',
+      paid_at: '2026-10-22T01:00:00Z',
+      payment_method: 'razorpay',
+      payment_status: 'paid',
+      order_stage: 'ORDER_PLACED',
+      order_status: 'ORDER_PLACED',
+      subtotal: 5000,
+      total: 5000,
+      qr_verification_token: 'CAF-QR-REC-1',
+      collected_at: null,
+      collected_by: null,
+      customer_id: 'usr-customer-1',
+      order_items: [
+        {
+          id: 'item-1',
+          item_name: 'Chicken Biryani',
+          unit_price: 5000,
+          quantity: 1,
+          line_total: 5000,
+        },
+      ],
+    };
+
+    const mockDb = {
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'orders') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({ data: mockOrder, error: null }),
+          };
+        }
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnThis(),
+            eq: vi.fn().mockReturnThis(),
+            maybeSingle: vi.fn().mockResolvedValue({
+              data: { display_name: 'Alex Student', account_type: 'student', email: 'alex@cev.ac.in' },
+              error: null,
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        };
+      }),
+    };
+
+    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
+
+    const res = await app.request('/api/v1/admin/orders/ord-receipt-1/receipt', {
+      headers: {
+        Authorization: 'Bearer valid-admin-token',
+      },
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.order_number).toBe('CAF-261022-R100');
+    expect(body.data.customer.display_name).toBe('Alex Student');
+    expect(body.data.items.length).toBe(1);
+    expect(body.data.canteen.name).toBe('Cafteria College Canteen');
+  });
 });

@@ -112,6 +112,90 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async 
   });
 });
 
+adminOrdersRouter.get('/:id/receipt', requireRole(['developer', 'admin', 'retail', 'staff']), async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  const orderId = c.req.param('id');
+
+  if (!adminClient || typeof adminClient.from !== 'function') {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const { data: order, error } = await adminClient
+    .from('orders')
+    .select('*, order_items(*)')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (error || !order) {
+    return c.json(
+      { success: false, error: { code: 'ORDER_NOT_FOUND', message: 'Order not found' } },
+      404
+    );
+  }
+
+  let customerName = 'Customer';
+  let accountType = 'student';
+  let customerEmail = null;
+
+  if (order.customer_id) {
+    try {
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('display_name, account_type, email')
+        .eq('id', order.customer_id)
+        .maybeSingle();
+      if (profile) {
+        customerName = profile.display_name || customerName;
+        accountType = profile.account_type || accountType;
+        customerEmail = profile.email || null;
+      }
+    } catch {}
+  }
+
+  const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
+
+  return c.json({
+    success: true,
+    data: {
+      id: order.id,
+      order_number: order.order_number,
+      created_at: order.created_at,
+      paid_at: order.paid_at,
+      payment_method: order.payment_method || 'counter_cash',
+      payment_status: order.payment_status,
+      order_stage: stage,
+      order_status: stage,
+      subtotal: order.subtotal,
+      total: order.total,
+      qr_verification_token: order.qr_verification_token,
+      collected_at: order.collected_at,
+      collected_by: order.collected_by,
+      customer: {
+        id: order.customer_id,
+        display_name: customerName,
+        email: customerEmail,
+        account_type: accountType,
+      },
+      items: (order.order_items || []).map((i: any) => ({
+        id: i.id,
+        item_name: i.item_name,
+        unit_price: i.unit_price,
+        quantity: i.quantity,
+        line_total: i.line_total,
+      })),
+      canteen: {
+        name: 'Cafteria College Canteen',
+        campus: 'Campus Main Facility',
+        address: 'Student Centre, Food Court Level 1',
+        notice: 'Official Cafteria Receipt.',
+      },
+    },
+  });
+});
+
 adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');

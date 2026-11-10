@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
   QrCode,
@@ -196,10 +197,12 @@ function AdminScanContent() {
   const stage = result?.order_stage || (result?.order_status === 'COLLECTED' || result?.order_status === 'completed' ? 'COLLECTED' : 'ORDER_PLACED');
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#101114] text-slate-100">
-      <Header />
+    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="border-b border-[#22242e] pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -457,7 +460,8 @@ function AdminScanContent() {
         </div>
       </main>
 
-      <Footer />
+        <Footer />
+      </div>
     </div>
   );
 }

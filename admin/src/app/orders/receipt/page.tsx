@@ -56,7 +56,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 function AdminReceiptContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('id');
-  const { session, adminUser, adminProfile, loading: authLoading } = useAdminAuth();
+  const { session, adminUser, isUnauthorized, loading: authLoading } = useAdminAuth();
 
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -108,12 +108,12 @@ function AdminReceiptContent() {
     );
   }
 
-  if (!adminUser || adminProfile?.app_role !== 'admin') {
+  if (!adminUser || isUnauthorized) {
     return (
       <div className="mx-auto max-w-md rounded-3xl border border-rose-500/30 bg-[#17181f] p-8 text-center space-y-4 my-12 shadow-xl">
         <Shield className="mx-auto h-12 w-12 text-rose-400" />
         <h2 className="text-base font-bold text-white">Access Denied</h2>
-        <p className="text-xs text-stone-400">Admin privileges required to view register receipts.</p>
+        <p className="text-xs text-stone-400">Staff privileges required to view register receipts.</p>
         <Link
           href="/login"
           className="inline-block rounded-xl bg-[#f5a4c6] px-5 py-2.5 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 transition"
