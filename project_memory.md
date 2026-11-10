@@ -82,10 +82,10 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AdminAuthProvider` and neo-dark background.
   - `src/app/globals.css`: Dark obsidian base styling (`#101114`).
-  - `src/app/page.tsx`: Operations Command Center with icon navigation rail, rose active pill, search header, quick-action cards, velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, and dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`.
+  - `src/app/page.tsx`: Operations Command Center with persistent `AdminSidebar` navigation rail, real kitchen order queue stream, pantry low-stock portion alerts, pending staff queue, financial velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, and dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`.
   - `src/app/developer/page.tsx`: Developer Console with system diagnostics (payment mode, webhook health, runtime) and user role management table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`).
   - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills (`all`, `ORDER_PLACED`, `COLLECTED`), search pill, stage badges, Pay Later payment indicators, items checklist drawer, and direct links to scan/complete orders.
-  - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`).
+  - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`) powered by `GET /api/v1/admin/orders/:id/receipt`.
   - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and direct "Complete Order (Mark as Collected)" one-click action.
   - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in neo-dark design.
   - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click toggles.
@@ -99,7 +99,8 @@ college-canteen-cev/
   - `src/app/not-found.tsx`: Clean 404 administration error page.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 4-tier roles (`developer`, `admin`, `retail`, `staff`) with permission flags (`isDeveloper`, `isAdmin`, `isRetail`, `isStaff`, `canManageUsers`, `canManageInventory`, `canManageOrders`, `canScanQr`, `canViewReports`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
-  - `src/components/Header.tsx`: Neo-dark admin header with logo, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), role-filtered navigation tabs, user avatar, and logout.
+  - `src/components/AdminSidebar.tsx`: Persistent 80px left-side vertical navbar rail with role-gated icon navigation, active pink highlight, and sign out control across all admin pages.
+  - `src/components/Header.tsx`: Content area top header featuring page identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), API health indicator, user profile avatar, and sign out.
   - `src/components/Footer.tsx`: Neo-dark audit footer.
   - `src/components/ApiHealthBadge.tsx`: Pill badge monitoring `/health` status.
 

@@ -10,24 +10,20 @@ import {
   Loader2,
   Check,
   Search,
-  Bell,
   LogOut,
   Timer,
   Trophy,
-  Calendar,
   Bookmark,
   Settings,
   Sparkles,
   ExternalLink,
   Download,
-  Terminal,
   AlertTriangle,
   QrCode,
   Users,
   CheckCircle2,
   Clock,
   ArrowRight,
-  Layers,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -87,7 +83,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
 
 export default function AdminDashboardPage() {
-  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, isDeveloper, role } = useAdminAuth();
+  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, role } = useAdminAuth();
 
   const [stats, setStats] = useState<OperationalStats>({
     totalMenu: 0,

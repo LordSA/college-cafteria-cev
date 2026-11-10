@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
   Layers,
@@ -178,10 +179,12 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <>
-      <Header />
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 bg-[#101114] text-slate-100 min-h-screen">
-        <div className="mx-auto max-w-6xl space-y-6">
+    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header />
+        <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div className="flex items-center gap-3">
               <Link
@@ -369,6 +372,7 @@ export default function AdminCategoriesPage() {
         </div>
       </main>
       <Footer />
-    </>
-  );
+    </div>
+  </div>
+);
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
+import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
   Search,
@@ -56,7 +57,7 @@ interface CustomerDetail {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 export default function AdminWalletsPage() {
-  const { adminUser, adminProfile, session, loading: authLoading } = useAdminAuth();
+  const { adminUser, isUnauthorized, session, loading: authLoading } = useAdminAuth();
 
   const [wallets, setWallets] = useState<WalletListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -244,11 +245,13 @@ export default function AdminWalletsPage() {
     );
   }
 
-  if (!adminUser || adminProfile?.app_role !== 'admin') {
+  if (!adminUser || isUnauthorized) {
     return (
-      <div className="min-h-screen flex flex-col bg-[#101114] text-slate-100">
-        <Header />
-        <main className="flex-1 flex items-center justify-center py-20 px-4">
+      <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Header />
+          <main className="flex-1 flex items-center justify-center py-20 px-4">
           <div className="max-w-md rounded-3xl border border-rose-500/30 bg-[#17181f] p-8 text-center space-y-4 shadow-xl">
             <Shield className="mx-auto h-12 w-12 text-rose-400" />
             <h1 className="text-xl font-bold text-white">Access Denied</h1>
@@ -264,15 +267,18 @@ export default function AdminWalletsPage() {
           </div>
         </main>
         <Footer />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#101114] text-slate-100">
-      <Header />
+    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header />
 
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
             <div>
@@ -631,6 +637,7 @@ export default function AdminWalletsPage() {
       )}
 
       <Footer />
+      </div>
     </div>
   );
 }

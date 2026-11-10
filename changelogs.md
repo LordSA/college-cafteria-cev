@@ -10,6 +10,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Admin Order Receipt Endpoint (`GET /api/v1/admin/orders/:id/receipt`)**:
+  - Implemented receipt retrieval endpoint in `backend/src/routes/adminOrders.ts` accessible to `developer`, `admin`, `retail`, and `staff` roles.
+  - Fetches itemized order records, line totals, customer details (`profiles`), and canteen metadata.
+  - Fixes 404 error when cashier/admin views order receipts at `/orders/receipt/?id=...`.
+  - Added unit test in `backend/tests/phase4_2.test.ts` verifying receipt retrieval for admin.
+- **Admin Left-Side Navigation Rail (`admin/src/components/AdminSidebar.tsx`)**:
+  - Created persistent 80px left-side vertical navbar rail matching the home dashboard layout across all admin pages.
+  - Features ALEXATEL logo, role-gated vertical icon navigation (Dashboard, Orders, Scanner, Inventory, Menu, Categories, Staff, Wallets, Developer), `#f5a4c6` pink active pill highlight, and bottom sign out button.
+  - Integrated into all admin pages: `orders`, `scan`, `inventory`, `menu`, `categories`, `staff-requests`, `wallets`, `developer`, and `orders/receipt`.
+
+### Changed
+- **Admin Dashboard UI Overhaul with Live Real Data (`admin/src/app/page.tsx`)**:
+  - Completely purged dummy telecom template data (Tariff plans, Monika S. operator consultation, support chat, mock message feeds, and dummy partners).
+  - Replaced with real Cafteria operational data:
+    - **Active Orders Queue**: Live kitchen order cards with status badges and instant 1-click counter dispatch links.
+    - **Pantry Low-Stock Alerts**: Real low stock items from inventory with current portion counts vs thresholds.
+    - **Staff Verification Board**: Real pending staff applications with Teacher ID badges.
+    - **Real Financial Overview**: Gross revenue, Razorpay online payments, and staff pay later volume with dynamic daily/weekly/monthly velocity chart and `.xlsx` Excel export.
+- **Admin Receipt Authorization (`admin/src/app/orders/receipt/page.tsx`)**:
+  - Expanded view access from admin-only to all authorized canteen staff roles (`developer`, `admin`, `retail`, `staff`).
+
+### Added
 - **Thermal Receipt Printer Checkout Animation (`customer/src/components/ReceiptPrinterAnimation.tsx`)**:
   - Implemented mechanical takeaway printer component on the checkout success screen (`customer/src/app/checkout/success/page.tsx`).
   - Stepped feed mechanical paper animation via pure CSS keyframes (`@keyframes receipt-printer-feed`) matching exact timing (0.9s verification -> 2.4s stepped feed -> completion).

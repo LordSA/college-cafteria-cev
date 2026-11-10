@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
+import { AdminSidebar } from '../../../components/AdminSidebar';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
 import { QRCodeSvg } from '../../../components/QRCodeSvg';
 import {
@@ -309,23 +310,28 @@ function AdminReceiptContent() {
 
 export default function AdminReceiptPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#101114] text-slate-100">
+    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
       <div className="print:hidden">
-        <Header />
+        <AdminSidebar />
       </div>
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:bg-white">
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center py-24">
-              <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
-            </div>
-          }
-        >
-          <AdminReceiptContent />
-        </Suspense>
-      </main>
-      <div className="print:hidden">
-        <Footer />
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="print:hidden">
+          <Header />
+        </div>
+        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:bg-white">
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-24">
+                <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+              </div>
+            }
+          >
+            <AdminReceiptContent />
+          </Suspense>
+        </main>
+        <div className="print:hidden">
+          <Footer />
+        </div>
       </div>
     </div>
   );
