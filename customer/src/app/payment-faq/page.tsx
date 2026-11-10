@@ -12,7 +12,6 @@ import {
   AlertCircle,
   ChevronDown,
   ArrowLeft,
-  CheckCircle2,
   Sparkles,
 } from 'lucide-react';
 
@@ -48,10 +47,10 @@ const FAQS: FaqItem[] = [
     icon: QrCode,
   },
   {
-    question: 'Can I cancel an order and get my credits back?',
+    question: 'Can I cancel an order once placed?',
     answer:
-      'Yes! As long as your order is in the initial "ORDER_PLACED" stage and the kitchen has not begun cooking, you can tap "Cancel Order" on your tracking page. Your demo credits will be instantly refunded to your Testing Wallet and logged on your ledger.',
-    icon: CheckCircle2,
+      'No. Because our kitchen team starts preparing meals immediately upon order placement, orders cannot be cancelled once placed. Please check your items and total carefully before confirming checkout.',
+    icon: AlertCircle,
   },
   {
     question: 'How does the digital QR pass protect my meal from someone else taking it?',

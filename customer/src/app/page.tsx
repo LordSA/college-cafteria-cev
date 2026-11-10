@@ -21,6 +21,8 @@ import {
   Loader2,
   AlertCircle,
   Grid,
+  ShoppingBag,
+  ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -68,7 +70,13 @@ function getCategoryIcon(name: string) {
 export default function CustomerHomePage() {
   const router = useRouter();
   const { user, profile, session } = useAuth();
-  const { items: cartItems, addItem, updateQuantity } = useCart();
+  const { items: cartItems, addItem, updateQuantity, itemCount, subtotal, remainingSeconds } = useCart();
+
+  const formatTimer = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -674,6 +682,34 @@ export default function CustomerHomePage() {
           </>
         )}
       </main>
+
+      {itemCount > 0 && (
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-semibold text-stone-500">
+                  {itemCount} {itemCount === 1 ? 'item' : 'items'} &bull; Lock: {formatTimer(remainingSeconds)}
+                </p>
+                <p className="font-mono text-base font-extrabold text-stone-900 tabular-nums">
+                  ₹{(subtotal / 100).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/cart"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/25 hover:opacity-95 transition active:scale-95"
+            >
+              <span>View Cart</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

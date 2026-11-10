@@ -118,18 +118,35 @@ export default function CustomerOrdersPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
-        <div className="mx-auto max-w-4xl space-y-8">
-          <div className="border-b border-stone-200 pb-6">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e3a]">
-              Personal Dining Record
-            </span>
-            <h1 className="mt-1 text-3xl font-black tracking-tight text-stone-900">
-              My Campus Orders
-            </h1>
-            <p className="mt-1 text-xs text-stone-500">
-              Track live kitchen status, token numbers, and previous canteen orders
-            </p>
+
+      <div className="md:hidden">
+        <header className="rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-5 pb-7 text-white shadow-xl shadow-orange-500/15">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-orange-100">
+            Personal Dining Record
+          </span>
+          <h1 className="text-2xl font-black tracking-tight text-white mt-0.5">
+            My Campus Orders
+          </h1>
+          <p className="mt-1 text-xs text-orange-100">
+            Track live kitchen status, token numbers, and previous canteen orders
+          </p>
+        </header>
+      </div>
+
+      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div className="hidden md:block">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-7 text-white shadow-xl shadow-orange-500/15">
+              <span className="text-xs font-bold uppercase tracking-wider text-orange-100">
+                Personal Dining Record
+              </span>
+              <h1 className="mt-1 text-3xl font-black tracking-tight text-white">
+                My Campus Orders
+              </h1>
+              <p className="mt-1 text-xs text-orange-100">
+                Track live kitchen status, token numbers, and previous canteen orders
+              </p>
+            </div>
           </div>
 
           {!user && !authLoading ? (

@@ -10,6 +10,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Customer Floating Cart Bar on Home (`customer/src/app/page.tsx`)**:
+  - Added floating bottom cart checkout pill on the home page when items are selected or in the cart, matching the menu page experience.
+  - Displays total quantity, earliest lock countdown, live subtotal in INR, and 1-click "View Cart" navigation link.
+- **Menu Live Search Bar (`customer/src/app/menu/page.tsx`)**:
+  - Added real-time client-side search bar filtering dishes by dish name, category, and description.
+  - Integrated cleanly inside both mobile curved header and desktop curved hero card with clear (X) button.
+- **Preset Avatar Picker (`customer/src/app/profile/page.tsx`)**:
+  - Replaced camera file upload prompt with interactive modal displaying campus preset SVG avatars (`avatar-1.svg` to `avatar-5.svg`).
+  - Saves choice immediately to user profile via `updateAvatarKey` and renders active selection badge.
+- **Change Password Modal Popup Card (`customer/src/app/settings/page.tsx`)**:
+  - Replaced inline password input form with dedicated "Change Password" button that opens an accessible modal popup card with validation, error/success messaging, and auto-dismissal.
+
+### Changed
+- **Curved Header UI System (`customer/src/app/menu/page.tsx`, `customer/src/app/cart/page.tsx`, `customer/src/app/orders/page.tsx`)**:
+  - Unified customer application headers with the home page's signature curved gradient (`rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` on mobile, `rounded-3xl` gradient hero card on desktop).
+- **Automatic Cart Lock Expiration & Item Removal (`customer/src/context/CartContext.tsx`)**:
+  - Added per-item expiration tracking (`expires_at`) to `CartItem`.
+  - Built second-by-second expiration checker that automatically unlocks and evicts expired items from the cart state and localStorage.
+  - Automatically triggers backend `syncBackendReleaseAll` and shows expiration notice when all locked items expire.
+- **Removal of Order Cancellation (`customer/src/app/payment-faq/page.tsx`, `customer/src/app/orders/track/page.tsx`)**:
+  - Completely removed order cancellation references and replaced FAQ entry stating orders cannot be cancelled once placed due to immediate kitchen preparation.
+- **Profile Page Personal Info Cleanup (`customer/src/app/profile/page.tsx`)**:
+  - Removed redundant "Security & Settings" button from the bottom of the personal profile info section.
+
+### Added
 - **Admin Order Receipt Endpoint (`GET /api/v1/admin/orders/:id/receipt`)**:
   - Implemented receipt retrieval endpoint in `backend/src/routes/adminOrders.ts` accessible to `developer`, `admin`, `retail`, and `staff` roles.
   - Fetches itemized order records, line totals, customer details (`profiles`), and canteen metadata.

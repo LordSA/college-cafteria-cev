@@ -10,6 +10,7 @@ export interface CartItem {
   image_url: string | null;
   category_name?: string;
   quantity: number;
+  expires_at?: number;
 }
 
 export interface CartContextType {
@@ -57,7 +58,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (storedItems) {
         const parsed = JSON.parse(storedItems);
         if (Array.isArray(parsed)) {
-          setItems(parsed);
+          const now = Date.now();
+          const valid = parsed.filter((item: any) => !item.expires_at || item.expires_at > now);
+          if (valid.length > 0) {
+            setItems(valid);
+          } else {
+            localStorage.removeItem(CART_STORAGE_KEY);
+            localStorage.removeItem(CART_EXPIRY_KEY);
+            setIsExpired(true);
+          }
         }
       }
 
@@ -170,22 +179,63 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [sessionId, session]);
 
   useEffect(() => {
-    if (!expiresAt || items.length === 0) {
+    if (items.length === 0) {
       setRemainingSeconds(0);
+      setExpiresAt(null);
       return;
     }
 
-    const interval = setInterval(() => {
-      const diff = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
-      setRemainingSeconds(diff);
-      if (diff <= 0) {
-        clearInterval(interval);
-        handleExpiryTimeout();
+    const checkAndTick = () => {
+      const now = Date.now();
+      const expired = items.filter((item) => item.expires_at && item.expires_at <= now);
+
+      if (expired.length > 0) {
+        const remaining = items.filter((item) => !item.expires_at || item.expires_at > now);
+
+        for (const exp of expired) {
+          syncBackendUnlock(exp.id);
+        }
+
+        if (remaining.length === 0) {
+          setIsExpired(true);
+          setItems([]);
+          setExpiresAt(null);
+          setRemainingSeconds(0);
+          try {
+            localStorage.removeItem(CART_STORAGE_KEY);
+            localStorage.removeItem(CART_EXPIRY_KEY);
+          } catch {}
+          syncBackendReleaseAll();
+        } else {
+          setItems(remaining);
+          const nextExpiry = Math.min(
+            ...remaining.map((i) => i.expires_at || now + LOCK_DURATION_SECONDS * 1000)
+          );
+          setExpiresAt(nextExpiry);
+          setRemainingSeconds(Math.max(0, Math.floor((nextExpiry - now) / 1000)));
+        }
+        return;
       }
-    }, 1000);
+
+      const activeExpiries = items.map((i) => i.expires_at).filter(Boolean) as number[];
+      if (activeExpiries.length > 0) {
+        const earliest = Math.min(...activeExpiries);
+        setExpiresAt(earliest);
+        setRemainingSeconds(Math.max(0, Math.floor((earliest - now) / 1000)));
+      } else if (expiresAt) {
+        const diff = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        setRemainingSeconds(diff);
+        if (diff <= 0) {
+          handleExpiryTimeout();
+        }
+      }
+    };
+
+    checkAndTick();
+    const interval = setInterval(checkAndTick, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresAt, items.length, handleExpiryTimeout]);
+  }, [items, expiresAt, handleExpiryTimeout]);
 
   const addItem = useCallback(
     async (newItem: Omit<CartItem, 'quantity'>): Promise<{ success: boolean; error?: string }> => {
@@ -197,12 +247,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: lockRes.error };
       }
 
+      const expiry = Date.now() + LOCK_DURATION_SECONDS * 1000;
       setItems((prev) => {
         const existingIndex = prev.findIndex((i) => i.id === newItem.id);
         if (existingIndex > -1) {
-          return prev.map((item, idx) => (idx === existingIndex ? { ...item, quantity: targetQty } : item));
+          return prev.map((item, idx) => (idx === existingIndex ? { ...item, quantity: targetQty, expires_at: expiry } : item));
         }
-        return [...prev, { ...newItem, quantity: 1 }];
+        return [...prev, { ...newItem, quantity: 1, expires_at: expiry }];
       });
 
       refreshExpiry();
@@ -241,7 +292,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: lockRes.error };
       }
 
-      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity: cappedQty } : item)));
+      const expiry = Date.now() + LOCK_DURATION_SECONDS * 1000;
+      setItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity: cappedQty, expires_at: expiry } : item)));
       refreshExpiry();
       return { success: true };
     },

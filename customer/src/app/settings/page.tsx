@@ -19,6 +19,7 @@ import {
   Building2,
   Check,
   Link as LinkIcon,
+  X,
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -32,6 +33,7 @@ export default function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const [teacherId, setTeacherId] = useState('');
   const [teacherIdLoading, setTeacherIdLoading] = useState(false);
@@ -82,7 +84,10 @@ export default function SettingsPage() {
       setPasswordSuccess('Password updated successfully!');
       setNewPassword('');
       setConfirmPassword('');
-      setTimeout(() => setPasswordSuccess(null), 4000);
+      setTimeout(() => {
+        setPasswordSuccess(null);
+        setShowPasswordModal(false);
+      }, 1200);
     } catch (err: any) {
       setPasswordError(err.message || 'Failed to update password');
     } finally {
@@ -293,71 +298,32 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <h3 className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-                  <KeyRound className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                  <span>Change Password</span>
-                </h3>
-                <p className="text-[11px] text-stone-500 mt-0.5">
-                  Set a new password for signing into your Cafteria customer account.
-                </p>
-              </div>
-
-              {passwordSuccess && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                  <span>{passwordSuccess}</span>
-                </div>
-              )}
-
-              {passwordError && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                  <span>{passwordError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleChangePassword} className="space-y-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="newPassword">
-                      New Password
-                    </label>
-                    <input
-                      id="newPassword"
-                      type="password"
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                      className="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-xs text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="confirmPassword">
-                      Confirm New Password
-                    </label>
-                    <input
-                      id="confirmPassword"
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Re-type password"
-                      className="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-xs text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
-                    />
-                  </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                    <KeyRound className="h-3.5 w-3.5 text-[#ff5e3a]" />
+                    <span>Change Password</span>
+                  </h3>
+                  <p className="text-[11px] text-stone-500 mt-0.5">
+                    Update your account credentials to keep your profile secure.
+                  </p>
                 </div>
 
                 <button
-                  type="submit"
-                  disabled={passwordLoading}
-                  className="rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-xs hover:opacity-95 transition disabled:opacity-50"
+                  type="button"
+                  onClick={() => {
+                    setPasswordError(null);
+                    setPasswordSuccess(null);
+                    setNewPassword('');
+                    setConfirmPassword('');
+                    setShowPasswordModal(true);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-95 transition active:scale-95 self-start sm:self-auto"
                 >
-                  {passwordLoading ? 'Updating Password...' : 'Update Password'}
+                  <KeyRound className="h-3.5 w-3.5" />
+                  <span>Change Password</span>
                 </button>
-              </form>
+              </div>
             </div>
 
             <div className="border-t border-stone-100 pt-5 space-y-3">
@@ -421,6 +387,98 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {showPasswordModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+            <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-stone-900">Change Account Password</h3>
+                  <p className="text-xs text-stone-500 mt-0.5">Set a new password for signing into Cafteria</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="rounded-full p-1 text-stone-400 hover:bg-stone-100 transition"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {passwordSuccess && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              {passwordError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleChangePassword} className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="modalNewPassword">
+                    New Password
+                  </label>
+                  <input
+                    id="modalNewPassword"
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="modalConfirmPassword">
+                    Confirm New Password
+                  </label>
+                  <input
+                    id="modalConfirmPassword"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-type password"
+                    className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-95 disabled:opacity-50 transition"
+                  >
+                    {passwordLoading ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span>Updating...</span>
+                      </>
+                    ) : (
+                      <span>Update Password</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordModal(false)}
+                    disabled={passwordLoading}
+                    className="rounded-xl border border-stone-300 px-4 py-2.5 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </>

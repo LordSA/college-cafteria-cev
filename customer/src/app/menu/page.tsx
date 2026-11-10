@@ -20,6 +20,8 @@ import {
   ArrowRight,
   X,
   Clock,
+  Search,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface Category {
@@ -55,6 +57,7 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,8 +110,15 @@ export default function MenuPage() {
   const cartQuantityMap = new Map(cartItems.map((i) => [i.id, i.quantity]));
 
   const filteredItems = menuItems.filter((item) => {
-    if (selectedCategory === 'all') return true;
-    return item.category_id === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.category_id === selectedCategory;
+    if (!matchesCategory) return false;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      item.name.toLowerCase().includes(q) ||
+      (item.description && item.description.toLowerCase().includes(q)) ||
+      (item.category_name && item.category_name.toLowerCase().includes(q))
+    );
   });
 
   const handleAddToCart = async (item: MenuItem) => {
@@ -155,46 +165,125 @@ export default function MenuPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 pb-32 md:pb-16">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200 pb-5">
+
+      <div className="md:hidden">
+        <header className="rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-5 pb-7 text-white shadow-xl shadow-orange-500/15">
+          <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#ff5e3a]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-orange-100">
                 Cafteria CEV
               </span>
-              <h1 className="mt-0.5 text-2xl sm:text-3xl font-extrabold tracking-tight text-stone-900">
+              <h1 className="text-2xl font-black tracking-tight text-white">
                 Today's Menu
               </h1>
-              <p className="mt-0.5 text-xs text-stone-500">
-                Freshly prepared meals, snacks, and refreshments
-              </p>
             </div>
-
-            <div className="flex items-center gap-3">
+            {selectedCategory !== 'all' && (
               <button
                 type="button"
-                onClick={() => setShowFilterModal(true)}
-                className="inline-flex items-center gap-2 rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-xs font-bold text-stone-800 shadow-xs hover:border-[#ff5e3a] transition active:scale-95"
+                onClick={() => setSelectedCategory('all')}
+                className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-md"
               >
-                <Filter className="h-4 w-4 text-[#ff5e3a]" />
-                <span>Filter</span>
-                {selectedCategory !== 'all' && (
-                  <span className="ml-1 rounded-full bg-[#ff5e3a] px-2 py-0.5 text-[10px] font-bold text-white">
-                    1
-                  </span>
-                )}
+                <span>{activeCategoryName}</span>
+                <X className="h-3.5 w-3.5" />
               </button>
+            )}
+          </div>
 
-              {selectedCategory !== 'all' && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-2.5 text-stone-800 shadow-xl shadow-black/5">
+            <div className="flex flex-1 items-center gap-2.5">
+              <Search className="h-4 w-4 text-[#ff5e3a] flex-shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search dishes, snacks, drinks..."
+                className="w-full bg-transparent text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+              />
+              {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => setSelectedCategory('all')}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700 hover:bg-stone-200 transition"
+                  onClick={() => setSearchQuery('')}
+                  className="text-stone-400 hover:text-stone-600"
                 >
-                  <span>{activeCategoryName}</span>
-                  <X className="h-3.5 w-3.5 text-stone-500" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFilterModal(true)}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 transition flex-shrink-0"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
+          </div>
+        </header>
+      </div>
+
+      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-32 md:pb-16">
+        <div className="mx-auto max-w-4xl space-y-6">
+          <div className="hidden md:block">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-7 text-white shadow-xl shadow-orange-500/15">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-orange-100">
+                    Cafteria CEV
+                  </span>
+                  <h1 className="text-3xl font-black tracking-tight text-white mt-0.5">
+                    Today's Menu
+                  </h1>
+                  <p className="mt-1 text-xs text-orange-100">
+                    Freshly prepared meals, snacks, and refreshments
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="relative flex items-center w-72 rounded-full bg-white px-3.5 py-2 text-stone-800 shadow-md">
+                    <Search className="h-4 w-4 text-[#ff5e3a] mr-2 flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search dishes..."
+                      className="w-full bg-transparent text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="text-stone-400 hover:text-stone-600 ml-1"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowFilterModal(true)}
+                    className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-bold text-white hover:bg-white/30 transition shadow-sm"
+                  >
+                    <Filter className="h-3.5 w-3.5" />
+                    <span>Filter</span>
+                    {selectedCategory !== 'all' && (
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-[#ff5e3a]">
+                        1
+                      </span>
+                    )}
+                  </button>
+
+                  {selectedCategory !== 'all' && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategory('all')}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-semibold text-white transition backdrop-blur-md"
+                    >
+                      <span>{activeCategoryName}</span>
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
