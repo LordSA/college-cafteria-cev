@@ -292,7 +292,8 @@ function ReceiptContent() {
 
         <div className="border-t border-stone-200 pt-4 text-center space-y-1 text-[10px] text-stone-500">
           <p className="font-bold text-stone-700">{receipt.canteen.notice}</p>
-          <p>Thank you for dining at Cafteria! Please retain this bill for collection.</p>
+          <p className="font-semibold text-rose-600">Strict No-Refund Policy: Takeaway meals are prepared freshly upon confirmation and cannot be cancelled or refunded.</p>
+          <p>Thank you for dining at Cafeteria CEV! Please retain this bill for collection.</p>
         </div>
       </div>
     </div>

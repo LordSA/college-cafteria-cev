@@ -6,13 +6,14 @@ import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import {
   HelpCircle,
-  Wallet,
   CreditCard,
   QrCode,
   AlertCircle,
   ChevronDown,
   ArrowLeft,
   Sparkles,
+  ShieldAlert,
+  UserCheck,
 } from 'lucide-react';
 
 interface FaqItem {
@@ -23,39 +24,39 @@ interface FaqItem {
 
 const FAQS: FaqItem[] = [
   {
-    question: 'What payment methods can I use at Cafteria CEV?',
+    question: 'What is the Strict No-Refund and No-Cancellation Policy?',
     answer:
-      'You can checkout using two methods: (1) Testing Wallet (Demo Credits) for instant digital pre-orders without entering bank cards, or (2) Pay at Counter when collecting your order at the canteen collection desk (via UPI, physical cash, or campus tokens).',
+      'All orders placed on Cafeteria CEV are final, non-refundable, and non-cancellable. Because our kitchen team begins freshly preparing food immediately upon order confirmation to ensure speedy pickup between lectures, orders cannot be cancelled, amended, or refunded under any circumstances, including late pickups or uncollected meals.',
+    icon: ShieldAlert,
+  },
+  {
+    question: 'What payment methods can I use at Cafeteria CEV?',
+    answer:
+      'You can pay online via Razorpay (supporting GooglePay, PhonePe, Paytm, all UPI apps, Rupay/Visa/MasterCard debit and credit cards, and netbanking), Pay at Counter when collecting, or use Faculty Credit (Pay Later) if you are verified college staff.',
     icon: CreditCard,
   },
   {
-    question: 'What is the "Testing Wallet" and how do demo credits work?',
+    question: 'How does Faculty Credit (Pay Later) work?',
     answer:
-      'The Testing Wallet is an integrated feature built to test digital canteen pre-ordering. It uses simulated demo credits (e.g. ₹500.00) so students and staff can test ordering without risking real financial transactions. Demo credits carry no real monetary value and cannot be withdrawn.',
-    icon: Wallet,
+      'Verified faculty and institutional staff can place orders instantly without paying at checkout. Orders are recorded against their verified teacher profile and can be cleared periodically via digital UPI or at the canteen desk.',
+    icon: UserCheck,
   },
   {
-    question: 'Can I add real money to the testing wallet or withdraw credits?',
+    question: 'How do I collect my food after ordering?',
     answer:
-      'No. Testing Wallet demo credits are strictly non-monetary. They cannot be topped up with real bank funds, refunded to a bank account, or converted into physical cash. Balance adjustments during testing are managed exclusively by canteen administrators.',
-    icon: AlertCircle,
-  },
-  {
-    question: 'How do I collect my food after paying or ordering?',
-    answer:
-      'Once your order is placed, our kitchen prepares your meal. You can monitor progress on the live Order Tracking page. When the status changes to "READY_TO_PICK", head to the collection desk and show your high-contrast QR pass or order token (e.g. #B-108). Staff will verify and hand over your meal immediately.',
+      'Once your order is confirmed, follow real-time progress on the Order Tracking page. When the status changes to READY TO PICK, present your digital QR pass or token number (#B-108) at the takeaway counter. The operator will scan your QR code and hand over your hot meal.',
     icon: QrCode,
   },
   {
     question: 'Can I cancel an order once placed?',
     answer:
-      'No. Because our kitchen team starts preparing meals immediately upon order placement, orders cannot be cancelled once placed. Please check your items and total carefully before confirming checkout.',
+      'No. Due to immediate kitchen preparation for perishable hot food, cancellation is strictly disallowed. Please verify all selected items, quantities, and totals prior to confirming checkout.',
     icon: AlertCircle,
   },
   {
-    question: 'How does the digital QR pass protect my meal from someone else taking it?',
+    question: 'How does the digital QR pass protect my meal pickup?',
     answer:
-      'Each order generates a cryptographically random verification token (#CAF-QR-XXXXXX) rendered as a secure SVG QR code. When the canteen operator scans your QR code at the collection desk, it validates your order and permanently marks it as COLLECTED, preventing duplicate pickups.',
+      'Each order generates a cryptographically unique verification token rendered as a high-contrast QR code. When canteen staff scan the token at collection, it validates the itemized order and marks it as COLLECTED, preventing duplicate or unauthorized pickups.',
     icon: Sparkles,
   },
 ];
@@ -70,7 +71,7 @@ export default function PaymentFaqPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 pb-28 md:pb-16">
+      <main className="flex-1 pb-28 md:pb-16 bg-[#fafafa] dark:bg-[#0b0c0e]">
         <section className="bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] py-12 text-white">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <Link
@@ -89,7 +90,7 @@ export default function PaymentFaqPage() {
                   Payment & Ordering FAQs
                 </h1>
                 <p className="mt-1 text-xs text-orange-100 font-medium">
-                  Everything you need to know about campus pre-orders, wallet credits, and pickups
+                  Important guidelines regarding campus orders, no-refund policy, and pickups
                 </p>
               </div>
             </div>
@@ -105,7 +106,7 @@ export default function PaymentFaqPage() {
               return (
                 <div
                   key={faq.question}
-                  className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs transition hover:border-orange-300"
+                  className="overflow-hidden rounded-2xl border border-stone-200 dark:border-[#22242e] bg-white dark:bg-[#121316] shadow-xs transition hover:border-orange-300 dark:hover:border-orange-500/40"
                 >
                   <button
                     type="button"
@@ -113,23 +114,23 @@ export default function PaymentFaqPage() {
                     className="flex w-full items-center justify-between p-5 text-left transition focus:outline-none"
                   >
                     <div className="flex items-center gap-3.5 pr-4">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#ff5e3a]">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-950/40 text-[#ff5e3a]">
                         <IconComp className="h-5 w-5" />
                       </div>
-                      <h3 className="text-sm font-bold text-stone-900">
+                      <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
                         {faq.question}
                       </h3>
                     </div>
                     <ChevronDown
-                      className={`h-4 w-4 flex-shrink-0 text-stone-400 transition-transform duration-200 ${
+                      className={`h-4 w-4 flex-shrink-0 text-stone-400 dark:text-stone-500 transition-transform duration-200 ${
                         isOpen ? 'rotate-180 text-[#ff5e3a]' : ''
                       }`}
                     />
                   </button>
 
                   {isOpen && (
-                    <div className="border-t border-stone-100 bg-stone-50/50 px-5 pb-5 pt-3">
-                      <p className="text-xs sm:text-sm leading-relaxed text-stone-600">
+                    <div className="border-t border-stone-100 dark:border-[#1e2029] bg-stone-50/50 dark:bg-[#17181f]/60 px-5 pb-5 pt-3">
+                      <p className="text-xs sm:text-sm leading-relaxed text-stone-600 dark:text-stone-300">
                         {faq.answer}
                       </p>
                     </div>
@@ -139,10 +140,10 @@ export default function PaymentFaqPage() {
             })}
           </div>
 
-          <div className="mt-10 rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50/70 to-rose-50/50 p-6 text-stone-800 shadow-xs">
-            <h3 className="font-bold text-sm text-stone-900">Still have a question?</h3>
-            <p className="mt-1 text-xs text-stone-600 leading-relaxed">
-              Visit our canteen staff at the collection desk in the campus dining hall between 8:00 AM and 7:00 PM, or explore our full menu.
+          <div className="mt-10 rounded-3xl border border-orange-200 dark:border-orange-500/20 bg-gradient-to-br from-orange-50/70 to-rose-50/50 dark:from-[#1c1410] dark:to-[#171418] p-6 text-stone-800 dark:text-stone-200 shadow-xs">
+            <h3 className="font-bold text-sm text-stone-900 dark:text-stone-100">Strict Campus Takeaway Rules</h3>
+            <p className="mt-1 text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
+              Every meal is freshly cooked for swift takeaway dispatch. Once kitchen preparation begins, orders cannot be reversed, exchanged, or refunded. Please verify your basket carefully before placing an order.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <Link
@@ -152,10 +153,10 @@ export default function PaymentFaqPage() {
                 Browse Today's Menu
               </Link>
               <Link
-                href="/wallet"
-                className="rounded-xl border border-orange-300 bg-white px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition active:scale-95"
+                href="/terms"
+                className="rounded-xl border border-stone-300 dark:border-[#2b2d3c] bg-white dark:bg-[#1a1b24] px-4 py-2 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-[#20222e] transition active:scale-95"
               >
-                Check Demo Wallet
+                View Terms & Policy
               </Link>
             </div>
           </div>

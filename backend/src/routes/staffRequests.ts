@@ -130,7 +130,7 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select()
+    .select('id, display_name, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .single();
 
   if (error) {
@@ -199,7 +199,7 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select()
+    .select('id, display_name, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .single();
 
   if (error) {

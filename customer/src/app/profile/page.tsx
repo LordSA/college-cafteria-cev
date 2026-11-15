@@ -51,12 +51,11 @@ export default function ProfilePage() {
     orders: any[];
   }>({ total_pending: 0, order_count: 0, orders: [] });
   const [showSettleModal, setShowSettleModal] = useState(false);
-  const [settleMethod, setSettleMethod] = useState<'wallet' | 'upi'>('wallet');
+  const [settleMethod, setSettleMethod] = useState<'upi'>('upi');
   const [upiRef, setUpiRef] = useState('');
   const [settling, setSettling] = useState(false);
   const [settleError, setSettleError] = useState<string | null>(null);
   const [settleSuccess, setSettleSuccess] = useState<string | null>(null);
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   const isFacultyOrStaff = ['faculty', 'staff'].includes(
     profile?.approved_account_type || profile?.account_type || ''
@@ -82,24 +81,13 @@ export default function ProfilePage() {
   const loadPayLaterData = async () => {
     if (!session?.access_token || !isFacultyOrStaff) return;
     try {
-      const [plRes, wRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/v1/orders/pay-later/pending`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }),
-        fetch(`${API_BASE_URL}/api/v1/wallet/me`, {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }),
-      ]);
+      const plRes = await fetch(`${API_BASE_URL}/api/v1/orders/pay-later/pending`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       if (plRes.ok) {
         const plJson = await plRes.json();
         if (plJson.success && plJson.data) {
           setPendingPayLater(plJson.data);
-        }
-      }
-      if (wRes.ok) {
-        const wJson = await wRes.json();
-        if (wJson.success && wJson.data) {
-          setWalletBalance(wJson.data.balance);
         }
       }
     } catch { }
@@ -538,74 +526,30 @@ export default function ProfilePage() {
               )}
 
               <div className="space-y-3">
-                <label className="block text-xs font-bold text-stone-700">Choose Settlement Method</label>
+                <label className="block text-xs font-bold text-stone-700">Settlement Method</label>
 
-                <label
-                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${settleMethod === 'wallet'
-                      ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-600'
-                      : 'border-stone-200 hover:border-stone-300'
-                    }`}
-                >
-                  <input
-                    type="radio"
-                    name="settle_method"
-                    value="wallet"
-                    checked={settleMethod === 'wallet'}
-                    onChange={() => setSettleMethod('wallet')}
-                    className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
-                  />
+                <div className="flex items-start gap-3 rounded-2xl border border-indigo-600 bg-indigo-50/40 p-3.5 ring-1 ring-indigo-600">
                   <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-stone-900">Deduct from Canteen Wallet</span>
-                      {walletBalance !== null && (
-                        <span className="font-mono text-xs font-bold text-emerald-700">
-                          ₹{(walletBalance / 100).toFixed(2)} available
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-xs font-bold text-stone-900">Direct UPI or Counter Settlement</span>
                     <p className="text-[11px] text-stone-500 mt-0.5">
-                      Instantly clears dues using your current wallet credit balance.
+                      Pay via GooglePay, PhonePe, Paytm or at the counter and provide your payment reference.
                     </p>
                   </div>
-                </label>
+                </div>
 
-                <label
-                  className={`flex items-start gap-3 rounded-2xl border p-3.5 cursor-pointer transition ${settleMethod === 'upi'
-                      ? 'border-indigo-600 bg-indigo-50/40 ring-1 ring-indigo-600'
-                      : 'border-stone-200 hover:border-stone-300'
-                    }`}
-                >
+                <div className="pt-1">
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="upiRef">
+                    UPI Reference Number (Optional)
+                  </label>
                   <input
-                    type="radio"
-                    name="settle_method"
-                    value="upi"
-                    checked={settleMethod === 'upi'}
-                    onChange={() => setSettleMethod('upi')}
-                    className="mt-0.5 text-indigo-600 focus:ring-indigo-500"
+                    id="upiRef"
+                    type="text"
+                    placeholder="e.g. 429381749281"
+                    value={upiRef}
+                    onChange={(e) => setUpiRef(e.target.value)}
+                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-xs font-mono font-medium text-stone-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   />
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-stone-900">Direct UPI Settlement</span>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
-                      Pay via GooglePay, PhonePe, or Paytm and provide transaction reference.
-                    </p>
-                  </div>
-                </label>
-
-                {settleMethod === 'upi' && (
-                  <div className="pt-1">
-                    <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="upiRef">
-                      UPI Reference Number (Optional)
-                    </label>
-                    <input
-                      id="upiRef"
-                      type="text"
-                      placeholder="e.g. 429381749281"
-                      value={upiRef}
-                      onChange={(e) => setUpiRef(e.target.value)}
-                      className="w-full rounded-xl border border-stone-300 px-3 py-2 text-xs font-mono font-medium text-stone-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                    />
-                  </div>
-                )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2 pt-2">

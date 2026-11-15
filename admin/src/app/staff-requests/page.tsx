@@ -185,7 +185,14 @@ export default function StaffRequestsPage() {
           {error && (
             <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
-              <span>{error}</span>
+              <div className="flex flex-col gap-1">
+                <span>{error}</span>
+                {error.includes('profiles.email') && (
+                  <span className="text-[11px] text-stone-400">
+                    The backend or database schema is missing the profile email column. Run the migration in Supabase SQL editor: <code className="bg-[#121316] px-1 py-0.5 rounded text-stone-300">ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;</code> and redeploy the backend.
+                  </span>
+                )}
+              </div>
             </div>
           )}
 

@@ -2,13 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 export function WelcomeLanding() {
-  const router = useRouter();
   const { signInWithGoogle } = useAuth();
   const { activeTheme } = useTheme();
   const [googleLoading, setGoogleLoading] = useState(false);

@@ -14,9 +14,9 @@ import {
   Loader2,
   User,
   AlertTriangle,
-  Wallet,
   CreditCard,
   Building2,
+  ShieldAlert,
 } from 'lucide-react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
@@ -43,12 +43,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [validating, setValidating] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'testing_wallet' | 'counter_cash' | 'pay_later'>('razorpay');
-  const [walletBalance, setWalletBalance] = useState<number | null>(null);
-  const [walletLoading, setWalletLoading] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'counter_cash' | 'pay_later'>('razorpay');
   const [pendingPayLater, setPendingPayLater] = useState<number>(0);
-
-  const isLivePaymentMode = process.env.NEXT_PUBLIC_PAYMENT_MODE === 'live';
 
   const isFacultyOrStaff = ['faculty', 'staff'].includes(
     profile?.approved_account_type || profile?.account_type || ''
@@ -57,6 +53,12 @@ export default function CheckoutPage() {
   useEffect(() => {
     loadRazorpayScript();
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/checkout');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function validateCartItems() {
@@ -81,58 +83,39 @@ export default function CheckoutPage() {
                 unavailable.push(item.name);
               }
             }
+
             setUnavailableItems(unavailable);
           }
         }
-      } catch {}
-      setValidating(false);
+      } catch {
+      } finally {
+        setValidating(false);
+      }
     }
 
     validateCartItems();
   }, [items]);
 
   useEffect(() => {
-    async function loadWallet() {
-      if (!session?.access_token) {
-        setWalletLoading(false);
-        return;
-      }
-
+    async function loadPayLater() {
+      if (!session?.access_token || !isFacultyOrStaff) return;
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/wallet/me`, {
+        const plRes = await fetch(`${API_BASE_URL}/api/v1/orders/pay-later/pending`, {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
         });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.data) {
-            setWalletBalance(json.data.balance);
-          }
-        }
-
-        if (isFacultyOrStaff) {
-          const plRes = await fetch(`${API_BASE_URL}/api/v1/orders/pay-later/pending`, {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          });
-          if (plRes.ok) {
-            const plJson = await plRes.json();
-            if (plJson.success && plJson.data) {
-              setPendingPayLater(plJson.data.total_pending || 0);
-            }
+        if (plRes.ok) {
+          const plJson = await plRes.json();
+          if (plJson.success && plJson.data) {
+            setPendingPayLater(plJson.data.total_pending || 0);
           }
         }
       } catch {}
-      setWalletLoading(false);
     }
 
-    loadWallet();
+    loadPayLater();
   }, [session, isFacultyOrStaff]);
-
-  const hasInsufficientWalletBalance =
-    paymentMethod === 'testing_wallet' && walletBalance !== null && walletBalance < subtotal;
 
   const handlePlaceOrder = async () => {
     if (!session?.access_token) {
@@ -150,13 +133,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (hasInsufficientWalletBalance) {
-      setError(
-        `Insufficient testing wallet balance (₹${((walletBalance || 0) / 100).toFixed(2)}). Please choose Razorpay Online or Pay at Counter.`
-      );
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
 
@@ -168,13 +144,10 @@ export default function CheckoutPage() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
+          'Idempotency-Key': idempotencyKey,
         },
         body: JSON.stringify({
-          items: items.map((i) => ({
-            menu_item_id: i.id,
-            quantity: i.quantity,
-          })),
-          idempotency_key: idempotencyKey,
+          items: items.map((i) => ({ menu_item_id: i.id, quantity: i.quantity })),
           payment_method: paymentMethod,
         }),
       });
@@ -195,12 +168,12 @@ export default function CheckoutPage() {
 
         const options = {
           key: razorpayKeyId,
-          amount: data.data.amount,
-          currency: data.data.currency || 'INR',
-          name: 'Cafteria CEV',
-          description: `Order #${data.data.order_number}`,
+          amount: data.data.total,
+          currency: 'INR',
+          name: 'Cafeteria CEV',
+          description: `Takeaway Order #${data.data.order_number}`,
           order_id: data.data.razorpay_order_id,
-          handler: async (response: any) => {
+          handler: async function (response: any) {
             try {
               const verifyRes = await fetch(`${API_BASE_URL}/api/v1/orders/verify-payment`, {
                 method: 'POST',
@@ -209,7 +182,7 @@ export default function CheckoutPage() {
                   Authorization: `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({
-                  order_id: data.data.id,
+                  order_id: data.data.order_id,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
@@ -222,22 +195,23 @@ export default function CheckoutPage() {
               }
 
               clearCart();
-              router.push(`/checkout/success/?id=${data.data.id}`);
+              router.push(`/checkout/success?order_id=${data.data.order_id}`);
             } catch (vErr: any) {
               setError(vErr?.message || 'Payment completed but server confirmation failed. Please refresh order tracker.');
-              setSubmitting(false);
             }
           },
           prefill: {
-            name: profile?.display_name || '',
+            name: profile?.display_name || user?.user_metadata?.full_name || '',
             email: user?.email || '',
+            contact: profile?.phone || user?.phone || '',
           },
           theme: {
             color: '#ff5e3a',
           },
           modal: {
-            ondismiss: () => {
+            ondismiss: function () {
               setSubmitting(false);
+              setError('Online payment window closed. You can retry checkout anytime.');
             },
           },
         };
@@ -251,60 +225,36 @@ export default function CheckoutPage() {
         return;
       }
 
-      clearCart();
-      if (paymentMethod === 'testing_wallet' || paymentMethod === 'pay_later') {
-        router.push(`/checkout/success/?id=${data.data.id}`);
-      } else {
-        router.push(`/orders/track/?id=${data.data.id}`);
+      if (paymentMethod === 'pay_later') {
+        clearCart();
+        router.push(`/checkout/success?order_id=${data.data.order_id}`);
+        return;
       }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'An error occurred while placing order';
-      setError(msg);
+
+      clearCart();
+      router.push(`/checkout/success?order_id=${data.data.order_id}`);
+    } catch (err: any) {
+      setError(err?.message || 'Network error occurred while creating order');
       setSubmitting(false);
     }
   };
 
-  if (authLoading) {
+  if (items.length === 0 && !submitting) {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20 pb-28 md:pb-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  if (!user) {
-    return (
-      <>
-        <Header />
-        <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
-          <div className="mx-auto max-w-md rounded-3xl border border-stone-200 bg-white p-8 text-center shadow-sm space-y-5">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a]">
-              <User className="h-7 w-7" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-stone-900">Sign in to complete order</h1>
-              <p className="mt-1 text-xs text-stone-500">
-                To link this order to your student or faculty profile, please sign in to your Cafteria account.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 pt-2">
-              <Link
-                href="/login?redirect=/checkout"
-                className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] py-3 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
-              >
-                Sign In to Continue
-              </Link>
-              <Link
-                href="/cart"
-                className="w-full inline-flex items-center justify-center rounded-xl border border-stone-200 py-2.5 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition"
-              >
-                Return to Cart
-              </Link>
-            </div>
+        <main className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-[#fafaf9] dark:bg-[#0d0e12] transition-colors duration-200">
+          <div className="rounded-3xl border border-stone-200 dark:border-white/10 bg-white/80 dark:bg-[#161820]/80 backdrop-blur-xl p-8 max-w-sm w-full space-y-4 shadow-sm">
+            <h1 className="text-xl font-bold text-stone-900 dark:text-white">Your Cart is Empty</h1>
+            <p className="text-xs text-stone-500 dark:text-stone-400">
+              Please add fresh dishes from the canteen menu to proceed with checkout.
+            </p>
+            <Link
+              href="/menu"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#ff5e3a] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-orange-600 transition"
+            >
+              <span>Explore Canteen Menu</span>
+            </Link>
           </div>
         </main>
         <Footer />
@@ -315,103 +265,93 @@ export default function CheckoutPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 bg-stone-50/50 pb-28 md:pb-12">
+      <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8 bg-stone-50/50 dark:bg-[#0d0e12] pb-28 md:pb-12 transition-colors duration-200">
         <div className="mx-auto max-w-2xl space-y-6">
-          <div>
+          <div className="border-b border-stone-200 dark:border-white/10 pb-5">
             <Link
               href="/cart"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-[#ff5e3a] transition mb-3"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-[#ff5e3a] transition mb-2"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Cart</span>
             </Link>
-            <h1 className="text-2xl font-black tracking-tight text-stone-900">
+            <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">
               Review & Place Order
             </h1>
-            <p className="mt-1 text-xs text-stone-500">
-              Please verify your canteen meal selection, payment method and pickup details
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+              Please verify your meal selection, payment method and pickup details
             </p>
           </div>
 
-          {unavailableItems.length > 0 && (
-            <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">Items Unavailable or Sold Out:</p>
-                <p className="mt-0.5">{unavailableItems.join(', ')}</p>
-                <Link
-                  href="/cart"
-                  className="mt-2 inline-block font-semibold underline hover:text-rose-950"
-                >
-                  Return to Cart to adjust quantities
-                </Link>
-              </div>
-            </div>
-          )}
-
           {error && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-3.5 text-xs text-rose-800 dark:text-rose-300">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
-          <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h2 className="text-sm font-bold text-stone-900">Ordering Account</h2>
-              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#ff5e3a] capitalize">
-                {profile?.account_type || 'Student'}
-              </span>
+          {unavailableItems.length > 0 && (
+            <div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/40 p-3.5 text-xs text-amber-800 dark:text-amber-300">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-600 mt-0.5" />
+              <div>
+                <span className="font-bold">Some items became unavailable: </span>
+                <span>{unavailableItems.join(', ')}. Please return to cart and remove them.</span>
+              </div>
+            </div>
+          )}
+
+          <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 border-b border-stone-100 dark:border-white/10 pb-3">
+              <User className="h-4 w-4 text-[#ff5e3a]" />
+              <h2 className="text-sm font-bold text-stone-900 dark:text-white">Pickup Customer Details</h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 text-xs">
+            <div className="grid gap-3 sm:grid-cols-2 text-xs">
               <div>
-                <span className="text-stone-400 font-medium">Name</span>
-                <p className="font-bold text-stone-900 mt-0.5">
-                  {profile?.display_name || user.email?.split('@')[0]}
+                <span className="text-stone-400 dark:text-stone-500 font-medium">Customer Name</span>
+                <p className="font-bold text-stone-900 dark:text-white mt-0.5">
+                  {profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0]}
                 </p>
               </div>
+
               <div>
-                <span className="text-stone-400 font-medium">Email</span>
-                <p className="font-bold text-stone-900 truncate mt-0.5">{user.email}</p>
+                <span className="text-stone-400 dark:text-stone-500 font-medium">Contact Email</span>
+                <p className="font-bold text-stone-900 dark:text-white mt-0.5">{user?.email}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
-            <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
-              Order Items ({itemCount})
-            </h2>
+          <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
+              <h2 className="text-sm font-bold text-stone-900 dark:text-white">Order Summary</h2>
+              <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">{itemCount} items</span>
+            </div>
 
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-stone-100 dark:divide-white/10">
               {items.map((item) => (
-                <div key={item.id} className="py-3 flex items-center justify-between text-xs">
+                <div key={item.id} className="py-2.5 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-[#ff5e3a] min-w-[20px]">
-                      {item.quantity}×
-                    </span>
-                    <span className="font-semibold text-stone-900">{item.name}</span>
+                    <span className="font-bold text-stone-900 dark:text-white">{item.quantity}x</span>
+                    <span className="text-stone-700 dark:text-stone-200">{item.name}</span>
                   </div>
-                  <span className="font-mono font-bold text-stone-900 tabular-nums">
+                  <span className="font-mono font-bold text-stone-900 dark:text-white">
                     ₹{((item.price * item.quantity) / 100).toFixed(2)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-stone-200/80 pt-3 space-y-2 text-xs">
-              <div className="flex justify-between text-stone-500">
+            <div className="border-t border-stone-200 dark:border-white/10 pt-3 space-y-1.5">
+              <div className="flex justify-between items-center text-xs text-stone-500 dark:text-stone-400">
                 <span>Subtotal</span>
-                <span className="font-mono tabular-nums font-semibold text-stone-800">
-                  ₹{(subtotal / 100).toFixed(2)}
-                </span>
+                <span className="font-mono">₹{(subtotal / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-stone-500">
-                <span>Campus Canteen Surcharge</span>
-                <span className="font-mono tabular-nums font-semibold text-emerald-600">₹0.00</span>
+              <div className="flex justify-between items-center text-xs text-stone-500 dark:text-stone-400">
+                <span>Canteen Service Fee</span>
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">FREE (₹0.00)</span>
               </div>
-              <div className="flex justify-between items-baseline pt-2 border-t border-stone-100">
-                <span className="text-sm font-bold text-stone-900">Total Payable</span>
+              <div className="flex justify-between items-center pt-2 border-t border-dashed border-stone-200 dark:border-white/10">
+                <span className="text-sm font-bold text-stone-900 dark:text-white">Total Payable</span>
                 <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
                   ₹{(subtotal / 100).toFixed(2)}
                 </span>
@@ -419,18 +359,18 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h2 className="text-sm font-bold text-stone-900">Select Payment Method</h2>
-              <span className="text-[11px] font-semibold text-emerald-600">Official Campus Checkout</span>
+          <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
+              <h2 className="text-sm font-bold text-stone-900 dark:text-white">Select Payment Method</h2>
+              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Official Campus Checkout</span>
             </div>
 
             <div className="space-y-3">
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
                   paymentMethod === 'razorpay'
-                    ? 'border-[#ff5e3a] bg-orange-50/40 ring-1 ring-[#ff5e3a]'
-                    : 'border-stone-200 hover:border-stone-300 bg-white'
+                    ? 'border-[#ff5e3a] bg-orange-50/50 dark:bg-orange-950/20 ring-1 ring-[#ff5e3a]'
+                    : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
                 }`}
               >
                 <input
@@ -445,73 +385,25 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-[#ff5e3a]" />
-                      <span className="text-xs font-bold text-stone-900">Online Payment (Razorpay)</span>
-                      <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-[#ff5e3a]">
+                      <span className="text-xs font-bold text-stone-900 dark:text-white">Online Payment (Razorpay)</span>
+                      <span className="rounded bg-orange-100 dark:bg-orange-950/40 px-1.5 py-0.5 text-[10px] font-bold text-[#ff5e3a]">
                         Recommended
                       </span>
                     </div>
                     <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span>
                   </div>
-                  <p className="mt-1 text-[11px] text-stone-500 leading-normal">
-                    Pay securely via Razorpay Standard Checkout in INR paise. Upon verified confirmation, your official QR pickup pass is generated instantly.
+                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
+                    Pay securely via Razorpay Standard Checkout. Instant QR pickup pass generated upon confirmation.
                   </p>
                 </div>
               </label>
-
-              {!isLivePaymentMode && (
-                <label
-                  className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
-                    paymentMethod === 'testing_wallet'
-                      ? 'border-emerald-500 bg-emerald-50/40 ring-1 ring-emerald-500'
-                      : 'border-stone-200 hover:border-stone-300 bg-white'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="testing_wallet"
-                    checked={paymentMethod === 'testing_wallet'}
-                    onChange={() => setPaymentMethod('testing_wallet')}
-                    className="mt-1 h-4 w-4 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Wallet className="h-4 w-4 text-emerald-600" />
-                        <span className="text-xs font-bold text-stone-900">Testing Wallet</span>
-                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
-                          Demo Credits Only
-                        </span>
-                      </div>
-                      {walletBalance !== null ? (
-                        <span className="font-mono text-xs font-bold text-emerald-700 tabular-nums">
-                          ₹{(walletBalance / 100).toFixed(2)} available
-                        </span>
-                      ) : walletLoading ? (
-                        <span className="text-[10px] text-stone-400">Checking balance...</span>
-                      ) : null}
-                    </div>
-                    <p className="mt-1 text-[11px] text-stone-500 leading-normal">
-                      Development mode credits only. Not usable as real tender.
-                    </p>
-                    {hasInsufficientWalletBalance && (
-                      <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-rose-600">
-                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                        <span>
-                          Insufficient demo balance (need ₹{(subtotal / 100).toFixed(2)}, have ₹{((walletBalance || 0) / 100).toFixed(2)}). Select Razorpay Online.
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </label>
-              )}
 
               {isFacultyOrStaff && (
                 <label
                   className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
                     paymentMethod === 'pay_later'
-                      ? 'border-indigo-500 bg-indigo-50/40 ring-1 ring-indigo-500'
-                      : 'border-stone-200 hover:border-stone-300 bg-white'
+                      ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-indigo-500'
+                      : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
                   }`}
                 >
                   <input
@@ -526,18 +418,18 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-indigo-600" />
-                        <span className="text-xs font-bold text-stone-900">Pay Later (Faculty & Staff Credit)</span>
-                        <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800">
+                        <span className="text-xs font-bold text-stone-900 dark:text-white">Pay Later (Faculty & Staff Credit)</span>
+                        <span className="rounded bg-indigo-100 dark:bg-indigo-950/40 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800 dark:text-indigo-300">
                           Faculty Benefit
                         </span>
                       </div>
                       {pendingPayLater > 0 && (
-                        <span className="font-mono text-xs font-bold text-amber-700 tabular-nums">
+                        <span className="font-mono text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums">
                           Pending: ₹{(pendingPayLater / 100).toFixed(2)}
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-[11px] text-stone-500 leading-normal">
+                    <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
                       Order now with instant QR token without upfront payment. Settle dues from your profile.
                     </p>
                   </div>
@@ -547,8 +439,8 @@ export default function CheckoutPage() {
               <label
                 className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
                   paymentMethod === 'counter_cash'
-                    ? 'border-stone-400 bg-stone-50 ring-1 ring-stone-400'
-                    : 'border-stone-200 hover:border-stone-300 bg-white'
+                    ? 'border-stone-400 bg-stone-50 dark:bg-white/[0.06] ring-1 ring-stone-400'
+                    : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
                 }`}
               >
                 <input
@@ -561,12 +453,12 @@ export default function CheckoutPage() {
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-900">Pay at Counter (Cash/Physical UPI)</span>
-                    <span className="rounded bg-stone-200 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                    <span className="text-xs font-bold text-stone-900 dark:text-white">Pay at Counter (Cash/Physical UPI)</span>
+                    <span className="rounded bg-stone-200 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-stone-700 dark:text-stone-300">
                       Unpaid Order
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-stone-500 leading-normal">
+                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
                     Order is placed as unpaid. Pay canteen staff directly at the collection desk to complete pickup.
                   </p>
                 </div>
@@ -574,10 +466,20 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/10 dark:bg-amber-500/15 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-3 shadow-xs">
+            <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <span className="font-bold block text-xs">Strict No-Refund & No-Cancellation Policy</span>
+              <p className="text-[11px] leading-relaxed opacity-90">
+                All canteen meals are freshly prepared on-demand immediately upon order placement. Once submitted, orders cannot be cancelled and payments are strictly non-refundable.
+              </p>
+            </div>
+          </div>
+
           <button
             onClick={handlePlaceOrder}
-            disabled={submitting || validating || unavailableItems.length > 0 || hasInsufficientWalletBalance}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white shadow-md transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] hover:opacity-95 shadow-orange-500/25"
+            disabled={submitting || validating || unavailableItems.length > 0}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-full py-4 text-xs font-black uppercase tracking-wider text-white shadow-xl transition active:scale-95 disabled:opacity-50 disabled:pointer-events-none bg-[#ff5e3a] hover:bg-[#ff4b4b] shadow-orange-500/25"
           >
             {submitting ? (
               <>
@@ -588,11 +490,6 @@ export default function CheckoutPage() {
               <>
                 <CreditCard className="h-4 w-4" />
                 <span>Pay ₹{(subtotal / 100).toFixed(2)} Online via Razorpay</span>
-              </>
-            ) : paymentMethod === 'testing_wallet' ? (
-              <>
-                <Wallet className="h-4 w-4" />
-                <span>Pay ₹{(subtotal / 100).toFixed(2)} with Testing Wallet</span>
               </>
             ) : paymentMethod === 'pay_later' ? (
               <>
