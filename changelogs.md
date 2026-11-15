@@ -28,6 +28,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Disclosed upfront across checkout, order tracking, printable receipts, terms of service, and payment FAQs that freshly prepared takeaway food is strictly non-refundable and cannot be cancelled or modified once placed.
 
 ### Changed
+- **Post-Authentication Redirection to Home Page (`customer/src/context/AuthContext.tsx`, `customer/src/app/verify-email/page.tsx`)**:
+  - Configured Google OAuth `redirectTo` callback in `AuthContext.tsx` to redirect users directly to the home page (`/`) instead of the profile page upon signing in or registering.
+  - Updated email verification OTP completion flow in `verify-email/page.tsx` to automatically redirect users to the home page (`/`) instead of `/profile`.
 - **Complete Removal of Testing Wallet Subsystem**:
   - Removed testing wallet from customer checkout payment options (`customer/src/app/checkout/page.tsx`).
   - Removed wallet balance displays and wallet navigation links across Navbar, Footer, and Sidebar Drawer.

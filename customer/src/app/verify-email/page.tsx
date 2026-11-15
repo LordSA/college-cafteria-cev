@@ -65,7 +65,7 @@ function VerifyEmailContent() {
 
       setSuccess(true);
       setTimeout(() => {
-        router.push('/profile');
+        router.push('/');
       }, 1500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Verification failed. The code may be invalid or expired.';
@@ -116,7 +116,7 @@ function VerifyEmailContent() {
       {success && (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 text-xs text-emerald-800">
           <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-          <span>Email successfully verified! Redirecting to your profile...</span>
+          <span>Email successfully verified! Redirecting to home...</span>
         </div>
       )}
 

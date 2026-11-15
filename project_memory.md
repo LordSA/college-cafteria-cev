@@ -54,7 +54,7 @@ college-canteen-cev/
   - `src/components/Footer.tsx`: Modern campus canteen footer with `logo title.svg`, dark mode glassmorphic styling, and No-Refund policy statement.
   - `src/app/login/page.tsx`: Redesigned minimalist sign-in page with email, password with show/hide eye toggle, orange pill button, and "Continue with Google" OAuth.
   - `src/app/signup/page.tsx`: Redesigned minimalist registration page with student vs faculty selection, conditional Teacher ID capture, orange pill button, and "Continue with Google".
-  - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
+  - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer and automatic redirection to home (`/`).
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
   - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Appearance & Theme 3-way toggle (`Device`, `Dark`, `Light`), Account Security (Change Password modal popup card, Google Account Link/Unlink, Sign Out), and Account Information.
