@@ -271,7 +271,7 @@ export default function CustomerHomePage() {
 
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-3 text-stone-800 shadow-xl shadow-black/5">
+          <div className="mt-5 flex items-center justify-between gap-3 rounded-full bg-white dark:bg-[#161822]/90 dark:border dark:border-white/10 px-4 py-3 text-stone-800 dark:text-white shadow-xl shadow-black/5 dark:shadow-black/40">
             <div className="flex flex-1 items-center gap-3">
               <Search className="h-5 w-5 text-[#ff5e3a]" />
               <input
@@ -279,13 +279,13 @@ export default function CustomerHomePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search meals, snacks, drinks..."
-                className="w-full bg-transparent text-sm font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                className="w-full bg-transparent text-sm font-medium text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
               />
             </div>
             <button
               type="button"
               title="Filter"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 transition"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/10 transition"
             >
               <SlidersHorizontal className="h-4 w-4" />
             </button>
@@ -293,7 +293,7 @@ export default function CustomerHomePage() {
         </header>
       </div>
 
-      <div className="hidden md:block py-6 bg-gradient-to-b from-orange-50/70 via-stone-50/40 to-[#fafaf9]">
+      <div className="hidden md:block py-6 bg-gradient-to-b from-orange-50/70 via-stone-50/40 to-[#fafaf9] dark:from-[#14161f] dark:via-[#0e1017] dark:to-[#0d0e12]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-8 text-white shadow-xl shadow-orange-500/15">
             <div className="max-w-4xl">
@@ -311,21 +311,21 @@ export default function CustomerHomePage() {
                     <button
                       type="button"
                       onClick={() => setDropdownOpen((prev) => !prev)}
-                      className="flex h-11 items-center gap-1.5 rounded-l-2xl bg-white px-4 text-xs font-bold text-stone-800 hover:bg-stone-50 transition border-r border-stone-200 whitespace-nowrap shadow-xs"
+                      className="flex h-11 items-center gap-1.5 rounded-l-2xl bg-white dark:bg-[#161822] px-4 text-xs font-bold text-stone-800 dark:text-stone-100 hover:bg-stone-50 dark:hover:bg-white/5 transition border-r border-stone-200 dark:border-white/10 whitespace-nowrap shadow-xs"
                     >
                       <span>{currentCategoryLabel}</span>
-                      <ChevronDown className="h-3.5 w-3.5 text-stone-500" />
+                      <ChevronDown className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
                     </button>
 
                     {dropdownOpen && (
-                      <div className="absolute left-0 top-full z-50 mt-1.5 w-52 max-h-60 overflow-y-auto rounded-2xl border border-stone-200 bg-white py-1.5 shadow-xl">
+                      <div className="absolute left-0 top-full z-50 mt-1.5 w-52 max-h-60 overflow-y-auto rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] py-1.5 shadow-xl">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedCategory('all');
                             setDropdownOpen(false);
                           }}
-                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-orange-50 hover:text-[#ff5e3a]"
+                          className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-orange-50 dark:hover:bg-white/5 hover:text-[#ff5e3a]"
                         >
                           All Categories
                         </button>
@@ -337,7 +337,7 @@ export default function CustomerHomePage() {
                               setSelectedCategory(cat.id);
                               setDropdownOpen(false);
                             }}
-                            className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 hover:bg-orange-50 hover:text-[#ff5e3a]"
+                            className="block w-full px-4 py-2 text-left text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-orange-50 dark:hover:bg-white/5 hover:text-[#ff5e3a]"
                           >
                             {cat.name}
                           </button>
@@ -351,12 +351,12 @@ export default function CustomerHomePage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search meals, snacks, canteen specials, drinks..."
-                    className="h-11 w-full bg-white px-4 text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                    className="h-11 w-full bg-white dark:bg-[#161822] px-4 text-xs font-medium text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
                   />
 
                   <button
                     type="button"
-                    className="flex h-11 w-12 items-center justify-center rounded-r-2xl bg-white text-[#ff5e3a] hover:bg-orange-50 transition border-l border-stone-200 shadow-xs"
+                    className="flex h-11 w-12 items-center justify-center rounded-r-2xl bg-white dark:bg-[#161822] text-[#ff5e3a] hover:bg-orange-50 dark:hover:bg-white/5 transition border-l border-stone-200 dark:border-white/10 shadow-xs"
                     title="Search"
                   >
                     <Search className="h-4 w-4" />
@@ -366,7 +366,7 @@ export default function CustomerHomePage() {
                 <div className="flex items-center gap-3">
                   <Link
                     href="/menu"
-                    className="rounded-2xl bg-white px-5 py-3 text-xs font-black text-[#ff5e3a] hover:bg-orange-50 transition shadow-lg shadow-black/5 active:scale-95 whitespace-nowrap"
+                    className="rounded-2xl bg-white dark:bg-[#161822] border border-transparent dark:border-white/10 px-5 py-3 text-xs font-black text-[#ff5e3a] hover:bg-orange-50 dark:hover:bg-white/5 transition shadow-lg shadow-black/5 active:scale-95 whitespace-nowrap"
                   >
                     Explore Today's Menu
                   </Link>
@@ -393,7 +393,7 @@ export default function CustomerHomePage() {
 
         <section className="mt-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900 dark:text-white">
               Categories
             </h2>
             <Link
@@ -410,10 +410,10 @@ export default function CustomerHomePage() {
               href="/menu"
               className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
             >
-              <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
+              <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white dark:bg-[#161822] text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-white/10 shadow-xs transition-all duration-200 hover:border-orange-400 dark:hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
                 <Grid className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <span className="text-xs font-semibold text-stone-600 group-hover:text-[#ff5e3a] transition-colors">
+              <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 group-hover:text-[#ff5e3a] transition-colors">
                 All
               </span>
             </Link>
@@ -427,10 +427,10 @@ export default function CustomerHomePage() {
                   href={`/menu?category=${cat.id}`}
                   className="flex flex-col items-center gap-2 flex-shrink-0 group focus:outline-none"
                 >
-                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white text-stone-700 border border-stone-200/80 shadow-xs transition-all duration-200 hover:border-orange-400 hover:bg-orange-50/50 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
+                  <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-white dark:bg-[#161822] text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-white/10 shadow-xs transition-all duration-200 hover:border-orange-400 dark:hover:border-orange-500/50 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 hover:text-[#ff5e3a] hover:shadow-md active:scale-95">
                     <IconComp className="h-6 w-6 sm:h-7 sm:w-7" />
                   </div>
-                  <span className="text-xs font-semibold text-stone-600 group-hover:text-[#ff5e3a] transition-colors">
+                  <span className="text-xs font-semibold text-stone-600 dark:text-stone-400 group-hover:text-[#ff5e3a] transition-colors">
                     {cat.name}
                   </span>
                 </Link>
@@ -445,10 +445,10 @@ export default function CustomerHomePage() {
             <p className="text-xs font-semibold">Loading freshly prepared canteen menu...</p>
           </div>
         ) : menuItems.length === 0 ? (
-          <section className="mt-12 rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center">
-            <UtensilsCrossed className="mx-auto h-12 w-12 text-stone-300" />
-            <h3 className="mt-4 text-base font-bold text-stone-800">Canteen Menu Updating</h3>
-            <p className="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
+          <section className="mt-12 rounded-3xl border border-dashed border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-12 text-center">
+            <UtensilsCrossed className="mx-auto h-12 w-12 text-stone-300 dark:text-stone-600" />
+            <h3 className="mt-4 text-base font-bold text-stone-800 dark:text-stone-200">Canteen Menu Updating</h3>
+            <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
               Our kitchen team is currently refreshing today's menu. Check back shortly!
             </p>
             <Link
@@ -466,7 +466,7 @@ export default function CustomerHomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Flame className="h-4 w-4 text-[#ff5e3a] fill-[#ff5e3a]" />
-                    <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+                    <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900 dark:text-white">
                       Hot Products
                     </h2>
                   </div>
@@ -487,9 +487,9 @@ export default function CustomerHomePage() {
                       <div
                         key={product.id}
                         onClick={() => recordItemClick(product.id)}
-                        className="w-72 sm:w-auto flex-shrink-0 overflow-hidden rounded-3xl border border-stone-200/80 bg-white shadow-sm hover:shadow-md transition flex flex-col justify-between cursor-pointer"
+                        className="w-72 sm:w-auto flex-shrink-0 overflow-hidden rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] shadow-sm hover:shadow-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] transition flex flex-col justify-between cursor-pointer"
                       >
-                        <div className="relative h-44 w-full overflow-hidden bg-stone-100 flex items-center justify-center">
+                        <div className="relative h-44 w-full overflow-hidden bg-stone-100 dark:bg-white/5 flex items-center justify-center">
                           {product.image_url ? (
                             <img
                               src={product.image_url}
@@ -505,7 +505,7 @@ export default function CustomerHomePage() {
                           )}
 
                           {product.category_name && (
-                            <span className="absolute left-3 top-3 rounded-full bg-stone-900/80 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
+                            <span className="absolute left-3 top-3 rounded-full bg-stone-900/80 dark:bg-black/70 px-2.5 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs">
                               {product.category_name}
                             </span>
                           )}
@@ -513,34 +513,34 @@ export default function CustomerHomePage() {
 
                         <div className="p-4 flex-1 flex flex-col justify-between">
                           <div>
-                            <h3 className="text-base font-bold text-stone-900 line-clamp-1">
+                            <h3 className="text-base font-bold text-stone-900 dark:text-stone-100 line-clamp-1">
                               {product.name}
                             </h3>
                             {product.description && (
-                              <p className="mt-1 text-xs text-stone-500 line-clamp-2 leading-relaxed">
+                              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 line-clamp-2 leading-relaxed">
                                 {product.description}
                               </p>
                             )}
                           </div>
 
-                          <div className="mt-4 flex items-center justify-between border-t border-stone-100 pt-3">
-                            <span className="font-mono text-base font-black text-stone-900 tabular-nums">
+                          <div className="mt-4 flex items-center justify-between border-t border-stone-100 dark:border-white/10 pt-3">
+                            <span className="font-mono text-base font-black text-stone-900 dark:text-white tabular-nums">
                               ₹{(product.price / 100).toFixed(0)}
                             </span>
 
                             {inCartQty > 0 ? (
                               <div
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs"
+                                className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs"
                               >
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(product.id, inCartQty - 1)}
-                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-stone-700 hover:bg-stone-100 shadow-xs active:scale-95 transition"
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 shadow-xs active:scale-95 transition"
                                 >
                                   <Minus className="h-3 w-3" />
                                 </button>
-                                <span className="min-w-[16px] text-center font-mono text-xs font-bold text-orange-950">
+                                <span className="min-w-[16px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
                                   {inCartQty}
                                 </span>
                                 <button
@@ -580,20 +580,20 @@ export default function CustomerHomePage() {
             )}
 
             <section className="mt-10 mb-8">
-              <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+              <div className="flex items-center justify-between border-b border-stone-200 dark:border-white/10 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900">
+                  <h2 className="text-base sm:text-lg font-black tracking-tight text-stone-900 dark:text-white">
                     Menu
                   </h2>
                 </div>
-                <span className="text-xs text-stone-500 font-medium">
+                <span className="text-xs text-stone-500 dark:text-stone-400 font-medium">
                   {filteredProducts.length} items
                 </span>
               </div>
 
               {filteredProducts.length === 0 ? (
-                <div className="mt-8 rounded-2xl border border-dashed border-stone-200 bg-white p-8 text-center text-xs text-stone-500">
+                <div className="mt-8 rounded-2xl border border-dashed border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-8 text-center text-xs text-stone-500 dark:text-stone-400">
                   No dishes match your search or filter.
                 </div>
               ) : (
@@ -605,9 +605,9 @@ export default function CustomerHomePage() {
                       <div
                         key={product.id}
                         onClick={() => recordItemClick(product.id)}
-                        className="flex gap-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-xs hover:shadow-md transition cursor-pointer"
+                        className="flex gap-3 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-3 shadow-xs hover:shadow-md dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)] transition cursor-pointer"
                       >
-                        <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 flex items-center justify-center">
+                        <div className="relative h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 dark:bg-white/5 flex items-center justify-center">
                           {product.image_url ? (
                             <img
                               src={product.image_url}
@@ -616,7 +616,7 @@ export default function CustomerHomePage() {
                               loading="lazy"
                             />
                           ) : (
-                            <UtensilsCrossed className="h-6 w-6 text-stone-300" />
+                            <UtensilsCrossed className="h-6 w-6 text-stone-300 dark:text-stone-600" />
                           )}
                         </div>
 
@@ -627,34 +627,34 @@ export default function CustomerHomePage() {
                                 {product.category_name}
                               </span>
                             )}
-                            <h3 className="mt-0.5 text-xs sm:text-sm font-bold text-stone-900 line-clamp-1">
+                            <h3 className="mt-0.5 text-xs sm:text-sm font-bold text-stone-900 dark:text-stone-100 line-clamp-1">
                               {product.name}
                             </h3>
                             {product.description && (
-                              <p className="mt-0.5 text-[11px] text-stone-500 line-clamp-2">
+                              <p className="mt-0.5 text-[11px] text-stone-500 dark:text-stone-400 line-clamp-2">
                                 {product.description}
                               </p>
                             )}
                           </div>
 
-                          <div className="mt-2 flex items-center justify-between pt-2 border-t border-stone-100">
-                            <span className="font-mono text-sm font-black text-stone-900 tabular-nums">
+                          <div className="mt-2 flex items-center justify-between pt-2 border-t border-stone-100 dark:border-white/10">
+                            <span className="font-mono text-sm font-black text-stone-900 dark:text-white tabular-nums">
                               ₹{(product.price / 100).toFixed(0)}
                             </span>
 
                             {inCartQty > 0 ? (
                               <div
                                 onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-1.5 rounded-lg border border-orange-200 bg-orange-50 px-1.5 py-0.5 shadow-xs"
+                                className="flex items-center gap-1.5 rounded-lg border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 shadow-xs"
                               >
                                 <button
                                   type="button"
                                   onClick={() => updateQuantity(product.id, inCartQty - 1)}
-                                  className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-stone-700 shadow-xs"
+                                  className="flex h-5 w-5 items-center justify-center rounded-md bg-white dark:bg-[#202230] text-stone-700 dark:text-white shadow-xs"
                                 >
                                   <Minus className="h-2.5 w-2.5" />
                                 </button>
-                                <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950">
+                                <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
                                   {inCartQty}
                                 </span>
                                 <button
@@ -697,17 +697,17 @@ export default function CustomerHomePage() {
       </main>
 
       {itemCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold text-stone-500">
+                <p className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'} &bull; Lock: {formatTimer(remainingSeconds)}
                 </p>
-                <p className="font-mono text-base font-extrabold text-stone-900 tabular-nums">
+                <p className="font-mono text-base font-extrabold text-stone-900 dark:text-white tabular-nums">
                   ₹{(subtotal / 100).toFixed(2)}
                 </p>
               </div>

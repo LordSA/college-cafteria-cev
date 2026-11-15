@@ -68,10 +68,10 @@ function CheckoutSuccessContent() {
 
   if (error || !order) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-xs space-y-4 my-12">
-        <AlertCircle className="mx-auto h-10 w-10 text-rose-600" />
-        <h2 className="text-base font-bold text-stone-900">Order Information Unavailable</h2>
-        <p className="text-xs text-stone-500">{error || 'Could not find order reference.'}</p>
+      <div className="mx-auto max-w-md rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-white dark:bg-[#161822] p-8 text-center shadow-xs space-y-4 my-12">
+        <AlertCircle className="mx-auto h-10 w-10 text-rose-600 dark:text-rose-400" />
+        <h2 className="text-base font-bold text-stone-900 dark:text-white">Order Information Unavailable</h2>
+        <p className="text-xs text-stone-500 dark:text-stone-400">{error || 'Could not find order reference.'}</p>
         <Link
           href="/orders"
           className="inline-block rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
@@ -97,7 +97,7 @@ function CheckoutSuccessContent() {
 
         <Link
           href={`/orders/receipt/?id=${order.id}`}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white py-3 text-xs font-bold text-stone-700 shadow-xs hover:bg-stone-50 transition active:scale-95"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] py-3 text-xs font-bold text-stone-700 dark:text-stone-200 shadow-xs hover:bg-stone-50 dark:hover:bg-white/5 transition active:scale-95"
         >
           <Printer className="h-4 w-4" />
           <span>Print Receipt</span>
@@ -107,7 +107,7 @@ function CheckoutSuccessContent() {
       <div className="text-center">
         <Link
           href="/menu"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-[#ff5e3a] transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-[#ff5e3a] transition"
         >
           <ShoppingBag className="h-3.5 w-3.5" />
           <span>Return to Menu</span>
@@ -119,7 +119,7 @@ function CheckoutSuccessContent() {
 
 export default function CheckoutSuccessPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-stone-50 dark:bg-[#0d0e12]">
       <Header />
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 pb-28 md:pb-12">
         <Suspense

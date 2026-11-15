@@ -149,7 +149,7 @@ function OrderTrackerContent() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <Link
             href={`/orders/receipt/?id=${order.id}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
           >
             <Printer className="h-3.5 w-3.5" />
             <span>Receipt</span>
@@ -157,7 +157,7 @@ function OrderTrackerContent() {
 
           <button
             onClick={fetchOrder}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
           >
             <RefreshCw className="h-3.5 w-3.5 text-[#ff5e3a]" />
             <span>Refresh</span>
@@ -165,16 +165,16 @@ function OrderTrackerContent() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs">
+      <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-5 shadow-xs">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">
           Order Progress
         </h2>
         <div className="grid grid-cols-2 gap-3">
-          <div className={`p-3.5 rounded-2xl text-center border ${isPlaced || isCollected ? 'border-orange-300 bg-orange-50/70 text-[#ff5e3a]' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+          <div className={`p-3.5 rounded-2xl text-center border ${isPlaced || isCollected ? 'border-orange-300 dark:border-orange-500/40 bg-orange-50/70 dark:bg-orange-950/20 text-[#ff5e3a]' : 'border-stone-100 dark:border-white/5 bg-stone-50 dark:bg-white/5 text-stone-400 dark:text-stone-500'}`}>
             <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
             <p className="text-xs font-bold">1. Order Placed</p>
           </div>
-          <div className={`p-3.5 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 bg-emerald-50/70 text-emerald-600' : 'border-stone-100 bg-stone-50 text-stone-400'}`}>
+          <div className={`p-3.5 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/70 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' : 'border-stone-100 dark:border-white/5 bg-stone-50 dark:bg-white/5 text-stone-400 dark:text-stone-500'}`}>
             <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-current" />
             <p className="text-xs font-bold">2. Collected</p>
           </div>
@@ -182,7 +182,7 @@ function OrderTrackerContent() {
       </div>
 
       {isCancelled && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-start gap-3">
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-3">
           <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">This historical order was cancelled</p>
@@ -190,7 +190,7 @@ function OrderTrackerContent() {
               Reason: {order.cancellation_reason || 'Cancelled'}
             </p>
             {order.cancelled_at && (
-              <p className="mt-1 text-[11px] text-rose-600">
+              <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400">
                 Cancelled at: {new Date(order.cancelled_at).toLocaleTimeString('en-IN')}
               </p>
             )}
@@ -199,14 +199,14 @@ function OrderTrackerContent() {
       )}
 
       {order.qr_verification_token && !isCancelled && (
-        <div className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8 text-center shadow-xs space-y-4">
+        <div className="rounded-3xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-6 sm:p-8 text-center shadow-xs space-y-4">
           {isCollected ? (
             <div className="space-y-2 py-4">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h2 className="text-base font-bold text-stone-900">Order Collected</h2>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+              <h2 className="text-base font-bold text-stone-900 dark:text-white">Order Collected</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
                 This meal has been picked up from Cafteria CEV. The collection pass is fulfilled.
               </p>
               {order.collected_at && (
@@ -217,13 +217,13 @@ function OrderTrackerContent() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
                 <QrCode className="h-4 w-4 text-[#ff5e3a]" />
                 <span>Collection Pass &bull; Scan at Counter</span>
               </div>
 
               <div className="flex justify-center py-2">
-                <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-100 shadow-sm">
+                <div className="p-3.5 bg-stone-50 dark:bg-white rounded-2xl border border-stone-100 dark:border-white/10 shadow-sm">
                   <QRCodeSvg value={order.qr_verification_token} size={210} />
                 </div>
               </div>
@@ -237,7 +237,7 @@ function OrderTrackerContent() {
                 </p>
               </div>
 
-              <p className="text-xs text-stone-500 max-w-md mx-auto">
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-md mx-auto">
                 Present this QR code to the canteen counter staff to collect your order.
               </p>
             </>
@@ -245,41 +245,41 @@ function OrderTrackerContent() {
         </div>
       )}
 
-      <div className="rounded-3xl border border-stone-200/80 bg-white p-6 shadow-xs space-y-4">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 border-b border-stone-100 pb-2">
+      <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] p-6 shadow-xs space-y-4">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-white/10 pb-2">
           Ordered Dishes
         </h2>
 
-        <div className="divide-y divide-stone-100 text-xs">
+        <div className="divide-y divide-stone-100 dark:divide-white/10 text-xs">
           {order.items.map((item) => (
             <div key={item.id} className="py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-mono font-bold text-[#ff5e3a] min-w-[20px]">
                   {item.quantity}×
                 </span>
-                <span className="font-semibold text-stone-900">{item.item_name}</span>
-                <span className="text-stone-400 text-[11px]">
+                <span className="font-semibold text-stone-900 dark:text-stone-100">{item.item_name}</span>
+                <span className="text-stone-400 dark:text-stone-500 text-[11px]">
                   (₹{(item.unit_price / 100).toFixed(2)} each)
                 </span>
               </div>
-              <span className="font-mono font-bold text-stone-900 tabular-nums">
+              <span className="font-mono font-bold text-stone-900 dark:text-white tabular-nums">
                 ₹{(item.line_total / 100).toFixed(2)}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="border-t border-stone-200/80 pt-3 flex justify-between items-baseline">
-          <span className="text-sm font-bold text-stone-900">Total Amount</span>
+        <div className="border-t border-stone-200/80 dark:border-white/10 pt-3 flex justify-between items-baseline">
+          <span className="text-sm font-bold text-stone-900 dark:text-white">Total Amount</span>
           <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
             ₹{(order.total / 100).toFixed(2)}
           </span>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-stone-200/80 bg-stone-50 p-3.5 text-center">
-        <p className="text-[11px] text-stone-500">
-          <strong className="text-stone-700">Strict No-Refund Policy:</strong> Takeaway food is freshly cooked upon confirmation. Orders cannot be cancelled or refunded once placed.
+      <div className="rounded-2xl border border-stone-200/80 dark:border-white/10 bg-stone-50 dark:bg-white/5 p-3.5 text-center">
+        <p className="text-[11px] text-stone-500 dark:text-stone-400">
+          <strong className="text-stone-700 dark:text-stone-200">Strict No-Refund Policy:</strong> Takeaway food is freshly cooked upon confirmation. Orders cannot be cancelled or refunded once placed.
         </p>
       </div>
     </div>

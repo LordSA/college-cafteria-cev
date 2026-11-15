@@ -280,19 +280,19 @@ export default function ProfilePage() {
 
         <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 space-y-6">
           {isFacultyOrStaff && (
-            <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 p-6 shadow-xs">
+            <div className="rounded-3xl border border-indigo-200 dark:border-indigo-500/30 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/40 dark:from-[#131525] dark:via-[#16182a] dark:to-[#121422] p-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-indigo-600" />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-700">
+                    <Building2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                    <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
                       Faculty / Staff Pay Later Account
                     </span>
                   </div>
-                  <h2 className="text-xl font-black text-stone-900">
+                  <h2 className="text-xl font-black text-stone-900 dark:text-white">
                     Outstanding Balance: ₹{((pendingPayLater.total_pending || 0) / 100).toFixed(2)}
                   </h2>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-stone-500 dark:text-stone-400">
                     {pendingPayLater.order_count > 0
                       ? `${pendingPayLater.order_count} pending order(s) awaiting payment settlement`
                       : 'All past meals settled. Zero pending dues.'}
@@ -313,29 +313,29 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-xs">
-            <h2 className="text-base font-black text-stone-900 flex items-center gap-2 mb-4">
+          <div className="rounded-3xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-6 shadow-xs">
+            <h2 className="text-base font-black text-stone-900 dark:text-white flex items-center gap-2 mb-4">
               <User className="h-4 w-4 text-[#ff5e3a]" />
               <span>Personal Profile Information</span>
             </h2>
 
             {saveSuccess && (
-              <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-500/30 p-3 text-xs text-emerald-800 dark:text-emerald-300">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                 <span>Profile details saved successfully!</span>
               </div>
             )}
 
             {saveError && (
-              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
-                <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30 p-3 text-xs text-rose-800 dark:text-rose-300">
+                <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 flex-shrink-0" />
                 <span>{saveError}</span>
               </div>
             )}
 
             <form onSubmit={handleUpdate} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="displayName">
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1" htmlFor="displayName">
                   Display Name
                 </label>
                 <input
@@ -344,16 +344,16 @@ export default function ProfilePage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  className="w-full rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] px-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="phone">
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1" htmlFor="phone">
                   Phone Number
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400 dark:text-stone-500">
                     <Phone className="h-4 w-4" />
                   </div>
                   <input
@@ -362,13 +362,13 @@ export default function ProfilePage() {
                     placeholder="Enter 10-digit mobile number"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 pl-9 pr-3.5 py-2.5 text-xs font-semibold text-stone-900 focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                    className="w-full rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] pl-9 pr-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-stone-700 mb-1" htmlFor="email">
+                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1" htmlFor="email">
                   College Email Address
                 </label>
                 <input
@@ -376,7 +376,7 @@ export default function ProfilePage() {
                   type="email"
                   disabled
                   value={user.email || ''}
-                  className="w-full rounded-xl border border-stone-200 bg-stone-100 px-3.5 py-2.5 text-xs text-stone-500 cursor-not-allowed"
+                  className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-white/5 px-3.5 py-2.5 text-xs text-stone-500 dark:text-stone-400 cursor-not-allowed"
                 />
               </div>
 
@@ -405,31 +405,31 @@ export default function ProfilePage() {
 
         {showAvatarPicker && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-            <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161822] p-6 shadow-2xl border border-stone-200 dark:border-white/10 space-y-4 animate-in fade-in zoom-in-95">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-black text-stone-900">Choose Profile Avatar</h3>
-                  <p className="text-xs text-stone-500 mt-0.5">Select a preset to personalize your profile</p>
+                  <h3 className="text-sm font-black text-stone-900 dark:text-white">Choose Profile Avatar</h3>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">Select a preset to personalize your profile</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowAvatarPicker(false)}
-                  className="rounded-full p-1 text-stone-400 hover:bg-stone-100 transition"
+                  className="rounded-full p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-white/10 transition"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
               {avatarSuccess && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs text-emerald-800 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 p-2.5 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                   <span>{avatarSuccess}</span>
                 </div>
               )}
 
               {avatarError && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs text-rose-800 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                <div className="rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/30 p-2.5 text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 flex-shrink-0" />
                   <span>{avatarError}</span>
                 </div>
               )}
@@ -445,18 +445,18 @@ export default function ProfilePage() {
                       onClick={() => handleSelectPresetAvatar(av.path)}
                       className={`group relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border-2 transition active:scale-95 ${
                         isSelected
-                          ? 'border-[#ff5e3a] bg-orange-50 shadow-xs'
-                          : 'border-stone-200 hover:border-orange-300 hover:bg-stone-50'
+                          ? 'border-[#ff5e3a] bg-orange-50 dark:bg-orange-950/30 shadow-xs'
+                          : 'border-stone-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:bg-stone-50 dark:hover:bg-white/5'
                       }`}
                     >
-                      <div className="h-14 w-14 rounded-full overflow-hidden bg-white border border-stone-200 p-1 flex items-center justify-center">
+                      <div className="h-14 w-14 rounded-full overflow-hidden bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 p-1 flex items-center justify-center">
                         <img
                           src={av.path}
                           alt={av.label}
                           className="h-full w-full object-contain"
                         />
                       </div>
-                      <span className="text-[10px] font-bold text-stone-700 group-hover:text-[#ff5e3a] truncate max-w-full">
+                      <span className="text-[10px] font-bold text-stone-700 dark:text-stone-300 group-hover:text-[#ff5e3a] truncate max-w-full">
                         {av.label}
                       </span>
                       {isSelected && (
@@ -474,7 +474,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => setShowAvatarPicker(false)}
                   disabled={updatingAvatar}
-                  className="rounded-xl border border-stone-300 px-4 py-2 text-xs font-bold text-stone-700 hover:bg-stone-50 transition"
+                  className="rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-4 py-2 text-xs font-bold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-white/5 transition"
                 >
                   Close
                 </button>
@@ -485,28 +485,28 @@ export default function ProfilePage() {
 
         {showSettleModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-            <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95">
-              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+            <div className="w-full max-w-md rounded-3xl bg-white dark:bg-[#161822] p-6 shadow-2xl border border-stone-200 dark:border-white/10 space-y-5 animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-indigo-600" />
-                  <h3 className="text-base font-bold text-stone-900">Settle Pay Later Dues</h3>
+                  <CreditCard className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  <h3 className="text-base font-bold text-stone-900 dark:text-white">Settle Pay Later Dues</h3>
                 </div>
                 <button
                   onClick={() => setShowSettleModal(false)}
-                  className="rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition"
+                  className="rounded-full p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-600 dark:hover:text-stone-200 transition"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <div className="rounded-2xl bg-indigo-50/70 border border-indigo-100 p-4 text-center">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">
+              <div className="rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-500/30 p-4 text-center">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">
                   Total Outstanding Dues
                 </span>
-                <p className="mt-1 font-mono text-3xl font-extrabold text-stone-900">
+                <p className="mt-1 font-mono text-3xl font-extrabold text-stone-900 dark:text-white">
                   ₹{((pendingPayLater.total_pending || 0) / 100).toFixed(2)}
                 </p>
-                <p className="text-[11px] text-stone-500 mt-1">
+                <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1">
                   Across {pendingPayLater.order_count} pending meal order(s)
                 </p>
               </div>
@@ -528,17 +528,17 @@ export default function ProfilePage() {
               <div className="space-y-3">
                 <label className="block text-xs font-bold text-stone-700">Settlement Method</label>
 
-                <div className="flex items-start gap-3 rounded-2xl border border-indigo-600 bg-indigo-50/40 p-3.5 ring-1 ring-indigo-600">
+                <div className="flex items-start gap-3 rounded-2xl border border-indigo-600 dark:border-indigo-500/50 bg-indigo-50/40 dark:bg-indigo-950/30 p-3.5 ring-1 ring-indigo-600 dark:ring-indigo-500/50">
                   <div className="flex-1">
-                    <span className="text-xs font-bold text-stone-900">Direct UPI or Counter Settlement</span>
-                    <p className="text-[11px] text-stone-500 mt-0.5">
+                    <span className="text-xs font-bold text-stone-900 dark:text-white">Direct UPI or Counter Settlement</span>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
                       Pay via GooglePay, PhonePe, Paytm or at the counter and provide your payment reference.
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-1">
-                  <label className="block text-[11px] font-bold text-stone-700 mb-1" htmlFor="upiRef">
+                  <label className="block text-[11px] font-bold text-stone-700 dark:text-stone-300 mb-1" htmlFor="upiRef">
                     UPI Reference Number (Optional)
                   </label>
                   <input
@@ -547,7 +547,7 @@ export default function ProfilePage() {
                     placeholder="e.g. 429381749281"
                     value={upiRef}
                     onChange={(e) => setUpiRef(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 px-3 py-2 text-xs font-mono font-medium text-stone-900 focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                    className="w-full rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] px-3 py-2 text-xs font-mono font-medium text-stone-900 dark:text-white focus:border-indigo-600 focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   />
                 </div>
               </div>
@@ -565,7 +565,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => setShowSettleModal(false)}
                   disabled={settling}
-                  className="rounded-xl border border-stone-300 px-4 py-3 text-xs font-bold text-stone-600 hover:bg-stone-50 transition"
+                  className="rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-4 py-3 text-xs font-bold text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-white/5 transition"
                 >
                   Cancel
                 </button>

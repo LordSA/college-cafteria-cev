@@ -280,9 +280,9 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
         </p>
       </div>
 
-      <div className="text-center pt-2.5 border-t border-dashed border-gray-300 text-[9px] text-gray-400 font-sans">
+      {/* <div className="text-center pt-2.5 border-t border-dashed border-gray-300 text-[9px] text-gray-400 font-sans">
         Designed & Developed by IEDC CEV
-      </div>
+      </div> */}
     </article>
   );
 }

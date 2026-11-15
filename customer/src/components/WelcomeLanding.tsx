@@ -36,27 +36,30 @@ export function WelcomeLanding() {
       <div className="relative z-10 flex items-center justify-between p-6">
         <div className="flex items-center gap-2.5">
           <img
-            src={activeTheme === 'dark' ? '/icons/cafe ico 2.png' : '/icons/cafe ico 1.png'}
+            src={activeTheme === 'dark' ? '/logo/logo_white.svg' : '/logo/logo_white.svg'}
             alt="Cafeteria CEV Logo"
             className="h-10 w-10 object-contain drop-shadow-md"
           />
-          <span className="text-sm font-black tracking-wider text-white uppercase drop-shadow-sm">
-            Cafeteria.cev
-          </span>
+          <img
+            src='/logo title.svg'
+            alt="Cafeteria CEV title"
+            className="h-4 w-full object-contain drop-shadow-md"
+          />
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
-          Counter #1
-        </span>
       </div>
 
       <div className="relative z-10 w-full max-w-md mx-auto px-6 pb-12 pt-16 flex flex-col justify-end space-y-6">
         <div className="space-y-2">
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 dark:text-white leading-[1.1]">
             Welcome to <br />
-            <span className="text-[#ff5e3a]">Cafeteria CEV</span>
+            <img
+              src='/lg_title_blk.svg'
+              alt="Cafeteria CEV title"
+              className="h-12 w-full object-contain drop-shadow-md"
+            />
           </h1>
           <p className="text-sm text-stone-600 dark:text-stone-300 font-medium">
-            Order ahead, skip the queue, pick up fresh hot meals at Counter #1.
+            Order ahead, skip the queue, pick up fresh hot meals
           </p>
         </div>
 

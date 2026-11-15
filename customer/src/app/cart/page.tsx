@@ -119,32 +119,32 @@ export default function CartPage() {
           </div>
 
           {remainingSeconds > 0 && items.length > 0 && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl bg-amber-500/10 border border-amber-300/60 p-3.5 text-amber-950 text-xs font-medium">
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-300/60 dark:border-amber-500/30 p-3.5 text-amber-950 dark:text-amber-200 text-xs font-medium">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 animate-pulse" />
                 <span>Items in your cart are locked for you. Stock will release in</span>
               </div>
-              <span className="font-mono font-black text-amber-700 bg-white px-2.5 py-1 rounded-md border border-amber-200">
+              <span className="font-mono font-black text-amber-700 dark:text-amber-300 bg-white dark:bg-[#202230] px-2.5 py-1 rounded-md border border-amber-200 dark:border-amber-500/40">
                 {formatTimer(remainingSeconds)}
               </span>
             </div>
           )}
 
           {isExpired && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600" />
+            <div className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-950/20 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
               <span>Your cart reservation expired. Items have been released back to stock.</span>
             </div>
           )}
 
           {items.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-[#ff5e3a]">
+            <div className="rounded-3xl border border-dashed border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-12 text-center space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 dark:bg-orange-950/40 text-[#ff5e3a]">
                 <ShoppingBag className="h-7 w-7" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-stone-900">Your cart is empty</h2>
-                <p className="mt-1 text-xs text-stone-500 max-w-sm mx-auto">
+                <h2 className="text-base font-bold text-stone-900 dark:text-white">Your cart is empty</h2>
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
                   Looks like you have no items in your cart. Check today's fresh canteen menu!
                 </p>
               </div>
@@ -158,7 +158,7 @@ export default function CartPage() {
                 </Link>
                 <Link
                   href="/orders"
-                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-5 py-2.5 text-xs font-bold text-stone-700 shadow-xs hover:bg-orange-50 hover:border-orange-200 hover:text-[#ff5e3a] transition active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] px-5 py-2.5 text-xs font-bold text-stone-700 dark:text-stone-200 shadow-xs hover:bg-orange-50 dark:hover:bg-white/5 hover:border-orange-200 hover:text-[#ff5e3a] transition active:scale-95"
                 >
                   <ReceiptText className="h-4 w-4 text-[#ff5e3a]" />
                   <span>My Orders</span>
@@ -171,10 +171,10 @@ export default function CartPage() {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-4 shadow-xs"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-4 shadow-xs"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 flex items-center justify-center border border-stone-100">
+                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 dark:bg-white/5 flex items-center justify-center border border-stone-100 dark:border-white/5">
                         {item.image_url ? (
                           <img
                             src={item.image_url}
@@ -182,7 +182,7 @@ export default function CartPage() {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <Utensils className="h-6 w-6 text-stone-300" />
+                          <Utensils className="h-6 w-6 text-stone-300 dark:text-stone-600" />
                         )}
                       </div>
                       <div>
@@ -191,23 +191,23 @@ export default function CartPage() {
                             {item.category_name}
                           </span>
                         )}
-                        <h3 className="text-sm font-bold text-stone-900 line-clamp-1">{item.name}</h3>
-                        <p className="font-mono text-xs font-semibold text-stone-500 mt-0.5 tabular-nums">
+                        <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 line-clamp-1">{item.name}</h3>
+                        <p className="font-mono text-xs font-semibold text-stone-500 dark:text-stone-400 mt-0.5 tabular-nums">
                           ₹{(item.price / 100).toFixed(2)} each
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100">
-                      <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs">
+                    <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/10">
+                      <div className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-stone-700 hover:bg-stone-100 transition shadow-xs"
+                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 transition shadow-xs"
                           title="Decrease"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
-                        <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950">
+                        <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
                           {item.quantity}
                         </span>
                         <button
@@ -219,13 +219,13 @@ export default function CartPage() {
                         </button>
                       </div>
 
-                      <div className="font-mono text-sm font-bold text-stone-900 min-w-[70px] text-right tabular-nums">
+                      <div className="font-mono text-sm font-bold text-stone-900 dark:text-white min-w-[70px] text-right tabular-nums">
                         ₹{((item.price * item.quantity) / 100).toFixed(2)}
                       </div>
 
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="p-1.5 text-stone-400 hover:text-rose-600 transition"
+                        className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 transition"
                         title="Remove item"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -237,7 +237,7 @@ export default function CartPage() {
                 <div className="pt-2">
                   <Link
                     href="/menu"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-[#ff5e3a] transition"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 dark:text-stone-400 hover:text-[#ff5e3a] transition"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
                     <span>Add more items from menu</span>
@@ -245,26 +245,26 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="h-fit rounded-3xl border border-stone-200 bg-white p-6 shadow-xs space-y-5">
-                <h2 className="text-sm font-bold text-stone-900 border-b border-stone-100 pb-3">
+              <div className="h-fit rounded-3xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-6 shadow-xs space-y-5">
+                <h2 className="text-sm font-bold text-stone-900 dark:text-white border-b border-stone-100 dark:border-white/10 pb-3">
                   Order Summary
                 </h2>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-stone-600">
+                  <div className="flex justify-between text-stone-600 dark:text-stone-400">
                     <span>Items Count</span>
-                    <span className="font-semibold text-stone-900">{itemCount} items</span>
+                    <span className="font-semibold text-stone-900 dark:text-stone-100">{itemCount} items</span>
                   </div>
-                  <div className="flex justify-between text-stone-600">
+                  <div className="flex justify-between text-stone-600 dark:text-stone-400">
                     <span>Subtotal</span>
-                    <span className="font-mono font-semibold text-stone-900 tabular-nums">
+                    <span className="font-mono font-semibold text-stone-900 dark:text-white tabular-nums">
                       ₹{(subtotal / 100).toFixed(2)}
                     </span>
                   </div>
                 </div>
 
-                <div className="border-t border-stone-200 pt-4 flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-stone-900">Total Amount</span>
+                <div className="border-t border-stone-200 dark:border-white/10 pt-4 flex justify-between items-baseline">
+                  <span className="text-sm font-bold text-stone-900 dark:text-white">Total Amount</span>
                   <span className="font-mono text-xl font-extrabold text-[#ff5e3a] tabular-nums">
                     ₹{(subtotal / 100).toFixed(2)}
                   </span>
@@ -290,9 +290,14 @@ export default function CartPage() {
 
                 <Link
                   href="/orders"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white py-2.5 text-xs font-semibold text-stone-700 hover:bg-orange-50 hover:border-orange-200 hover:text-[#ff5e3a] transition"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#202230] py-2.5 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-orange-50 dark:hover:bg-white/5 hover:border-orange-200 hover:text-[#ff5e3a] transition"
                 >
                   <ReceiptText className="h-4 w-4 text-[#ff5e3a]" />
+                  <span>View Past Orders</span>
+                </Link>
+              </div>
+            </div>
+          )}
                   <span>My Orders</span>
                 </Link>
               </div>

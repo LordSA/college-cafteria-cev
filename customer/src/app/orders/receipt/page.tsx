@@ -110,10 +110,10 @@ function ReceiptContent() {
 
   if (error || !receipt) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-rose-200 bg-white p-8 text-center shadow-xs space-y-4 my-12">
-        <AlertCircle className="mx-auto h-10 w-10 text-rose-600" />
-        <h2 className="text-base font-bold text-stone-900">Receipt Not Found</h2>
-        <p className="text-xs text-stone-500">{error || 'Could not load receipt for this order.'}</p>
+      <div className="mx-auto max-w-md rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-white dark:bg-[#161822] p-8 text-center shadow-xs space-y-4 my-12">
+        <AlertCircle className="mx-auto h-10 w-10 text-rose-600 dark:text-rose-400" />
+        <h2 className="text-base font-bold text-stone-900 dark:text-white">Receipt Not Found</h2>
+        <p className="text-xs text-stone-500 dark:text-stone-400">{error || 'Could not load receipt for this order.'}</p>
         <Link
           href="/orders"
           className="inline-block rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition"
@@ -129,7 +129,7 @@ function ReceiptContent() {
       <div className="flex items-center justify-between print:hidden">
         <Link
           href={`/orders/track/?id=${receipt.id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-800 transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Order Tracking</span>
@@ -137,31 +137,31 @@ function ReceiptContent() {
 
         <button
           onClick={handlePrint}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-stone-800 transition active:scale-95"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 dark:bg-white px-4 py-2 text-xs font-bold text-white dark:text-stone-900 shadow-sm hover:bg-stone-800 dark:hover:bg-stone-100 transition active:scale-95"
         >
           <Printer className="h-4 w-4" />
           <span>Print Receipt</span>
         </button>
       </div>
 
-      <div className="rounded-3xl border border-stone-300 bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-stone-900 font-sans">
-        <div className="border-b border-stone-200 pb-6 text-center space-y-2">
+      <div className="rounded-3xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-stone-900 dark:text-stone-100 font-sans">
+        <div className="border-b border-stone-200 dark:border-white/10 pb-6 text-center space-y-2">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff5e3a] text-white shadow-xs print:border print:border-stone-900">
             <UtensilsCrossed className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight text-stone-900 uppercase">
+          <h1 className="text-xl font-extrabold tracking-tight text-stone-900 dark:text-white uppercase">
             {receipt.canteen.name}
           </h1>
-          <p className="text-xs text-stone-600">{receipt.canteen.campus}</p>
-          <p className="text-[11px] text-stone-500">{receipt.canteen.address}</p>
-          <div className="inline-block rounded-full bg-emerald-100 px-3 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider print:border print:border-emerald-800">
+          <p className="text-xs text-stone-600 dark:text-stone-400">{receipt.canteen.campus}</p>
+          <p className="text-[11px] text-stone-500 dark:text-stone-400">{receipt.canteen.address}</p>
+          <div className="inline-block rounded-full bg-emerald-100 dark:bg-emerald-950/40 px-3 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider print:border print:border-emerald-800">
             Official Canteen Tax Invoice / Bill
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-xs border-b border-stone-200 pb-4">
+        <div className="grid grid-cols-2 gap-4 text-xs border-b border-stone-200 dark:border-white/10 pb-4">
           <div>
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">
               Bill / Token No.
             </span>
             <span className="font-mono text-base font-extrabold text-[#ff5e3a]">
@@ -170,10 +170,10 @@ function ReceiptContent() {
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">
               Order Date & Time
             </span>
-            <span className="font-semibold text-stone-800">
+            <span className="font-semibold text-stone-800 dark:text-stone-200">
               {new Date(receipt.created_at).toLocaleString('en-IN', {
                 dateStyle: 'medium',
                 timeStyle: 'short',
@@ -182,27 +182,27 @@ function ReceiptContent() {
           </div>
 
           <div>
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">
               Billed To
             </span>
-            <p className="font-bold text-stone-900">{receipt.customer.display_name}</p>
-            <p className="text-[11px] text-stone-500 capitalize">{receipt.customer.account_type}</p>
+            <p className="font-bold text-stone-900 dark:text-white">{receipt.customer.display_name}</p>
+            <p className="text-[11px] text-stone-500 dark:text-stone-400 capitalize">{receipt.customer.account_type}</p>
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">
               Payment & Order Stage
             </span>
-            <p className="font-bold text-emerald-700 uppercase">
+            <p className="font-bold text-emerald-700 dark:text-emerald-400 uppercase">
               {receipt.payment_status} • {receipt.order_stage || receipt.order_status || 'ORDER_PLACED'}
             </p>
             {receipt.paid_at && (
-              <p className="text-[10px] text-stone-400">
+              <p className="text-[10px] text-stone-400 dark:text-stone-500">
                 Paid: {new Date(receipt.paid_at).toLocaleTimeString('en-IN')}
               </p>
             )}
             {receipt.collected_at && (
-              <p className="text-[10px] font-semibold text-stone-600">
+              <p className="text-[10px] font-semibold text-stone-600 dark:text-stone-300">
                 Collected: {new Date(receipt.collected_at).toLocaleTimeString('en-IN')}
               </p>
             )}
@@ -212,24 +212,24 @@ function ReceiptContent() {
         <div>
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-stone-200 text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              <tr className="border-b border-stone-200 dark:border-white/10 text-[10px] uppercase font-bold text-stone-500 dark:text-stone-400 tracking-wider">
                 <th className="py-2">Item Description</th>
                 <th className="py-2 text-center">Qty</th>
                 <th className="py-2 text-right">Price</th>
                 <th className="py-2 text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-stone-100 dark:divide-white/5">
               {receipt.items.map((item) => (
                 <tr key={item.id}>
-                  <td className="py-2.5 font-semibold text-stone-900">{item.item_name}</td>
-                  <td className="py-2.5 text-center font-mono font-bold text-stone-700">
+                  <td className="py-2.5 font-semibold text-stone-900 dark:text-stone-100">{item.item_name}</td>
+                  <td className="py-2.5 text-center font-mono font-bold text-stone-700 dark:text-stone-300">
                     {item.quantity}
                   </td>
-                  <td className="py-2.5 text-right font-mono text-stone-600">
+                  <td className="py-2.5 text-right font-mono text-stone-600 dark:text-stone-400">
                     ₹{(item.unit_price / 100).toFixed(2)}
                   </td>
-                  <td className="py-2.5 text-right font-mono font-bold text-stone-900 tabular-nums">
+                  <td className="py-2.5 text-right font-mono font-bold text-stone-900 dark:text-white tabular-nums">
                     ₹{(item.line_total / 100).toFixed(2)}
                   </td>
                 </tr>
@@ -238,18 +238,18 @@ function ReceiptContent() {
           </table>
         </div>
 
-        <div className="border-t-2 border-stone-900 pt-4 space-y-1.5 text-xs">
-          <div className="flex justify-between text-stone-600">
+        <div className="border-t-2 border-stone-900 dark:border-white/20 pt-4 space-y-1.5 text-xs">
+          <div className="flex justify-between text-stone-600 dark:text-stone-400">
             <span>Subtotal</span>
-            <span className="font-mono font-semibold tabular-nums">
+            <span className="font-mono font-semibold tabular-nums text-stone-900 dark:text-white">
               ₹{(receipt.subtotal / 100).toFixed(2)}
             </span>
           </div>
-          <div className="flex justify-between text-stone-600">
+          <div className="flex justify-between text-stone-600 dark:text-stone-400">
             <span>Campus Surcharge / SGST / CGST</span>
-            <span className="font-mono tabular-nums text-emerald-700 font-semibold">₹0.00</span>
+            <span className="font-mono tabular-nums text-emerald-700 dark:text-emerald-400 font-semibold">₹0.00</span>
           </div>
-          <div className="flex justify-between items-baseline border-t border-stone-200 pt-2 text-sm font-extrabold text-stone-900">
+          <div className="flex justify-between items-baseline border-t border-stone-200 dark:border-white/10 pt-2 text-sm font-extrabold text-stone-900 dark:text-white">
             <span>Grand Total</span>
             <span className="font-mono text-xl tabular-nums text-[#ff5e3a] font-black">
               ₹{(receipt.total / 100).toFixed(2)}
@@ -259,11 +259,11 @@ function ReceiptContent() {
 
         {receipt.qr_verification_token && (
           receipt.order_stage === 'COLLECTED' || receipt.collected_at ? (
-            <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-2">
-              <div className="inline-block rounded-xl border-2 border-stone-800 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-stone-900">
+            <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-2">
+              <div className="inline-block rounded-xl border-2 border-stone-800 dark:border-white/30 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-stone-900 dark:text-white">
                 Order Collected
               </div>
-              <p className="text-[11px] text-stone-500">
+              <p className="text-[11px] text-stone-500 dark:text-stone-400">
                 This receipt has been collected and the QR verification token is permanently expired.
               </p>
               {receipt.collected_at && (
@@ -273,16 +273,18 @@ function ReceiptContent() {
               )}
             </div>
           ) : (
-            <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-3">
-              <p className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+            <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-3">
+              <p className="text-[11px] font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
                 Pickup Collection Ticket
               </p>
               <div className="flex justify-center">
-                <QRCodeSvg value={receipt.qr_verification_token} size={150} />
+                <div className="bg-white p-3 rounded-2xl inline-block shadow-sm">
+                  <QRCodeSvg value={receipt.qr_verification_token} size={150} />
+                </div>
               </div>
               <div>
                 <span className="text-[10px] text-stone-400">Token String:</span>
-                <p className="font-mono text-xs font-extrabold text-stone-800 tracking-wider">
+                <p className="font-mono text-xs font-extrabold text-stone-800 dark:text-stone-200 tracking-wider">
                   {receipt.qr_verification_token}
                 </p>
               </div>
@@ -290,9 +292,9 @@ function ReceiptContent() {
           )
         )}
 
-        <div className="border-t border-stone-200 pt-4 text-center space-y-1 text-[10px] text-stone-500">
-          <p className="font-bold text-stone-700">{receipt.canteen.notice}</p>
-          <p className="font-semibold text-rose-600">Strict No-Refund Policy: Takeaway meals are prepared freshly upon confirmation and cannot be cancelled or refunded.</p>
+        <div className="border-t border-stone-200 dark:border-white/10 pt-4 text-center space-y-1 text-[10px] text-stone-500 dark:text-stone-400">
+          <p className="font-bold text-stone-700 dark:text-stone-300">{receipt.canteen.notice}</p>
+          <p className="font-semibold text-rose-600 dark:text-rose-400">Strict No-Refund Policy: Takeaway meals are prepared freshly upon confirmation and cannot be cancelled or refunded.</p>
           <p>Thank you for dining at Cafeteria CEV! Please retain this bill for collection.</p>
         </div>
       </div>
@@ -302,7 +304,7 @@ function ReceiptContent() {
 
 export default function CustomerReceiptPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
+    <div className="min-h-screen flex flex-col bg-stone-50 dark:bg-[#0d0e12]">
       <div className="print:hidden">
         <Header />
       </div>

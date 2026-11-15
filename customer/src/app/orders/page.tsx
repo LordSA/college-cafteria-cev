@@ -158,10 +158,10 @@ export default function CustomerOrdersPage() {
           </div>
 
           {!user && !authLoading ? (
-            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
-              <ReceiptText className="mx-auto h-10 w-10 text-stone-300" />
-              <h2 className="text-base font-bold text-stone-900">Sign in to view your orders</h2>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+            <div className="rounded-3xl border border-dashed border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-12 text-center space-y-4">
+              <ReceiptText className="mx-auto h-10 w-10 text-stone-300 dark:text-stone-600" />
+              <h2 className="text-base font-bold text-stone-900 dark:text-white">Sign in to view your orders</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
                 Authenticate with your college account to view active prep queues and receipts.
               </p>
               <Link
@@ -177,15 +177,15 @@ export default function CustomerOrdersPage() {
               <p className="text-xs font-medium">Loading your orders...</p>
             </div>
           ) : error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-700 flex items-center gap-2">
+            <div className="rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
           ) : orders.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center space-y-4">
-              <ReceiptText className="mx-auto h-10 w-10 text-stone-300" />
-              <h2 className="text-base font-bold text-stone-900">No orders placed yet</h2>
-              <p className="text-xs text-stone-500 max-w-sm mx-auto">
+            <div className="rounded-3xl border border-dashed border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-12 text-center space-y-4">
+              <ReceiptText className="mx-auto h-10 w-10 text-stone-300 dark:text-stone-600" />
+              <h2 className="text-base font-bold text-stone-900 dark:text-white">No orders placed yet</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
                 When you order from the campus canteen, your live kitchen status and tickets will show up here.
               </p>
               <Link
@@ -210,29 +210,29 @@ export default function CustomerOrdersPage() {
                 return (
                   <div
                     key={order.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-stone-200/80 bg-white p-5 shadow-xs hover:border-orange-300 hover:shadow-sm transition"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] p-5 shadow-xs hover:border-orange-300 dark:hover:border-orange-500/40 hover:shadow-sm transition"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <span className="font-mono text-sm font-extrabold text-stone-900">
+                        <span className="font-mono text-sm font-extrabold text-stone-900 dark:text-white">
                           {order.order_number}
                         </span>
                         {renderStatusBadge(order)}
                       </div>
 
-                      <p className="text-xs text-stone-500 flex items-center gap-1.5">
+                      <p className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
                         <Clock className="h-3 w-3" />
                         <span>{formattedDate}</span>
                       </p>
 
-                      <div className="text-xs text-stone-700">
+                      <div className="text-xs text-stone-700 dark:text-stone-300">
                         {order.items.map((i) => `${i.quantity}× ${i.item_name}`).join(', ')}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/10">
                       <div className="text-right">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 block">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 block">
                           Total
                         </span>
                         <span className="font-mono text-base font-extrabold text-[#ff5e3a] tabular-nums">
@@ -242,7 +242,7 @@ export default function CustomerOrdersPage() {
 
                       <Link
                         href={`/orders/track/?id=${order.id}`}
-                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs font-bold text-stone-700 hover:border-[#ff5e3a] hover:text-[#ff5e3a] transition"
+                        className="inline-flex items-center gap-1 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#202230] px-3.5 py-2 text-xs font-bold text-stone-700 dark:text-stone-200 hover:border-[#ff5e3a] hover:text-[#ff5e3a] transition"
                       >
                         <span>Details</span>
                         <ArrowRight className="h-3 w-3" />

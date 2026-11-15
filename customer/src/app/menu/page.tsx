@@ -195,7 +195,7 @@ export default function MenuPage() {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-2.5 text-stone-800 shadow-xl shadow-black/5">
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-full bg-white dark:bg-[#161822]/90 dark:border dark:border-white/10 px-4 py-2.5 text-stone-800 dark:text-white shadow-xl shadow-black/5 dark:shadow-black/40">
             <div className="flex flex-1 items-center gap-2.5">
               <Search className="h-4 w-4 text-[#ff5e3a] flex-shrink-0" />
               <input
@@ -203,13 +203,13 @@ export default function MenuPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search dishes, snacks, drinks..."
-                className="w-full bg-transparent text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                className="w-full bg-transparent text-xs font-medium text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="text-stone-400 hover:text-stone-600"
+                  className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -218,7 +218,7 @@ export default function MenuPage() {
             <button
               type="button"
               onClick={() => setShowFilterModal(true)}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 transition flex-shrink-0"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-white/10 transition flex-shrink-0"
             >
               <SlidersHorizontal className="h-4 w-4" />
             </button>
@@ -244,20 +244,20 @@ export default function MenuPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="relative flex items-center w-72 rounded-full bg-white px-3.5 py-2 text-stone-800 shadow-md">
+                  <div className="relative flex items-center w-72 rounded-full bg-white dark:bg-[#161822] dark:border dark:border-white/10 px-3.5 py-2 text-stone-800 dark:text-white shadow-md">
                     <Search className="h-4 w-4 text-[#ff5e3a] mr-2 flex-shrink-0" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search dishes..."
-                      className="w-full bg-transparent text-xs font-medium text-stone-900 placeholder-stone-400 focus:outline-none"
+                      className="w-full bg-transparent text-xs font-medium text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
                     />
                     {searchQuery && (
                       <button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="text-stone-400 hover:text-stone-600 ml-1"
+                        className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 ml-1"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -294,12 +294,12 @@ export default function MenuPage() {
           </div>
 
           {remainingSeconds > 0 && itemCount > 0 && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl bg-amber-500/10 border border-amber-300/60 p-3.5 text-amber-950 text-xs font-medium">
+            <div className="flex items-center justify-between gap-3 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-300/60 dark:border-amber-500/30 p-3.5 text-amber-950 dark:text-amber-200 text-xs font-medium">
               <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-amber-600 flex-shrink-0 animate-pulse" />
+                <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 animate-pulse" />
                 <span>Items in your cart are locked for you. Stock will release in</span>
               </div>
-              <span className="font-mono font-black text-amber-700 bg-white px-2 py-0.5 rounded-md border border-amber-200">
+              <span className="font-mono font-black text-amber-700 dark:text-amber-300 bg-white dark:bg-[#202230] px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-500/40">
                 {formatTimer(remainingSeconds)}
               </span>
             </div>
@@ -332,16 +332,16 @@ export default function MenuPage() {
               <p className="text-xs font-medium">Loading menu catalog...</p>
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center">
-              <Utensils className="mx-auto h-8 w-8 text-stone-300" />
-              <h3 className="mt-3 text-sm font-bold text-stone-800">No dishes in this category</h3>
-              <p className="mt-1 text-xs text-stone-500">
+            <div className="rounded-3xl border border-dashed border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822]/60 p-12 text-center">
+              <Utensils className="mx-auto h-8 w-8 text-stone-300 dark:text-stone-600" />
+              <h3 className="mt-3 text-sm font-bold text-stone-800 dark:text-stone-200">No dishes in this category</h3>
+              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
                 Try selecting "All Dishes" or choose another category from the filter.
               </p>
               <button
                 type="button"
                 onClick={() => setSelectedCategory('all')}
-                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-stone-100 px-4 py-2 text-xs font-bold text-stone-800 hover:bg-stone-200 transition"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-stone-100 dark:bg-white/10 px-4 py-2 text-xs font-bold text-stone-800 dark:text-white hover:bg-stone-200 dark:hover:bg-white/15 transition"
               >
                 Show All Dishes
               </button>
@@ -355,10 +355,10 @@ export default function MenuPage() {
                 return (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-white p-3.5 sm:p-4 shadow-xs hover:border-orange-200 transition"
+                    className="flex items-center justify-between gap-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-3.5 sm:p-4 shadow-xs hover:border-orange-200 dark:hover:border-orange-500/40 transition"
                   >
                     <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
-                      <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-stone-100 overflow-hidden flex-shrink-0 flex items-center justify-center border border-stone-100">
+                      <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-stone-100 dark:bg-white/5 overflow-hidden flex-shrink-0 flex items-center justify-center border border-stone-100 dark:border-white/5">
                         {item.image_url ? (
                           <img
                             src={item.image_url}
@@ -367,31 +367,31 @@ export default function MenuPage() {
                             loading="lazy"
                           />
                         ) : (
-                          <Utensils className="h-6 w-6 text-stone-300" />
+                          <Utensils className="h-6 w-6 text-stone-300 dark:text-stone-600" />
                         )}
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-sm sm:text-base font-bold text-stone-900 truncate">
+                          <h3 className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 truncate">
                             {item.name}
                           </h3>
                           {item.category_name && (
-                            <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-600">
+                            <span className="rounded-md bg-stone-100 dark:bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-stone-600 dark:text-stone-300">
                               {item.category_name}
                             </span>
                           )}
                         </div>
 
                         {item.description && (
-                          <p className="mt-0.5 text-xs text-stone-500 line-clamp-1 leading-snug">
+                          <p className="mt-0.5 text-xs text-stone-500 dark:text-stone-400 line-clamp-1 leading-snug">
                             {item.description}
                           </p>
                         )}
 
                         <div className="mt-1 flex items-center gap-2">
                           <span
-                            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${isAvailable ? 'text-emerald-700' : 'text-rose-600'
+                            className={`inline-flex items-center gap-1 text-[11px] font-semibold ${isAvailable ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                               }`}
                           >
                             {isAvailable ? (
@@ -408,7 +408,7 @@ export default function MenuPage() {
                           </span>
 
                           {item.track_inventory && isAvailable && item.stock_quantity !== undefined && (
-                            <span className="text-[10px] text-stone-400 font-medium">
+                            <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
                               ({item.stock_quantity} left)
                             </span>
                           )}
@@ -417,22 +417,22 @@ export default function MenuPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-4 flex-shrink-0">
-                      <span className="font-mono text-sm sm:text-base font-extrabold text-stone-900 tabular-nums">
+                      <span className="font-mono text-sm sm:text-base font-extrabold text-stone-900 dark:text-white tabular-nums">
                         ₹{(item.price / 100).toFixed(2)}
                       </span>
 
                       {isAvailable ? (
                         inCartQuantity > 0 ? (
-                          <div className="flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-2 py-1 shadow-xs">
+                          <div className="flex items-center gap-1.5 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs">
                             <button
                               type="button"
                               onClick={() => handleUpdateQty(item.id, inCartQuantity - 1)}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg bg-white text-stone-700 hover:bg-stone-100 transition shadow-xs"
+                              className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 transition shadow-xs"
                               title="Decrease"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
-                            <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950">
+                            <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
                               {inCartQuantity}
                             </span>
                             <button
@@ -455,7 +455,7 @@ export default function MenuPage() {
                           </button>
                         )
                       ) : (
-                        <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-[11px] font-semibold text-stone-400">
+                        <span className="rounded-lg bg-stone-100 dark:bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-stone-400 dark:text-stone-500">
                           Unavailable
                         </span>
                       )}
@@ -469,17 +469,17 @@ export default function MenuPage() {
       </main>
 
       {showFilterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-stone-200">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#161822] p-6 shadow-2xl border border-stone-200 dark:border-white/10">
+            <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-[#ff5e3a]" />
-                <h3 className="text-base font-black text-stone-900">Select Category</h3>
+                <h3 className="text-base font-black text-stone-900 dark:text-white">Select Category</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFilterModal(false)}
-                className="rounded-full p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+                className="rounded-full p-1 text-stone-400 hover:bg-stone-100 dark:hover:bg-white/10 hover:text-stone-700 dark:hover:text-stone-200 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -494,7 +494,7 @@ export default function MenuPage() {
                 }}
                 className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${selectedCategory === 'all'
                   ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
-                  : 'bg-stone-50 hover:bg-stone-100 text-stone-800'
+                  : 'bg-stone-50 dark:bg-white/5 hover:bg-stone-100 dark:hover:bg-white/10 text-stone-800 dark:text-stone-200'
                   }`}
               >
                 <span>All Dishes</span>
@@ -514,7 +514,7 @@ export default function MenuPage() {
                     }}
                     className={`w-full text-left px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center justify-between ${isSelected
                       ? 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm'
-                      : 'bg-stone-50 hover:bg-stone-100 text-stone-800'
+                      : 'bg-stone-50 dark:bg-white/5 hover:bg-stone-100 dark:hover:bg-white/10 text-stone-800 dark:text-stone-200'
                       }`}
                   >
                     <span>{cat.name}</span>
@@ -528,17 +528,17 @@ export default function MenuPage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-semibold text-stone-500">
+                <p className="text-[11px] font-semibold text-stone-500 dark:text-stone-400">
                   {itemCount} {itemCount === 1 ? 'item' : 'items'} &bull; Lock: {formatTimer(remainingSeconds)}
                 </p>
-                <p className="font-mono text-base font-extrabold text-stone-900 tabular-nums">
+                <p className="font-mono text-base font-extrabold text-stone-900 dark:text-white tabular-nums">
                   ₹{(subtotal / 100).toFixed(2)}
                 </p>
               </div>
