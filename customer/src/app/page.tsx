@@ -29,6 +29,7 @@ import { useCart } from '../context/CartContext';
 import { Navbar } from '../components/Navbar';
 import { SidebarDrawer } from '../components/SidebarDrawer';
 import { Footer } from '../components/Footer';
+import { WelcomeLanding } from '../components/WelcomeLanding';
 
 interface ApiCategory {
   id: string;
@@ -69,7 +70,7 @@ function getCategoryIcon(name: string) {
 
 export default function CustomerHomePage() {
   const router = useRouter();
-  const { user, profile, session } = useAuth();
+  const { user, profile, session, loading: authLoading } = useAuth();
   const { items: cartItems, addItem, updateQuantity, itemCount, subtotal, remainingSeconds } = useCart();
 
   const formatTimer = (totalSeconds: number) => {
