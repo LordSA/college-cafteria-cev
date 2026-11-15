@@ -53,7 +53,7 @@ export function WelcomeLanding() {
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 dark:text-white leading-[1.1]">
             Welcome to <br />
             <img
-              src={activeTheme === 'dark' ? '/logo_title.svg' : '/lg_title_blk.svg'}
+              src={activeTheme === 'dark' ? '/logo title.svg' : '/lg_title_blk.svg'}
               alt="Cafeteria CEV title"
               className="h-12 w-full object-contain drop-shadow-md"
             />
