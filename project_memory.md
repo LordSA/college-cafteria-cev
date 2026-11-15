@@ -131,7 +131,8 @@ college-canteen-cev/
   - `src/routes/admin.ts`: `GET /api/v1/admin/me`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`, and `GET /api/v1/admin/diagnostics`.
   - `src/routes/reports.ts`: Financial metrics `GET /api/v1/admin/reports/stats`, fund flow `GET /api/v1/admin/reports/funds`, and 5-sheet Excel workbook export `GET /api/v1/admin/reports/export` in `Asia/Kolkata` timezone.
   - `src/routes/webhooks.ts`: Razorpay webhook listener `POST /api/v1/webhooks/razorpay` with raw payload HMAC SHA-256 signature verification and event deduplication via `payment_webhook_events`.
-  - `src/routes/staffRequests.ts`: Admin endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject` with Teacher ID and email support.
+  - `src/routes/staffRequests.ts`: Admin endpoints `GET /api/v1/admin/staff-requests`, `POST /:id/approve`, `POST /:id/reject` with Teacher ID and email support. Frontend `admin/src/app/staff-requests/page.tsx` features automatic Supabase client direct fallback to ensure resilience against missing column schema errors.
+  - `backend/migrations/0009_add_profile_email.sql`: Migration script adding `email text` to `public.profiles` with backfill from `auth.users` and sync via `handle_new_user()`.
   - `src/routes/categories.ts`: Public `GET /api/v1/categories`, Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu`, Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
   - `src/routes/uploads.ts`: Unified storage endpoints `POST /presign`, `POST /verify`, `GET /avatar`, `PUT /mock-sink`.

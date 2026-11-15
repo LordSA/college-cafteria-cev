@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { HelpCircle, FileText, Lock, ShieldAlert } from 'lucide-react';
+import { HelpCircle, FileText, Lock } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 
@@ -43,29 +43,6 @@ export function Footer() {
               </li>
             </ul>
           </div>
-
-          {/* <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white">
-              My Account
-            </h3>
-            <ul className="mt-4 space-y-2 text-xs text-stone-500 dark:text-stone-400">
-              <li>
-                <Link href="/orders" className="hover:text-[#ff5e3a] text-stone-600 dark:text-stone-300 transition">
-                  My Orders
-                </Link>
-              </li>
-              <li>
-                <Link href="/profile" className="hover:text-[#ff5e3a] text-stone-600 dark:text-stone-300 transition">
-                  Profile & Presets
-                </Link>
-              </li>
-              <li>
-                <Link href="/settings" className="hover:text-[#ff5e3a] text-stone-600 dark:text-stone-300 transition">
-                  Account Settings & Theme
-                </Link>
-              </li>
-            </ul>
-          </div> */}
 
           <div>
             <h3 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white">

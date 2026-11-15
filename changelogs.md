@@ -39,6 +39,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Added helpful diagnostic feedback banner on admin staff requests page guiding administrators if remote Supabase schema migration `20261111000000_add_email_to_profiles.sql` is pending.
 
 ### Fixed
+- **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
+  - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
+  - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.
+- **Comprehensive Dark Mode Glassmorphism Audit (`customer/`)**:
+  - Eliminated all lingering white elements across all customer pages (`page.tsx`, `menu/page.tsx`, `cart/page.tsx`, `orders/page.tsx`, `orders/track/page.tsx`, `orders/receipt/page.tsx`, `profile/page.tsx`, `settings/page.tsx`, `login/page.tsx`, `signup/page.tsx`, `checkout/success/page.tsx`).
+  - Implemented high-contrast dark glassmorphism surfaces (`bg-[#161822]/90 backdrop-blur-md border border-white/10`) inspired by food delivery applications (Zomato/Swiggy/Zepto).
+  - Ensured `useTheme()` client context is safely accessed with resilient fallback for static export generation.
 - **Database Query Fix for Staff Requests & Admin Users (`backend/src/routes/staffRequests.ts`, `backend/src/routes/admin.ts`, `backend/src/routes/adminOrders.ts`, `backend/src/routes/reports.ts`)**:
   - Resolved `column profiles.email does not exist` PostgreSQL error in staff requests endpoint (`GET /api/v1/admin/staff-requests`) by removing direct `email` column selection on `public.profiles`.
   - Enriched user records dynamically with their email addresses fetched from `auth.users` via `adminClient.auth.admin.listUsers()` / `getUserById()`.
@@ -318,6 +325,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ### Fixed
+- **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
+  - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
+  - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.
+- **Comprehensive Dark Mode Glassmorphism Audit (`customer/`)**:
+  - Eliminated all lingering white elements across all customer pages (`page.tsx`, `menu/page.tsx`, `cart/page.tsx`, `orders/page.tsx`, `orders/track/page.tsx`, `orders/receipt/page.tsx`, `profile/page.tsx`, `settings/page.tsx`, `login/page.tsx`, `signup/page.tsx`, `checkout/success/page.tsx`).
+  - Implemented high-contrast dark glassmorphism surfaces (`bg-[#161822]/90 backdrop-blur-md border border-white/10`) inspired by food delivery applications (Zomato/Swiggy/Zepto).
+  - Ensured `useTheme()` client context is safely accessed with resilient fallback for static export generation.
 - **Profile Position/Role Locking Trigger Removal**:
   - Removed restrictive `protect_profile_roles()` trigger on `public.profiles` (`trg_protect_profile_roles`), which blocked direct database edits in Supabase Table Editor / SQL Editor and prevented admin approval of student-to-staff/faculty conversion.
   - Added additive migration `0008_remove_profile_role_lock.sql` (`supabase/migrations/20261028000000_remove_profile_role_lock.sql`) dropping `trg_protect_profile_roles` and replacing it with lightweight `handle_profile_updated_at` trigger.
@@ -394,6 +408,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Amazon-style multi-column desktop footer with "Back to top" action.
 
 ### Fixed
+- **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
+  - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
+  - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.
+- **Comprehensive Dark Mode Glassmorphism Audit (`customer/`)**:
+  - Eliminated all lingering white elements across all customer pages (`page.tsx`, `menu/page.tsx`, `cart/page.tsx`, `orders/page.tsx`, `orders/track/page.tsx`, `orders/receipt/page.tsx`, `profile/page.tsx`, `settings/page.tsx`, `login/page.tsx`, `signup/page.tsx`, `checkout/success/page.tsx`).
+  - Implemented high-contrast dark glassmorphism surfaces (`bg-[#161822]/90 backdrop-blur-md border border-white/10`) inspired by food delivery applications (Zomato/Swiggy/Zepto).
+  - Ensured `useTheme()` client context is safely accessed with resilient fallback for static export generation.
 - **PostgREST Schema Cache & Profile Relational Queries**:
   - Resolved `Could not find a relationship between 'orders' and 'customer_id' in the schema cache` error in `backend/src/routes/adminOrders.ts` and `backend/src/routes/adminWallet.ts`.
   - Migrated embedded relation syntax (`profiles:customer_id(...)`) to resilient, decoupled batch profile lookups (`in('id', customerIds)` against `public.profiles`).
