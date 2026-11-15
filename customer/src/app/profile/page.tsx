@@ -51,7 +51,7 @@ export default function ProfilePage() {
     orders: any[];
   }>({ total_pending: 0, order_count: 0, orders: [] });
   const [showSettleModal, setShowSettleModal] = useState(false);
-  const [settleMethod, setSettleMethod] = useState<'upi'>('upi');
+  const settleMethod = 'upi';
   const [upiRef, setUpiRef] = useState('');
   const [settling, setSettling] = useState(false);
   const [settleError, setSettleError] = useState<string | null>(null);

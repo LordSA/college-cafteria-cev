@@ -276,6 +276,12 @@ function OrderTrackerContent() {
           </span>
         </div>
       </div>
+
+      <div className="rounded-2xl border border-stone-200/80 bg-stone-50 p-3.5 text-center">
+        <p className="text-[11px] text-stone-500">
+          <strong className="text-stone-700">Strict No-Refund Policy:</strong> Takeaway food is freshly cooked upon confirmation. Orders cannot be cancelled or refunded once placed.
+        </p>
+      </div>
     </div>
   );
 }

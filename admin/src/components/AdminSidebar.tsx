@@ -10,7 +10,6 @@ import {
   Bookmark,
   Layers,
   Settings,
-  Wallet,
   Terminal,
   LogOut,
 } from 'lucide-react';
@@ -28,7 +27,6 @@ export function AdminSidebar() {
     { label: 'Menu Dishes', shortLabel: 'Menu', href: '/menu', icon: Bookmark, show: isRetail },
     { label: 'Categories', shortLabel: 'Categories', href: '/categories', icon: Layers, show: isRetail },
     { label: 'Staff Requests', shortLabel: 'Staff', href: '/staff-requests', icon: Settings, show: isAdmin },
-    { label: 'Wallets & Credit', shortLabel: 'Wallets', href: '/wallets', icon: Wallet, show: isAdmin },
     { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: isDeveloper },
   ];
 
