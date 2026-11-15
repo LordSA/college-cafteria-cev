@@ -46,31 +46,33 @@ Exclusively powered by `lucide-react` across both applications:
 
 - **Unified Warm Canteen Theme & College Shop UI:**
   - **Color Palette & Accents:** Warm coral, rose, and amber gradients (`from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` and `from-[#ff4b4b] to-[#ff7844]`), crisp white cards with soft warm drop shadows, and neutral stone text tokens (`stone-900`, `stone-600`, `stone-400`).
+  - **Dark Mode & Glassmorphic Engine:** Tailwind `class` dark mode with obsidian glass surfaces (`#0b0c0e` base, `#121316` surface, `#1a1b24` elevated, border `#22242e`, `.glass-surface` with `backdrop-blur-xl`).
+  - **Dynamic Theme Icons & Logos:** Desktop Navbar and Footer utilize `logo title.svg`. Theme icon dynamically renders `cafe ico 1.png` on light surfaces and `cafe ico 2.png` on dark surfaces.
   - **Mobile Shell (`md:hidden`):**
-    - Curved Warm Header: `from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` with `rounded-b-[2.5rem]`, high-contrast white greeting typography, CEV College Canteen Counter #1 identity, and 3-line hamburger sidebar trigger.
+    - Curved Warm Header: `from-[#ff5e3a] via-[#ff7043] to-[#ffa040]` with `rounded-b-[2.5rem]`, high-contrast white greeting typography, and CEV College Canteen Counter #1 identity.
     - Floating Search Pill: Clean white rounded pill container with orange search icon and filter control.
     - Circular Category Rail: Circular icon buttons (Meals, Coffee, Gifts, Juice, Cake, Pizza, Fruits) with active coral gradient pill highlight.
     - Hot Products Carousel: Horizontal card scroll for top campus favorites ("Most Ordered & Clicked") with star ratings (`★ 4.8`), order volume (`12K+ orders`), prep times (`⏱ 4-12 Min`), and instant Add-to-cart buttons.
-    - Exclusive Deals: Vibrant tri-color gradient circular offer badges (Flat 50% on Combos, 60% on Special Thali, 30% on Snack Packs).
-    - Top Header Navbar: Hidden on mobile views (`hidden md:block`) to maximize vertical ordering viewport.
-    - Floating Mobile Bottom Nav: Fixed 5-tab dock (`Home`, `Menu`, `Cart`, `Orders`, `Profile`) with active coral pill highlight and live cart badge counter.
+    - Exclusive Deals: Vibrant tri-color gradient circular offer badges.
+    - Floating Curved Mobile Bottom Dock (`rounded-[28px]`): Fixed 4-tab floating glass dock (`Home`, `Menu`, `Cart`, `Profile`) with active orange pill highlight, safe-area-bottom padding, and live cart badge counter.
   - **PC Desktop Layout (`hidden md:block`):**
-    - Clean Unified Navbar (`Navbar.tsx`): Cohesive warm coral/orange gradient header across all desktop pages with `Cafteria.cev` branding, primary navigation links (`Home`, `Menu`), square Wallet icon button (`/wallet`), Cart button with item count badge, and User Profile with preset avatar / Login button.
+    - Clean Unified Navbar (`Navbar.tsx`): Header across all desktop pages with `logo title.svg`, dynamic theme icon, primary navigation links (`Home`, `Menu`), Cart button with item count badge, and User Profile with preset avatar / Login button.
   - **Menu & Cart Column Layout:**
     - Single-column vertical list system for fast scrolling and thumb reach.
     - Category Filter dialog button with active filter dismissal tags.
-    - 5-minute atomic reservation timer banner with live stock decrement.
-  - **Post-Payment & Pickup Pass:**
+    - 5-minute atomic reservation timer banner with automatic eviction of expired locked items.
+  - **Post-Payment, Receipts & Pickup:**
     - High-contrast SVG QR collection pass displayed prominently at the TOP.
     - Itemized ordered dishes breakdown and paid total displayed directly BELOW the QR code.
-  - **Profile Experience:**
+    - Strict No-Refund & No-Cancellation Policy disclosed prominently across checkout, order tracking, and printable receipts.
+  - **Profile & Settings Experience:**
     - 5 local preset avatars (`/avatars/avatar-X.svg`) replacing file uploads.
     - User classification role prominently displayed beneath name.
-    - Phone number field and Google account linking in Settings.
+    - 3-Way Appearance Switcher (`Device`, `Dark`, `Light`) defaulting to `Device` with live OS media query tracking.
+    - Modal popup card for password changes.
     - Prominent red Sign Out button positioned at the bottom.
-    - Menu Section: Clean catalog section displaying all active dishes in the canteen kitchen.
-  - **Upgraded 5-Column Campus Footer (`hidden md:block`):**
-    - Visible exclusively on desktop and tablet views (`md:` and above), hidden on mobile view to avoid redundancy with the floating bottom dock navigation. Dedicated college canteen identity, operating hours (8:00 AM – 7:00 PM), canteen collection desk details, links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
+  - **Upgraded Campus Footer (`hidden md:block`):**
+    - Visible on desktop and tablet views with `logo title.svg`, operating hours (8:00 AM – 7:00 PM), collection desk details, No-Refund Policy notice, and links to Privacy Policy (`/privacy`), Terms & Conditions (`/terms`), and Payment FAQs (`/payment-faq`).
 
 For full color scales, component anatomy, layout grids, and interactive states:
 

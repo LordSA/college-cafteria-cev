@@ -38,26 +38,32 @@ college-canteen-cev/
 * **Dev Port:** `3000` (`http://localhost:3000`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`.
 * **Key Files:**
-  - `src/app/layout.tsx`: Root HTML shell with `AuthProvider` and `CartProvider` wrappers.
-  - `src/app/globals.css`: Base Tailwind directives and custom scrollbar resets.
-  - `src/app/page.tsx`: Unified campus dining portal featuring warm coral/orange gradient theme across mobile and desktop PC, curved header hero (`rounded-b-[2.5rem]` mobile, `rounded-3xl` desktop), search pill, circular categories, "Hot Products" (most ordered items), exclusive deals, live kitchen products, floating bottom cart checkout pill when items are added, and rich footer. Hamburger button removed on mobile for streamlined UI.
+  - `src/app/layout.tsx`: Root HTML shell with `ThemeProvider`, `AuthProvider`, and `CartProvider` wrappers.
+  - `src/context/ThemeContext.tsx`: Client-side theme provider supporting 3 modes (`device` | `dark` | `light`), live OS media query tracking (`prefers-color-scheme: dark`), and local storage persistence.
+  - `src/app/globals.css`: Base Tailwind directives, `.dark` color variables, glassmorphic surfaces (`.glass-surface`), and custom scrollbar resets.
+  - `src/components/WelcomeLanding.tsx`: Welcome splash screen for unauthenticated users featuring hero visual, "Welcome to Cafeteria CEV", "Start with email", Google OAuth button, and "Sign In" link.
+  - `src/app/page.tsx`: Unified campus dining portal featuring auth gate displaying `WelcomeLanding` to guests, promotional hero banner (`banner.png`) linking to `/menu`, warm coral/orange gradient theme with dark mode glassmorphic styling, search pill, circular categories, "Hot Products", and floating bottom cart checkout bar.
   - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, payment processing, and RLS data security.
-  - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, payment policies, and collection verification.
-  - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion covering Razorpay payments, Counter #1 pickups, no order cancellation once placed, faculty pay later, and QR pass security.
-  - `src/components/MobileBottomNav.tsx`: Persistent mobile dock navigation (`md:hidden`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active coral rounded highlight, and live cart count badge. `Orders` tab removed.
-  - `src/components/SidebarDrawer.tsx`: Slide-over drawer with user profile, quick navigation links, dining hours, and auth actions.
-  - `src/components/Navbar.tsx`: Desktop PC navigation header (`hidden md:block`) with clean `Home`, `Menu` links, wallet icon, cart button with item count badge, and user profile avatar / Login button. (Re-exported via `Header.tsx` as `Header`).
+  - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, payment policies, and strict No-Refund & No-Cancellation policy.
+  - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion covering Razorpay payments, Counter #1 pickups, strict No-Refund policy, faculty pay later, and QR pass security.
+  - `src/components/MobileBottomNav.tsx`: Persistent curved floating dock navigation (`md:hidden`, `rounded-[28px]`, `backdrop-blur-xl`) with 4 destinations (`Home`, `Menu`, `Cart`, `Profile`), active orange highlight, and live cart count badge. Hidden on auth pages and for unauthenticated guests.
+  - `src/components/SidebarDrawer.tsx`: Slide-over drawer with user profile, dynamic theme icon (`cafe ico 1.png` / `cafe ico 2.png`), quick navigation links, dining hours, and auth actions.
+  - `src/components/Navbar.tsx`: Desktop PC navigation header (`hidden md:block`) with `logo title.svg`, dynamic theme icon, clean `Home`, `Menu` links, cart button with item count badge, and user profile avatar / Login button. (Re-exported via `Header.tsx` as `Header`).
   - `src/components/Header.tsx`: Re-exports `Navbar as Header` for backward compatibility.
-  - `src/components/Footer.tsx`: Modern campus canteen footer hidden on mobile devices (`hidden md:block`).
-  - `src/app/login/page.tsx`: Sign-in page with email/password and "Continue with Google" OAuth button.
-  - `src/app/signup/page.tsx`: Registration page with student vs faculty selection, conditional Teacher ID capture (3-20 characters), confirm password, terms checkbox, and "Continue with Google" button.
+  - `src/components/Footer.tsx`: Modern campus canteen footer with `logo title.svg`, dark mode glassmorphic styling, and No-Refund policy statement.
+  - `src/app/login/page.tsx`: Redesigned minimalist sign-in page with email, password with show/hide eye toggle, orange pill button, and "Continue with Google" OAuth.
+  - `src/app/signup/page.tsx`: Redesigned minimalist registration page with student vs faculty selection, conditional Teacher ID capture, orange pill button, and "Continue with Google".
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer.
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
-  - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Back button, Account Security (Change Password modal popup card, Google Account Link/Unlink, Sign Out), and Account Information (Email, Role, Teacher ID input with verification status).
-  - `src/app/profile/page.tsx`: Account profile with role displayed under name, circular profile avatar with camera overlay badge opening interactive preset SVG avatar selection modal (`avatar-1.svg` to `avatar-5.svg`), phone number input, Pay Later dues settlement, gear icon link to `/settings`, and prominent bottom red Sign Out button. Security & Settings button removed from personal info form.
-  - `src/app/menu/page.tsx`: Menu page featuring curved gradient header (`rounded-b-[2.5rem]` mobile, `rounded-3xl` desktop), real-time live search bar, category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar.
-  - `src/app/cart/page.tsx`: Shopping cart management page featuring curved gradient header, line items, line totals, 5-minute lock countdown with automatic expired item eviction, clear cart control, and "My Orders" access buttons in header, empty state, and summary sidebar.
+  - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Appearance & Theme 3-way toggle (`Device`, `Dark`, `Light`), Account Security (Change Password modal popup card, Google Account Link/Unlink, Sign Out), and Account Information.
+  - `src/app/profile/page.tsx`: Account profile with role displayed under name, circular profile avatar with camera overlay badge opening interactive preset SVG avatar selection modal (`avatar-1.svg` to `avatar-5.svg`), phone number input, Pay Later dues settlement via UPI, gear icon link to `/settings`, and prominent bottom red Sign Out button.
+  - `src/app/menu/page.tsx`: Menu page featuring curved gradient header (`rounded-b-[2.5rem]` mobile, `rounded-3xl` desktop), real-time live search bar, category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar. Auth-gated with automatic redirect to `/login`.
+  - `src/app/cart/page.tsx`: Shopping cart management page featuring curved gradient header, line items, line totals, 5-minute lock countdown with automatic expired item eviction, clear cart control, and "My Orders" access buttons. Auth-gated with automatic redirect to `/login`.
+  - `src/app/orders/page.tsx`: Orders management page showing active preparation queues and receipts. Auth-gated with automatic redirect to `/login`.
+  - `src/app/orders/track/page.tsx`: Live order tracking page with QR pickup pass and strict No-Refund policy disclosure.
+  - `src/app/orders/receipt/page.tsx`: Printable customer receipt with order token, QR verification token, and strict No-Refund policy disclosure.
+  - `src/app/wallet/page.tsx`: Legacy route redirected automatically to `/`.
   - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later.
   - `src/app/checkout/success/page.tsx`: Order confirmation screen featuring the mechanical `ReceiptPrinterAnimation` thermal takeaway ticket, live pickup token, and quick action buttons.
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.

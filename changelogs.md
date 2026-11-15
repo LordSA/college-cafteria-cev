@@ -9,6 +9,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Theme Engine & Glassmorphic Dark Mode (`customer/src/context/ThemeContext.tsx`, `customer/tailwind.config.ts`, `customer/src/app/globals.css`, `customer/src/app/settings/page.tsx`)**:
+  - Added full glassmorphic dark mode support with Tailwind `darkMode: 'class'`.
+  - Added 3-way theme toggle (`Device`, `Dark`, `Light`) in Settings with `Device` as default, actively tracking `window.matchMedia('(prefers-color-scheme: dark)')` live OS theme changes.
+- **Mandatory Auth Gate & Welcome Landing Screen (`customer/src/components/WelcomeLanding.tsx`, `customer/src/app/page.tsx`, `customer/src/app/menu/page.tsx`, `customer/src/app/cart/page.tsx`, `customer/src/app/orders/page.tsx`)**:
+  - Unauthenticated visitors on any device are presented with a dedicated Welcome Landing page featuring "Start with email", Google OAuth, and "Sign In".
+  - Protected routes (`/menu`, `/cart`, `/orders`, `/profile`, `/settings`, `/checkout`) automatically redirect unauthenticated users to `/login`.
+- **Minimalist Login & Sign-Up Redesign (`customer/src/app/login/page.tsx`, `customer/src/app/signup/page.tsx`)**:
+  - Clean minimalist layout matching mobile reference design with email, password with show/hide eye toggle, orange pill action buttons, Google OAuth, and role selection with Teacher ID support.
+- **Floating Curved Bottom Navigation Dock (`customer/src/components/MobileBottomNav.tsx`)**:
+  - Floating glassmorphic dock (`rounded-[28px]`, `backdrop-blur-xl`, border, shadow, safe-area-bottom, active orange highlight) hidden on auth routes and for unauthenticated guests.
+- **Brand Title, Dynamic Theme Icons & Promotional Hero Banner (`customer/src/components/Navbar.tsx`, `customer/src/components/Footer.tsx`, `customer/src/components/SidebarDrawer.tsx`, `customer/src/app/page.tsx`)**:
+  - Integrated `logo title.svg` across desktop Navbar and Footer.
+  - Dynamic theme icons: Light theme icon uses orange bowl (`cafe ico 1.png`); Dark theme icon uses white bowl (`cafe ico 2.png`).
+  - Promotional hero banner (`banner.png`) linking to `/menu`.
+- **Strict No-Refund & No-Cancellation Policy Disclosures (`customer/src/app/checkout/page.tsx`, `customer/src/app/payment-faq/page.tsx`, `customer/src/app/terms/page.tsx`, `customer/src/app/orders/receipt/page.tsx`, `customer/src/app/orders/track/page.tsx`)**:
+  - Disclosed upfront across checkout, order tracking, printable receipts, terms of service, and payment FAQs that freshly prepared takeaway food is strictly non-refundable and cannot be cancelled or modified once placed.
+
+### Changed
+- **Complete Removal of Testing Wallet Subsystem**:
+  - Removed testing wallet from customer checkout payment options (`customer/src/app/checkout/page.tsx`).
+  - Removed wallet balance displays and wallet navigation links across Navbar, Footer, and Sidebar Drawer.
+  - Replaced `/wallet` route with instant redirect to `/` (`customer/src/app/wallet/page.tsx`).
+  - Removed wallet payment option from Pay Later settlement modal on `/profile` (`customer/src/app/profile/page.tsx`).
+  - Removed "Wallets & Credit" navigation link from Admin sidebar (`admin/src/components/AdminSidebar.tsx`).
+- **Staff Requests Safe Column Selection & PostgreSQL Error Resolution (`backend/src/routes/staffRequests.ts`, `admin/src/app/staff-requests/page.tsx`)**:
+  - Replaced `.select()` (select all) in staff approval/rejection updates with explicit column selection to prevent `column profiles.email does not exist` PostgreSQL schema errors.
+  - Added helpful diagnostic feedback banner on admin staff requests page guiding administrators if remote Supabase schema migration `20261111000000_add_email_to_profiles.sql` is pending.
+
 ### Fixed
 - **Database Query Fix for Staff Requests & Admin Users (`backend/src/routes/staffRequests.ts`, `backend/src/routes/admin.ts`, `backend/src/routes/adminOrders.ts`, `backend/src/routes/reports.ts`)**:
   - Resolved `column profiles.email does not exist` PostgreSQL error in staff requests endpoint (`GET /api/v1/admin/staff-requests`) by removing direct `email` column selection on `public.profiles`.

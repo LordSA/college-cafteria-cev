@@ -439,19 +439,6 @@ export default function CustomerHomePage() {
           </div>
         </section>
 
-        <section className="mt-6 mb-2">
-          <Link
-            href="/menu"
-            className="block w-full overflow-hidden rounded-3xl border border-stone-200/80 dark:border-white/10 shadow-lg hover:shadow-xl transition group"
-          >
-            <img
-              src="/banner.png"
-              alt="Cafeteria CEV Specials"
-              className="w-full h-auto object-cover rounded-3xl group-hover:scale-[1.01] transition duration-300"
-            />
-          </Link>
-        </section>
-
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
