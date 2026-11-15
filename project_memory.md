@@ -42,7 +42,8 @@ college-canteen-cev/
   - `src/context/ThemeContext.tsx`: Client-side theme provider supporting 3 modes (`device` | `dark` | `light`), live OS media query tracking (`prefers-color-scheme: dark`), and local storage persistence.
   - `src/app/globals.css`: Base Tailwind directives, `.dark` color variables, glassmorphic surfaces (`.glass-surface`), and custom scrollbar resets.
   - `src/components/WelcomeLanding.tsx`: Welcome splash screen for unauthenticated users featuring hero visual, "Welcome to Cafeteria CEV", "Start with email", Google OAuth button, and "Sign In" link.
-  - `src/app/page.tsx`: Unified campus dining portal featuring auth gate displaying `WelcomeLanding` to guests, promotional hero banner (`banner.png`) linking to `/menu`, warm coral/orange gradient theme with dark mode glassmorphic styling, search pill, circular categories, "Hot Products", and floating bottom cart checkout bar.
+  - `src/app/page.tsx`: Unified campus dining portal featuring auth gate displaying `WelcomeLanding` to guests, warm coral/orange gradient theme with dark mode glassmorphic styling, search pill, circular categories, "Hot Products", and floating bottom cart checkout bar.
+  - `src/app/layout.tsx`: Root HTML shell with `ThemeProvider`, `AuthProvider`, and `CartProvider` wrappers, configured with OpenGraph and Twitter card metadata using `banner.png` for link sharing across WhatsApp, Telegram, and social platforms.
   - `src/app/privacy/page.tsx`: Privacy Policy page detailing campus data handling, profile safety, payment processing, and RLS data security.
   - `src/app/terms/page.tsx`: Terms & Conditions page specifying college canteen operating rules, Counter #1 collection, payment policies, and strict No-Refund & No-Cancellation policy.
   - `src/app/payment-faq/page.tsx`: Payment FAQs page with interactive accordion covering Razorpay payments, Counter #1 pickups, strict No-Refund policy, faculty pay later, and QR pass security.

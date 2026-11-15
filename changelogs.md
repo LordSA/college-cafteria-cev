@@ -20,10 +20,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Clean minimalist layout matching mobile reference design with email, password with show/hide eye toggle, orange pill action buttons, Google OAuth, and role selection with Teacher ID support.
 - **Floating Curved Bottom Navigation Dock (`customer/src/components/MobileBottomNav.tsx`)**:
   - Floating glassmorphic dock (`rounded-[28px]`, `backdrop-blur-xl`, border, shadow, safe-area-bottom, active orange highlight) hidden on auth routes and for unauthenticated guests.
-- **Brand Title, Dynamic Theme Icons & Promotional Hero Banner (`customer/src/components/Navbar.tsx`, `customer/src/components/Footer.tsx`, `customer/src/components/SidebarDrawer.tsx`, `customer/src/app/page.tsx`)**:
+- **Brand Title, Dynamic Theme Icons & Social OpenGraph Banner (`customer/src/components/Navbar.tsx`, `customer/src/components/Footer.tsx`, `customer/src/components/SidebarDrawer.tsx`, `customer/src/app/layout.tsx`, `customer/src/app/page.tsx`)**:
   - Integrated `logo title.svg` across desktop Navbar and Footer.
   - Dynamic theme icons: Light theme icon uses orange bowl (`cafe ico 1.png`); Dark theme icon uses white bowl (`cafe ico 2.png`).
-  - Promotional hero banner (`banner.png`) linking to `/menu`.
+  - Removed in-page banner element from `page.tsx` and configured `banner.png` exclusively as the dedicated social share card preview (`openGraph.images` and `twitter.images` with `metadataBase`) for WhatsApp, Telegram, and social platforms.
 - **Strict No-Refund & No-Cancellation Policy Disclosures (`customer/src/app/checkout/page.tsx`, `customer/src/app/payment-faq/page.tsx`, `customer/src/app/terms/page.tsx`, `customer/src/app/orders/receipt/page.tsx`, `customer/src/app/orders/track/page.tsx`)**:
   - Disclosed upfront across checkout, order tracking, printable receipts, terms of service, and payment FAQs that freshly prepared takeaway food is strictly non-refundable and cannot be cancelled or modified once placed.
 
