@@ -61,15 +61,15 @@ export function Navbar() {
     <header className="hidden md:block sticky top-0 z-50 bg-[#ff5e3a] dark:bg-[#121316]/95 text-white shadow-md backdrop-blur-md border-b border-black/5 dark:border-white/10 select-none transition-colors duration-200">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3 rounded-2xl p-1.5 hover:bg-white/10 dark:hover:bg-white/5 transition active:scale-95">
+          <Link href="/" className="flex items-center gap-3 p-1.5">
             <img
-              src={activeTheme === 'dark' ? '/icons/cafe ico 2.png' : '/icons/cafe ico 1.png'}
+              src={activeTheme === 'dark' ? '/logo/logo_white.svg' : '/logo/logo_white.svg'}
               alt="Cafeteria CEV"
               className="h-8 w-8 object-contain drop-shadow-sm"
             />
-            <div className="flex items-center px-2 py-0.5 rounded-xl bg-black/25 dark:bg-white/[0.06] border border-white/10">
+            <div className="flex items-center px-1 py-0.5">
               <img
-                src="/logo title.svg"
+                src={activeTheme === 'dark' ? '/logo title.svg' : '/lg_t_w.svg'}
                 alt="Cafeteria CEV"
                 className="h-5 w-auto object-contain"
               />
@@ -81,11 +81,10 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-xl px-3.5 py-1.5 transition ${
-                  link.isActive
-                    ? 'bg-white/20 dark:bg-white/15 text-white shadow-xs'
-                    : 'text-white/85 hover:bg-white/10 hover:text-white'
-                }`}
+                className={`rounded-xl px-3.5 py-1.5 transition ${link.isActive
+                  ? 'bg-white/20 dark:bg-white/15 text-white shadow-xs'
+                  : 'text-white/85 hover:bg-white/10 hover:text-white'
+                  }`}
               >
                 {link.label}
               </Link>

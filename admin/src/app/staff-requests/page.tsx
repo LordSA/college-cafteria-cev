@@ -7,6 +7,7 @@ import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+import { supabase } from '../../lib/supabase';
 import {
   Users,
   CheckCircle2,
@@ -76,7 +77,22 @@ export default function StaffRequestsPage() {
 
       setRequests(body.data || []);
     } catch (err: any) {
-      setError(err.message || 'Error loading staff requests');
+      try {
+        const { data: directProfiles, error: directErr } = await supabase
+          .from('profiles')
+          .select('id, display_name, teacher_id, account_type, requested_account_type, approved_account_type, staff_approval_status, created_at')
+          .in('staff_approval_status', ['pending', 'approved', 'rejected'])
+          .order('created_at', { ascending: false });
+
+        if (!directErr && directProfiles) {
+          setRequests(directProfiles as any[]);
+          setError(null);
+        } else {
+          setError(err.message || 'Error loading staff requests');
+        }
+      } catch {
+        setError(err.message || 'Error loading staff requests');
+      }
     } finally {
       setLoading(false);
     }
@@ -116,7 +132,35 @@ export default function StaffRequestsPage() {
       setTimeout(() => setSuccessMessage(null), 4000);
       await loadRequests();
     } catch (err: any) {
-      setError(err.message || 'Action failed');
+      try {
+        const targetAccountType = decision === 'approve' ? 'staff' : 'student';
+        const status = decision === 'approve' ? 'approved' : 'rejected';
+        const { error: directUpdateErr } = await supabase
+          .from('profiles')
+          .update({
+            approved_account_type: targetAccountType,
+            account_type: targetAccountType,
+            staff_approval_status: status,
+            reviewed_by: adminUser?.id || null,
+            reviewed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
+
+        if (!directUpdateErr) {
+          setSuccessMessage(
+            decision === 'approve'
+              ? 'Staff request approved successfully.'
+              : 'Staff request rejected. User account remains as student.'
+          );
+          setTimeout(() => setSuccessMessage(null), 4000);
+          await loadRequests();
+        } else {
+          setError(err.message || 'Action failed');
+        }
+      } catch {
+        setError(err.message || 'Action failed');
+      }
     } finally {
       setActionInProgress(null);
     }

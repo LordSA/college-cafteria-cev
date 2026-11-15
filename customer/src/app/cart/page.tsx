@@ -298,11 +298,6 @@ export default function CartPage() {
               </div>
             </div>
           )}
-                  <span>My Orders</span>
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </main>
       <Footer />
