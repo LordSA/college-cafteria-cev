@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
@@ -20,8 +22,15 @@ import {
 } from 'lucide-react';
 
 export default function CartPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount, remainingSeconds, isExpired } = useCart();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/cart');
+    }
+  }, [user, authLoading, router]);
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);

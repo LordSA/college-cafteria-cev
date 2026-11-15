@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
@@ -39,10 +40,17 @@ interface Order {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerOrdersPage() {
+  const router = useRouter();
   const { user, loading: authLoading, session } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/orders');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchOrders() {

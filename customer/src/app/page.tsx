@@ -236,8 +236,20 @@ export default function CustomerHomePage() {
       ? 'All Categories'
       : categories.find((c) => c.id === selectedCategory)?.name || 'All';
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fafaf9] dark:bg-[#0d0e12]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <WelcomeLanding />;
+  }
+
   return (
-    <div className="min-h-screen bg-[#fafaf9] text-stone-900 flex flex-col pb-24 md:pb-0">
+    <div className="min-h-screen bg-[#fafaf9] dark:bg-[#0d0e12] text-stone-900 dark:text-stone-100 flex flex-col pb-28 md:pb-0 transition-colors duration-200">
       <SidebarDrawer isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="hidden md:block">
@@ -425,6 +437,19 @@ export default function CustomerHomePage() {
               );
             })}
           </div>
+        </section>
+
+        <section className="mt-6 mb-2">
+          <Link
+            href="/menu"
+            className="block w-full overflow-hidden rounded-3xl border border-stone-200/80 dark:border-white/10 shadow-lg hover:shadow-xl transition group"
+          >
+            <img
+              src="/banner.png"
+              alt="Cafeteria CEV Specials"
+              className="w-full h-auto object-cover rounded-3xl group-hover:scale-[1.01] transition duration-300"
+            />
+          </Link>
         </section>
 
         {loading ? (

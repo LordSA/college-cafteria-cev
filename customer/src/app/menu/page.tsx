@@ -51,7 +51,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function MenuPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { items: cartItems, addItem, updateQuantity, itemCount, subtotal, remainingSeconds, isExpired } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -72,6 +72,12 @@ export default function MenuPage() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?redirect=/menu');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function loadMenuData() {
