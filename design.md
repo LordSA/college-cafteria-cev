@@ -1,25 +1,25 @@
 # Cafteria Design System Manifesto
 
-> **Scope:** Unified design philosophy and dual design system for Customer and Admin frontends.  
+> **Scope:** Unified design philosophy and 100% theme parity across Customer and Admin frontends.  
 > **Rule Requirement:** Developers and automated agents **MUST** update this document or the dedicated subsystem specifications when theme tokens, color palettes, or layout principles change.
 
 ---
 
 ## 1. Unified Design Philosophy
 
-Cafteria serves two fundamentally different users with tailored design languages sharing a common ethos of speed, legibility, and zero visual clutter:
+Cafteria provides a harmonious, appetizing, and ultra-crisp campus dining experience across both the customer mobile ordering app and the staff kitchen management dashboard:
 
 1. **The Customer Experience (`customer/`):** Fast, appetizing, warm, and optimized for one-handed mobile ordering between lectures.
-2. **The Operations & Kitchen Experience (`admin/`):** Mission-critical, high-contrast, data-dense, dark command center designed for rapid kitchen execution and tablet cashiers.
+2. **The Operations & Kitchen Experience (`admin/`):** Clean, high-contrast, expansive pure-white canvas (`#FFFFFF`) with brand warm orange accents (`#F47721`), soft peach card highlights (`#FFF7F0`), and instant touch-first operational controls.
 
 | Dimension | Customer Application | Admin & Kitchen Operations |
 |---|---|---|
-| **Primary Theme** | Warm Amber & Fresh Organic Stone (Light) | Slate & Indigo Mission Control (Dark) |
-| **Primary Goal** | Minimize time to order & reduce queue stress | Maximize order throughput & eliminate kitchen delays |
-| **Primary Target** | Mobile smartphones (360px–430px) | Wall-mounted displays (KDS), tablets, desktop |
-| **Target Contrast** | WCAG AA (>= 4.5:1) | WCAG AAA (>= 7:1 for KDS tickets) |
-| **Touch Targets** | 44px–48px | 48px–56px (Glove-compatible kitchen touchscreens) |
-| **Deep Specification** | [docs/design_customer.md](docs/design_customer.md) | [docs/design_admin.md](docs/design_admin.md) |
+| **Primary Theme** | Warm Orange (`#F47721`) & Clean Canvas | Warm Orange (`#F47721`) & Pure White Canvas (`#FFFFFF`) |
+| **Primary Goal** | Minimize time to order & reduce queue stress | Maximize order throughput, inventory tracking & dispatch |
+| **Primary Target** | Mobile smartphones (360px–430px) | Tablets, kitchen dispatch displays (KDS), desktop browsers |
+| **Target Contrast** | WCAG AA / AAA | WCAG AAA (>= 7:1) |
+| **Touch Targets** | 44px–48px | 44px–56px |
+| **Attribution** | Designed and Developed by IEDC CEV | Designed and Developed by IEDC CEV |
 
 ---
 

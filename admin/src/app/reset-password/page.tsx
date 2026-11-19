@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { supabase } from '../../lib/supabase';
-import { Lock, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Lock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function AdminResetPasswordPage() {
   const router = useRouter();
@@ -59,38 +59,38 @@ export default function AdminResetPasswordPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-[#101114] text-slate-100 min-h-screen">
-        <div className="w-full max-w-md space-y-6 bg-[#17181f] p-8 rounded-3xl border border-[#22242e] shadow-2xl">
+      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-white text-[#252525] min-h-screen">
+        <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-3xl border border-[#EEEEEE] shadow-sm">
           <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5a4c6]/15 border border-[#f5a4c6]/30 text-[#f5a4c6]">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7F0] border border-[#F47721]/30 text-[#F47721] shadow-xs">
               <Lock className="h-6 w-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6] block mt-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721] block mt-4">
               Cafeteria.cev • Password Update
             </span>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-white">Update Admin Password</h1>
-            <p className="mt-1 text-xs text-stone-400">
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525]">Update Admin Password</h1>
+            <p className="mt-1 text-xs text-[#666666]">
               Set new access credentials for canteen administration
             </p>
           </div>
 
           {success && (
-            <div className="flex items-center gap-2 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 p-3.5 text-xs text-emerald-300">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+            <div className="flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 p-3.5 text-xs text-[#269B62]">
+              <CheckCircle2 className="h-4 w-4 text-[#269B62] flex-shrink-0" />
               <span>Password successfully updated! Redirecting to login...</span>
             </div>
           )}
 
           {error && (
-            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-3.5 text-xs text-rose-300">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
+            <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs text-[#D94A43]">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#D94A43] mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="password">
+              <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="password">
                 New Password (min. 6 characters)
               </label>
               <input
@@ -101,12 +101,12 @@ export default function AdminResetPasswordPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-4 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
+                className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="confirmPassword">
+              <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="confirmPassword">
                 Confirm New Password
               </label>
               <input
@@ -117,35 +117,32 @@ export default function AdminResetPasswordPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-4 py-2.5 text-xs text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
+                className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full mt-2 flex items-center justify-center gap-2 rounded-full bg-[#f5a4c6] px-4 py-3 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 disabled:opacity-50 transition active:scale-95"
+              className="w-full min-h-[44px] mt-2 flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-4 py-3 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition active:scale-95"
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Updating credentials...</span>
+                  <span>Updating Password...</span>
                 </>
               ) : (
-                <>
-                  <span>Save New Credentials</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
+                'Save New Password'
               )}
             </button>
           </form>
 
-          <div className="text-center pt-2 border-t border-[#22242e]">
+          <div className="text-center pt-2 border-t border-[#EEEEEE]">
             <Link
               href="/login"
-              className="text-xs font-bold text-stone-400 hover:text-white transition"
+              className="text-xs font-bold text-[#666666] hover:text-[#F47721] transition"
             >
-              Back to Administrator Login
+              Return to Administrator Login
             </Link>
           </div>
         </div>

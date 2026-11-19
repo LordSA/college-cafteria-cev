@@ -104,20 +104,20 @@ function AdminReceiptContent() {
   if (authLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
       </div>
     );
   }
 
   if (!adminUser || isUnauthorized) {
     return (
-      <div className="mx-auto max-w-md rounded-3xl border border-rose-500/30 bg-[#17181f] p-8 text-center space-y-4 my-12 shadow-xl">
-        <Shield className="mx-auto h-12 w-12 text-rose-400" />
-        <h2 className="text-base font-bold text-white">Access Denied</h2>
-        <p className="text-xs text-stone-400">Staff privileges required to view register receipts.</p>
+      <div className="mx-auto max-w-md rounded-3xl border border-red-200 bg-white p-8 text-center space-y-4 my-12 shadow-sm">
+        <Shield className="mx-auto h-12 w-12 text-[#D94A43]" />
+        <h2 className="text-base font-bold text-[#252525]">Access Denied</h2>
+        <p className="text-xs text-[#666666]">Staff privileges required to view register receipts.</p>
         <Link
           href="/login"
-          className="inline-block rounded-xl bg-[#f5a4c6] px-5 py-2.5 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 transition"
+          className="inline-block rounded-xl bg-[#F47721] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#F47721]/20 hover:bg-[#E06310] transition"
         >
           Sign In
         </Link>
@@ -128,20 +128,20 @@ function AdminReceiptContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
       </div>
     );
   }
 
   if (error || !receipt) {
     return (
-      <div className="mx-auto max-w-md rounded-3xl border border-rose-500/30 bg-[#17181f] p-8 text-center space-y-4 my-12 shadow-xl">
-        <AlertCircle className="mx-auto h-10 w-10 text-rose-400" />
-        <h2 className="text-base font-bold text-white">Receipt Not Found</h2>
-        <p className="text-xs text-stone-400">{error || 'Could not load receipt for this order.'}</p>
+      <div className="mx-auto max-w-md rounded-3xl border border-red-200 bg-white p-8 text-center space-y-4 my-12 shadow-sm">
+        <AlertCircle className="mx-auto h-10 w-10 text-[#D94A43]" />
+        <h2 className="text-base font-bold text-[#252525]">Receipt Not Found</h2>
+        <p className="text-xs text-[#666666]">{error || 'Could not load receipt for this order.'}</p>
         <Link
           href="/orders"
-          className="inline-block rounded-xl bg-[#f5a4c6] px-5 py-2.5 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 transition"
+          className="inline-block rounded-xl bg-[#F47721] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#F47721]/20 hover:bg-[#E06310] transition"
         >
           Back to Orders Queue
         </Link>
@@ -154,7 +154,7 @@ function AdminReceiptContent() {
       <div className="flex items-center justify-between print:hidden">
         <Link
           href="/orders"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-400 hover:text-white transition"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#666666] hover:text-[#252525] transition"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Orders Queue</span>
@@ -162,43 +162,43 @@ function AdminReceiptContent() {
 
         <button
           onClick={handlePrint}
-          className="inline-flex items-center gap-1.5 rounded-full bg-[#f5a4c6] px-5 py-2 text-xs font-black text-[#101114] shadow-md shadow-[#f5a4c6]/20 hover:opacity-90 transition active:scale-95"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition active:scale-95"
         >
           <Printer className="h-4 w-4" />
           <span>Print Cashier Bill</span>
         </button>
       </div>
 
-      <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-stone-900 font-sans">
-        <div className="border-b border-stone-200 pb-6 text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#101114] text-[#f5a4c6] shadow-xs print:border print:border-black">
+      <div className="rounded-3xl border border-[#EEEEEE] bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-[#252525] font-sans">
+        <div className="border-b border-[#EEEEEE] pb-6 text-center space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-xs print:border print:border-black">
             <UtensilsCrossed className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-extrabold tracking-tight text-stone-900 uppercase">
+          <h1 className="text-xl font-extrabold tracking-tight text-[#252525] uppercase">
             {receipt.canteen.name}
           </h1>
-          <p className="text-xs text-stone-600">{receipt.canteen.campus}</p>
-          <p className="text-[11px] text-stone-500">{receipt.canteen.address}</p>
-          <div className="inline-block rounded-full bg-emerald-100 px-3 py-0.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider print:border print:border-emerald-800">
+          <p className="text-xs text-[#666666]">{receipt.canteen.campus}</p>
+          <p className="text-[11px] text-[#888888]">{receipt.canteen.address}</p>
+          <div className="inline-block rounded-full bg-green-50 px-3 py-0.5 text-[10px] font-bold text-[#269B62] border border-green-200 uppercase tracking-wider print:border print:border-green-800">
             Operations Register Receipt / Tax Invoice
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 text-xs border-b border-stone-200 pb-4">
+        <div className="grid grid-cols-2 gap-4 text-xs border-b border-[#EEEEEE] pb-4">
           <div>
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
               Bill / Token No.
             </span>
-            <span className="font-mono text-base font-extrabold text-stone-900">
+            <span className="font-mono text-base font-extrabold text-[#F47721]">
               {receipt.order_number}
             </span>
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
               Order Date & Time
             </span>
-            <span className="font-semibold text-stone-800">
+            <span className="font-semibold text-[#252525]">
               {new Date(receipt.created_at).toLocaleString('en-IN', {
                 dateStyle: 'medium',
                 timeStyle: 'short',
@@ -207,27 +207,27 @@ function AdminReceiptContent() {
           </div>
 
           <div>
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
               Customer Details
             </span>
-            <p className="font-bold text-stone-900">{receipt.customer.display_name}</p>
-            <p className="text-[11px] text-stone-500 capitalize">{receipt.customer.account_type}</p>
+            <p className="font-bold text-[#252525]">{receipt.customer.display_name}</p>
+            <p className="text-[11px] text-[#666666] capitalize">{receipt.customer.account_type}</p>
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
               Payment & Dispatch
             </span>
-            <p className="font-bold text-emerald-700 uppercase">
+            <p className="font-bold text-[#269B62] uppercase">
               {receipt.payment_status} • {receipt.payment_method === 'testing_wallet' ? 'Testing Wallet' : receipt.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'Counter Cash'}
             </p>
             {receipt.paid_at && (
-              <p className="text-[10px] text-stone-400">
+              <p className="text-[10px] text-[#888888]">
                 Paid: {new Date(receipt.paid_at).toLocaleTimeString('en-IN')}
               </p>
             )}
             {receipt.collected_at && (
-              <p className="text-[10px] text-emerald-600 font-semibold">
+              <p className="text-[10px] text-[#269B62] font-semibold">
                 Collected: {new Date(receipt.collected_at).toLocaleTimeString('en-IN')}
               </p>
             )}
@@ -237,24 +237,24 @@ function AdminReceiptContent() {
         <div>
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-stone-200 text-[10px] uppercase font-bold text-stone-500 tracking-wider">
+              <tr className="border-b border-[#EEEEEE] text-[10px] uppercase font-bold text-[#666666] tracking-wider">
                 <th className="py-2">Item Description</th>
                 <th className="py-2 text-center">Qty</th>
                 <th className="py-2 text-right">Price</th>
                 <th className="py-2 text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-[#EEEEEE]">
               {receipt.items.map((item) => (
                 <tr key={item.id}>
-                  <td className="py-2.5 font-semibold text-stone-900">{item.item_name}</td>
-                  <td className="py-2.5 text-center font-mono font-bold text-stone-700">
+                  <td className="py-2.5 font-semibold text-[#252525]">{item.item_name}</td>
+                  <td className="py-2.5 text-center font-mono font-bold text-[#252525]">
                     {item.quantity}
                   </td>
-                  <td className="py-2.5 text-right font-mono text-stone-600">
+                  <td className="py-2.5 text-right font-mono text-[#666666]">
                     ₹{(item.unit_price / 100).toFixed(2)}
                   </td>
-                  <td className="py-2.5 text-right font-mono font-bold text-stone-900 tabular-nums">
+                  <td className="py-2.5 text-right font-mono font-bold text-[#252525] tabular-nums">
                     ₹{(item.line_total / 100).toFixed(2)}
                   </td>
                 </tr>
@@ -263,44 +263,44 @@ function AdminReceiptContent() {
           </table>
         </div>
 
-        <div className="border-t-2 border-stone-900 pt-4 space-y-1.5 text-xs">
-          <div className="flex justify-between text-stone-600">
+        <div className="border-t-2 border-[#252525] pt-4 space-y-1.5 text-xs">
+          <div className="flex justify-between text-[#666666]">
             <span>Subtotal</span>
-            <span className="font-mono font-semibold tabular-nums">
+            <span className="font-mono font-semibold tabular-nums text-[#252525]">
               ₹{(receipt.subtotal / 100).toFixed(2)}
             </span>
           </div>
-          <div className="flex justify-between text-stone-600">
+          <div className="flex justify-between text-[#666666]">
             <span>Campus Canteen Surcharge</span>
-            <span className="font-mono tabular-nums text-emerald-700 font-semibold">₹0.00</span>
+            <span className="font-mono tabular-nums text-[#269B62] font-semibold">₹0.00</span>
           </div>
-          <div className="flex justify-between items-baseline border-t border-stone-200 pt-2 text-sm font-extrabold text-stone-900">
+          <div className="flex justify-between items-baseline border-t border-[#EEEEEE] pt-2 text-sm font-extrabold text-[#252525]">
             <span>Grand Total</span>
-            <span className="font-mono text-xl tabular-nums text-stone-900 font-black">
+            <span className="font-mono text-xl tabular-nums text-[#252525] font-black">
               ₹{(receipt.total / 100).toFixed(2)}
             </span>
           </div>
         </div>
 
         {receipt.qr_verification_token && (
-          <div className="border-t border-dashed border-stone-300 pt-6 text-center space-y-3">
-            <p className="text-[11px] font-bold text-stone-700 uppercase tracking-wider">
+          <div className="border-t border-dashed border-gray-300 pt-6 text-center space-y-3">
+            <p className="text-[11px] font-bold text-[#666666] uppercase tracking-wider">
               Order QR Pass & Dispatch Verification
             </p>
             <div className="flex justify-center">
               <QRCodeSvg value={receipt.qr_verification_token} size={150} />
             </div>
             <div>
-              <span className="text-[10px] text-stone-400">Token ID:</span>
-              <p className="font-mono text-xs font-extrabold text-stone-800 tracking-wider">
+              <span className="text-[10px] text-[#888888]">Token ID:</span>
+              <p className="font-mono text-xs font-extrabold text-[#252525] tracking-wider">
                 {receipt.qr_verification_token}
               </p>
             </div>
           </div>
         )}
 
-        <div className="border-t border-stone-200 pt-4 text-center space-y-1 text-[10px] text-stone-500">
-          <p className="font-bold text-stone-700">{receipt.canteen.notice}</p>
+        <div className="border-t border-[#EEEEEE] pt-4 text-center space-y-1 text-[10px] text-[#888888]">
+          <p className="font-bold text-[#666666]">{receipt.canteen.notice}</p>
           <p>Official Cafteria Register Copy • Verified by Staff Dispatcher</p>
         </div>
       </div>
@@ -310,7 +310,7 @@ function AdminReceiptContent() {
 
 export default function AdminReceiptPage() {
   return (
-    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+    <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <div className="print:hidden">
         <AdminSidebar />
       </div>
@@ -322,7 +322,7 @@ export default function AdminReceiptPage() {
           <Suspense
             fallback={
               <div className="flex items-center justify-center py-24">
-                <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+                <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
               </div>
             }
           >

@@ -10,6 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Admin Dashboard Visual Balance & Warmth Enhancement (`admin/src/app/page.tsx`)**:
+  - Enhanced Admin homepage color balance by infusing warm culinary orange (`#F47721`), peach (`#FFF7F0`), and amber accents across stat cards, financial stream, and quick dispatch grid without changing layout or element positions.
+  - Prominently styled the hero "Scan QR Pass" button in Counter Fast Dispatch with a high-contrast orange gradient (`from-[#F68536] via-[#F47721] to-[#E06310]`), elevation shadow, and focus ring to make it the most prominent action on the screen.
+  - Upgraded Live Orders Queue stat card with a warm peach gradient background (`from-[#FFF7F0] via-white to-white`), orange icon tile, and bold status pill.
+  - Enhanced Financial Overview card with dedicated styled pills for Gross, UPI, and Pay Later totals, and richer gradient fills and stroke lines in the SVG velocity chart.
+  - Styled Live Kitchen Stream active `ORDER_PLACED` tickets with soft peach highlights and vibrant orange action buttons.
+  - Zero comments maintained across source code. Verified with `tsc --noEmit`.
+- **Admin UI Theme Parity Redesign (`admin/`)**:
+  - Restyled entire Admin dashboard to achieve 100% theme parity with the Customer UI based on `design.md`.
+  - Upgraded base canvas to pure white (`#FFFFFF`) with `#252525` high-contrast typography, `#666666` secondary text, and `#EEEEEE` 1px borders.
+  - Applied primary warm culinary orange (`#F47721`), hover state (`#E06310`), and soft peach highlights (`#FFF7F0`).
+  - Added organic curved wave SVG vector grounding the bottom into the `#F47721` footer with mandatory institutional attribution: `Designed and Developed by IEDC CEV · CAFETERIA · College of Engineering Vadakara`.
+  - Restyled all Admin components and pages: `AdminSidebar`, `Header`, `Footer`, `ApiHealthBadge`, `page.tsx` (Operations Dashboard), `orders/page.tsx` (Kitchen Queue), `orders/receipt/page.tsx`, `scan/page.tsx` (QR Scanner), `inventory/page.tsx` (Portion Manager), `menu/page.tsx` (Catalog Items), `categories/page.tsx` (Taxonomy), `staff-requests/page.tsx`, `wallets/page.tsx`, `developer/page.tsx`, `login/page.tsx`, `unauthorized/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx`, and `not-found.tsx`.
+  - Zero comments in production source files. Verified with clean `tsc --noEmit` and successful 16/16 route Next.js static build.
 - **Theme Engine & Glassmorphic Dark Mode (`customer/src/context/ThemeContext.tsx`, `customer/tailwind.config.ts`, `customer/src/app/globals.css`, `customer/src/app/settings/page.tsx`)**:
   - Added full glassmorphic dark mode support with Tailwind `darkMode: 'class'`.
   - Added 3-way theme toggle (`Device`, `Dark`, `Light`) in Settings with `Device` as default, actively tracking `window.matchMedia('(prefers-color-scheme: dark)')` live OS theme changes.

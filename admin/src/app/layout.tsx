@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex min-h-screen flex-col antialiased selection:bg-[#f5a4c6] selection:text-[#101114] bg-[#101114] text-slate-100">
+      <body className="flex min-h-screen flex-col antialiased selection:bg-[#F47721] selection:text-white bg-[#FFFFFF] text-[#252525]">
         <AdminAuthProvider>{children}</AdminAuthProvider>
       </body>
     </html>
