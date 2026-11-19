@@ -82,25 +82,25 @@ college-canteen-cev/
 ### 2.2 Admin Application (`admin/`)
 * **Role:** Operations management, kitchen dispatch (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, catalog, and developer console.
 * **Stack:** Next.js 16.4.3 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
-* **Theme:** Neo-Dark Obsidian & Pastel Rose/Purple (`#101114` canvas, `#17181f` surfaces, `#22242e` borders, `#f5a4c6` pink active pills, `#9d8bf0` purple secondary accents, `#ea9955` amber indicators).
+* **Theme:** Campus Canteen Minimalist & Warm Culinary Orange (`#F47721` primary, `#E06310` hover, `#FFF7F0` soft peach surface, `#FFFFFF` pure-white canvas, `#252525` high-contrast text, `#EEEEEE` borders, `#269B62` success, `#D94A43` error, `#F59E0B` warning). 100% theme parity with customer portal, featuring organic wave footer with IEDC CEV attribution.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 * **Key Files:**
-  - `src/app/layout.tsx`: Root HTML shell with `AdminAuthProvider` and neo-dark background.
-  - `src/app/globals.css`: Dark obsidian base styling (`#101114`), `.no-scrollbar` utility, and `.safe-area-bottom` viewport padding.
-  - `src/components/AdminSidebar.tsx`: Responsive dual-mode navigation component: persistent 80px left-side vertical rail on desktop (`hidden md:flex md:w-20`) and fixed docked bottom navigation bar on mobile (`md:hidden fixed bottom-0`) with Cafeteria.cev branding, role-gated icon navigation, short labels, active `#f5a4c6` pink highlight, safe-area padding, and sign out control across all admin pages.
+  - `src/app/layout.tsx`: Root HTML shell with `AdminAuthProvider` and clean white background.
+  - `src/app/globals.css`: Brand theme variables, Inter typography, `.btn-glazed-orange`, `.focus-ring`, and safe area spacing.
+  - `src/components/AdminSidebar.tsx`: Pure white responsive navigation rail on desktop (`hidden md:flex md:w-20`) with Cafeteria.cev branding, brand logo, role-gated icon navigation, and active `#F47721` orange pill highlight on `#FFF7F0`.
   - `src/components/Header.tsx`: Content area top header featuring Cafeteria.cev identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), user profile avatar, and sign out control.
-  - `src/components/Footer.tsx`: Neo-dark audit footer with Cafeteria.cev branding.
-  - `src/components/ApiHealthBadge.tsx`: Standalone pill badge monitoring `/health` status (removed from top header per requirements).
+  - `src/components/Footer.tsx`: Organic curved wave SVG vector grounding into the `#F47721` orange footer with mandatory institutional attribution: `Designed and Developed by IEDC CEV · CAFETERIA · College of Engineering Vadakara`.
+  - `src/components/ApiHealthBadge.tsx`: Standalone pill badge monitoring `/health` status with primary orange accent.
   - `src/app/page.tsx`: Operations Command Center with persistent `AdminSidebar` navigation rail, real kitchen order queue stream, pantry low-stock portion alerts, pending staff queue, financial velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`, and mobile bottom clearance padding.
   - `src/app/developer/page.tsx`: Developer Console with system diagnostics (payment mode, webhook health, runtime) and user role management table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`).
   - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills (`all`, `ORDER_PLACED`, `COLLECTED`), search pill, stage badges, Pay Later payment indicators, items checklist drawer, and direct links to scan/complete orders.
   - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`) powered by `GET /api/v1/admin/orders/:id/receipt`.
   - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and direct "Complete Order (Mark as Collected)" one-click action.
-  - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in neo-dark design.
-  - `src/app/inventory/page.tsx`: Pantry inventory management table with neon low-stock alerts, stock quantity editing drawer, and 1-click toggles.
-  - `src/app/login/page.tsx`: Restricted admin sign-in with neo-dark container card.
+  - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in clean white & orange design.
+  - `src/app/inventory/page.tsx`: Pantry inventory management table with low-stock alerts, stock quantity editing drawer, and 1-click toggles.
+  - `src/app/login/page.tsx`: Restricted admin sign-in with clean white & orange container card.
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request card.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
   - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals displaying applicant Teacher ID badge alongside email and registration date.

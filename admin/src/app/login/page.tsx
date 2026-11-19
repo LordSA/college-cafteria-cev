@@ -53,38 +53,38 @@ export default function AdminLoginPage() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-[#101114]">
-        <div className="w-full max-w-md space-y-6 bg-[#17181f] p-8 rounded-3xl border border-[#22242e] shadow-2xl">
+      <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-3xl border border-[#EEEEEE] shadow-sm">
           <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f5a4c6]/15 text-[#f5a4c6] border border-[#f5a4c6]/30">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-xs">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6] block mt-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721] block mt-4">
               Cafeteria.cev
             </span>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-white">Operations Sign In</h1>
-            <p className="mt-1 text-xs text-stone-400">Management & Kitchen Operations Portal</p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525]">Operations Sign In</h1>
+            <p className="mt-1 text-xs text-[#666666]">Management & Kitchen Operations Portal</p>
           </div>
 
-          <div className="rounded-2xl bg-amber-950/20 border border-amber-800/40 p-3.5 text-left">
+          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 text-left">
             <div className="flex items-start gap-2.5">
-              <Lock className="h-4 w-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] leading-relaxed text-amber-200">
+              <Lock className="h-4 w-4 text-amber-700 flex-shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed text-amber-800">
                 Restricted portal. Administrative accounts are provisioned exclusively through authorized university backend channels.
               </p>
             </div>
           </div>
 
           {formError && (
-            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-3.5 text-xs text-rose-300">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
+            <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs text-[#D94A43]">
+              <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#D94A43] mt-0.5" />
               <span>{formError}</span>
             </div>
           )}
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-semibold text-stone-300 mb-1" htmlFor="email">
+              <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="email">
                 Administrator Email Address
               </label>
               <input
@@ -94,18 +94,18 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@college.edu"
-                className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-4 py-2.5 text-sm text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
+                className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 text-sm text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-stone-300" htmlFor="password">
+                <label className="block text-xs font-semibold text-[#252525]" htmlFor="password">
                   Password
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-[11px] font-bold text-[#f5a4c6] hover:opacity-80"
+                  className="text-[11px] font-bold text-[#F47721] hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -117,14 +117,14 @@ export default function AdminLoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-[#2b2d3b] bg-[#101114] px-4 py-2.5 text-sm text-white placeholder:text-stone-500 focus:border-[#f5a4c6] focus:outline-none focus:ring-1 focus:ring-[#f5a4c6]"
+                className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 text-sm text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#f5a4c6] py-3 text-xs font-black text-[#101114] shadow-lg shadow-[#f5a4c6]/20 hover:opacity-90 disabled:opacity-50 transition active:scale-95"
+              className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] py-3 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition active:scale-95"
             >
               {submitting ? (
                 <>
@@ -137,10 +137,10 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="text-center pt-2 border-t border-[#22242e]">
-            <p className="text-[11px] text-stone-400">
+          <div className="text-center pt-2 border-t border-[#EEEEEE]">
+            <p className="text-[11px] text-[#666666]">
               Need customer ordering?{' '}
-              <a href="http://localhost:3000" className="text-[#9d8bf0] hover:underline font-bold">
+              <a href="http://localhost:3000" className="text-[#F47721] hover:underline font-bold">
                 Switch to Customer Portal
               </a>
             </p>

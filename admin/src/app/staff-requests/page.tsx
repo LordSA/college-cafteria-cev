@@ -99,68 +99,38 @@ export default function StaffRequestsPage() {
   };
 
   useEffect(() => {
-    if (session?.access_token) {
+    if (adminUser && !isUnauthorized) {
       loadRequests();
     }
-  }, [session]);
+  }, [adminUser, isUnauthorized, session?.access_token]);
 
-  const handleDecision = async (userId: string, decision: 'approve' | 'reject') => {
+  const handleDecision = async (id: string, decision: 'approve' | 'reject') => {
     if (!session?.access_token) return;
 
-    setActionInProgress(userId);
+    setActionInProgress(id);
     setError(null);
     setSuccessMessage(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/${userId}/${decision}`, {
-        method: 'POST',
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/${id}`, {
+        method: 'PATCH',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
+        body: JSON.stringify({ action: decision }),
       });
 
       const body = await res.json();
       if (!res.ok || !body.success) {
-        throw new Error(body.error?.message || `Failed to ${decision} staff request`);
+        throw new Error(body.error?.message || `Failed to ${decision} request`);
       }
 
-      setSuccessMessage(
-        decision === 'approve'
-          ? 'Staff request approved successfully.'
-          : 'Staff request rejected. User account remains as student.'
-      );
-      setTimeout(() => setSuccessMessage(null), 4000);
+      setSuccessMessage(`Successfully ${decision}d staff request.`);
+      setTimeout(() => setSuccessMessage(null), 3000);
       await loadRequests();
     } catch (err: any) {
-      try {
-        const targetAccountType = decision === 'approve' ? 'staff' : 'student';
-        const status = decision === 'approve' ? 'approved' : 'rejected';
-        const { error: directUpdateErr } = await supabase
-          .from('profiles')
-          .update({
-            approved_account_type: targetAccountType,
-            account_type: targetAccountType,
-            staff_approval_status: status,
-            reviewed_by: adminUser?.id || null,
-            reviewed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId);
-
-        if (!directUpdateErr) {
-          setSuccessMessage(
-            decision === 'approve'
-              ? 'Staff request approved successfully.'
-              : 'Staff request rejected. User account remains as student.'
-          );
-          setTimeout(() => setSuccessMessage(null), 4000);
-          await loadRequests();
-        } else {
-          setError(err.message || 'Action failed');
-        }
-      } catch {
-        setError(err.message || 'Action failed');
-      }
+      setError(err.message || `Error processing staff ${decision}`);
     } finally {
       setActionInProgress(null);
     }
@@ -170,9 +140,9 @@ export default function StaffRequestsPage() {
     return (
       <>
         <Header />
-        <main className="flex-1 flex items-center justify-center py-20 bg-[#101114]">
-          <div className="flex flex-col items-center gap-3 text-stone-400">
-            <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
+        <main className="flex-1 flex items-center justify-center py-20 bg-white">
+          <div className="flex flex-col items-center gap-3 text-[#666666]">
+            <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
             <p className="text-xs font-semibold">Verifying administrator authorization...</p>
           </div>
         </main>
@@ -182,159 +152,159 @@ export default function StaffRequestsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#101114] text-slate-100 flex flex-col md:flex-row select-none">
+    <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#22242e] pb-6">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/"
-                className="rounded-full border border-[#282a38] bg-[#17181f] p-2 text-stone-400 hover:text-white transition"
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/"
+                  className="rounded-xl border border-[#EEEEEE] bg-white p-2 text-[#666666] hover:text-[#252525] hover:bg-gray-50 transition"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
+                    Cafeteria.cev • Access Verification
+                  </span>
+                  <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
+                    Staff Verification Requests
+                  </h1>
+                  <p className="mt-1 text-xs text-[#666666]">
+                    Review and approve faculty/staff dining access and pay-later privileges
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={loadRequests}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
               >
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#f5a4c6]">
-                  Cafeteria.cev • Access Verification
-                </span>
-                <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
-                  Staff Verification Requests
-                </h1>
-                <p className="mt-1 text-xs text-stone-400">
-                  Review and approve faculty/staff dining access and pay-later privileges
+                <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {successMessage && (
+              <div className="flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 p-4 text-xs text-[#269B62]">
+                <CheckCircle2 className="h-4 w-4 text-[#269B62] flex-shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-[#D94A43]">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#D94A43] mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <span>{error}</span>
+                  {error.includes('profiles.email') && (
+                    <span className="text-[11px] text-[#666666]">
+                      The backend or database schema is missing the profile email column. Run the migration in Supabase SQL editor: <code className="bg-[#FAFAFA] px-1 py-0.5 rounded text-[#252525]">ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;</code> and redeploy the backend.
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {loading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#666666]">
+                <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
+                <p className="text-xs font-semibold">Fetching pending verification requests...</p>
+              </div>
+            ) : requests.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center">
+                <Users className="mx-auto h-8 w-8 text-[#888888]" />
+                <h3 className="mt-3 text-sm font-bold text-[#252525]">No Pending Requests</h3>
+                <p className="mt-1 text-xs text-[#666666]">
+                  All staff registration requests have been reviewed and processed.
                 </p>
               </div>
-            </div>
-
-            <button
-              onClick={loadRequests}
-              disabled={loading}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[#282a38] bg-[#17181f] px-4 py-2 text-xs font-bold text-stone-200 hover:bg-[#232533] hover:text-white disabled:opacity-50 transition shadow-xs"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 text-[#9d8bf0] ${loading ? 'animate-spin' : ''}`} />
-              <span>Refresh</span>
-            </button>
-          </div>
-
-          {successMessage && (
-            <div className="flex items-center gap-2 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 p-4 text-xs text-emerald-300">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />
-              <span>{successMessage}</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-950/20 p-4 text-xs text-rose-300">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-400 mt-0.5" />
-              <div className="flex flex-col gap-1">
-                <span>{error}</span>
-                {error.includes('profiles.email') && (
-                  <span className="text-[11px] text-stone-400">
-                    The backend or database schema is missing the profile email column. Run the migration in Supabase SQL editor: <code className="bg-[#121316] px-1 py-0.5 rounded text-stone-300">ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;</code> and redeploy the backend.
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-stone-500">
-              <Loader2 className="h-8 w-8 animate-spin text-[#9d8bf0]" />
-              <p className="text-xs font-semibold">Fetching pending verification requests...</p>
-            </div>
-          ) : requests.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-[#22242e] bg-[#17181f]/40 p-12 text-center">
-              <Users className="mx-auto h-8 w-8 text-stone-600" />
-              <h3 className="mt-3 text-sm font-bold text-stone-300">No Pending Requests</h3>
-              <p className="mt-1 text-xs text-stone-500">
-                All staff registration requests have been reviewed and processed.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-2xl border border-[#22242e] bg-[#17181f] shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-stone-300">
-                  <thead className="bg-[#121316] uppercase text-[10px] tracking-wider text-stone-400 border-b border-[#22242e]">
-                    <tr>
-                      <th className="px-6 py-3.5 font-bold">Applicant</th>
-                      <th className="px-6 py-3.5 font-bold">Requested Classification</th>
-                      <th className="px-6 py-3.5 font-bold">Submitted Date</th>
-                      <th className="px-6 py-3.5 font-bold">Current Status</th>
-                      <th className="px-6 py-3.5 font-bold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#22242e] font-medium">
-                    {requests.map((req) => (
-                      <tr key={req.id} className="hover:bg-[#1a1b24] transition">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-white flex items-center gap-2">
-                            <span>{req.display_name || 'Unnamed Diner'}</span>
-                            {req.teacher_id && (
-                              <span className="rounded-md bg-[#252836] border border-[#3b3e52] px-1.5 py-0.5 text-[10px] font-mono text-purple-300">
-                                ID: {req.teacher_id}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-stone-400 flex items-center gap-1 mt-0.5">
-                            <Mail className="h-3 w-3 text-stone-500" />
-                            <span>{req.email || req.users?.email || req.id}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#9d8bf0]/15 border border-[#9d8bf0]/30 px-2.5 py-0.5 text-[10px] font-bold text-[#9d8bf0]">
-                            Faculty / Staff
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-stone-400">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="h-3.5 w-3.5 text-stone-500" />
-                            <span>{new Date(req.created_at).toLocaleDateString()}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#ea9955]/15 border border-[#ea9955]/30 px-2.5 py-0.5 text-[10px] font-bold text-[#ea9955]">
-                            <Clock className="h-3 w-3" />
-                            <span>Pending Review</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleDecision(req.id, 'approve')}
-                              disabled={actionInProgress === req.id}
-                              className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-300 hover:bg-emerald-500/25 disabled:opacity-50 transition"
-                            >
-                              {actionInProgress === req.id ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="h-3.5 w-3.5" />
-                              )}
-                              <span>Approve</span>
-                            </button>
-                            <button
-                              onClick={() => handleDecision(req.id, 'reject')}
-                              disabled={actionInProgress === req.id}
-                              className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 border border-rose-500/30 px-3 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/25 disabled:opacity-50 transition"
-                            >
-                              <XCircle className="h-3.5 w-3.5" />
-                              <span>Reject</span>
-                            </button>
-                          </div>
-                        </td>
+            ) : (
+              <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs text-[#252525]">
+                    <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
+                      <tr>
+                        <th className="px-6 py-3.5 font-bold">Applicant</th>
+                        <th className="px-6 py-3.5 font-bold">Requested Classification</th>
+                        <th className="px-6 py-3.5 font-bold">Submitted Date</th>
+                        <th className="px-6 py-3.5 font-bold">Current Status</th>
+                        <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-[#EEEEEE] font-medium">
+                      {requests.map((req) => (
+                        <tr key={req.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-bold text-[#252525] flex items-center gap-2">
+                              <span>{req.display_name || 'Unnamed Diner'}</span>
+                              {req.teacher_id && (
+                                <span className="rounded-md bg-[#FAFAFA] border border-[#EEEEEE] px-1.5 py-0.5 text-[10px] font-mono text-[#F47721]">
+                                  ID: {req.teacher_id}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-[#666666] flex items-center gap-1 mt-0.5">
+                              <Mail className="h-3 w-3 text-[#888888]" />
+                              <span>{req.email || req.users?.email || req.id}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF7F0] border border-[#F47721]/30 px-2.5 py-0.5 text-[10px] font-bold text-[#F47721]">
+                              Faculty / Staff
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-[#666666]">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5 text-[#888888]" />
+                              <span>{new Date(req.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
+                              <Clock className="h-3 w-3" />
+                              <span>Pending Review</span>
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleDecision(req.id, 'approve')}
+                                disabled={actionInProgress === req.id}
+                                className="inline-flex items-center gap-1 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-bold text-[#269B62] hover:bg-green-100 disabled:opacity-50 transition"
+                              >
+                                {actionInProgress === req.id ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                  <CheckCircle2 className="h-3.5 w-3.5" />
+                                )}
+                                <span>Approve</span>
+                              </button>
+                              <button
+                                onClick={() => handleDecision(req.id, 'reject')}
+                                disabled={actionInProgress === req.id}
+                                className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-50 transition"
+                              >
+                                <XCircle className="h-3.5 w-3.5" />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </main>
-      <Footer />
+            )}
+          </div>
+        </main>
+        <Footer />
+      </div>
     </div>
-  </div>
-);
+  );
 }

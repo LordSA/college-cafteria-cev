@@ -9,18 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        admin: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
+        primary: {
+          DEFAULT: '#F47721',
+          hover: '#E06310',
+          light: '#FFF7F0',
         },
+        'dark-text': '#252525',
+        'secondary-text': '#666666',
+        'muted-text': '#777777',
+        'border-default': '#EEEEEE',
+        'surface-gray': '#FAFAFA',
+        success: '#269B62',
+        error: '#D94A43',
+        warning: '#F59E0B',
       },
     },
   },

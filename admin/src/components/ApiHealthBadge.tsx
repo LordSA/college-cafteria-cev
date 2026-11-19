@@ -41,24 +41,24 @@ export function ApiHealthBadge() {
   }, []);
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-[#282a38] bg-[#17181f] px-3 py-1.5 text-xs text-stone-300 shadow-xs backdrop-blur-sm">
-      <span className="flex items-center gap-1.5 font-semibold text-stone-400">
-        <Activity className="h-3.5 w-3.5 text-[#9d8bf0]" />
+    <div className="inline-flex items-center gap-2 rounded-full border border-[#EEEEEE] bg-white px-3 py-1.5 text-xs text-[#252525] shadow-xs backdrop-blur-sm">
+      <span className="flex items-center gap-1.5 font-semibold text-[#666666]">
+        <Activity className="h-3.5 w-3.5 text-[#F47721]" />
         API:
       </span>
 
       {loading ? (
-        <span className="flex items-center gap-1 text-stone-400">
-          <RefreshCw className="h-3 w-3 animate-spin text-stone-400" />
+        <span className="flex items-center gap-1 text-[#666666]">
+          <RefreshCw className="h-3 w-3 animate-spin text-[#666666]" />
           Checking...
         </span>
       ) : error ? (
-        <span className="flex items-center gap-1 font-semibold text-rose-400" title={`Failed to reach ${apiUrl}/health (${error})`}>
+        <span className="flex items-center gap-1 font-semibold text-[#D94A43]" title={`Failed to reach ${apiUrl}/health (${error})`}>
           <AlertTriangle className="h-3.5 w-3.5" />
           Unreachable
         </span>
       ) : (
-        <span className="flex items-center gap-1.5 font-bold text-emerald-400">
+        <span className="flex items-center gap-1.5 font-bold text-[#269B62]">
           <ShieldCheck className="h-3.5 w-3.5" />
           Operational {data?.version ? `v${data.version}` : ''}
         </span>
