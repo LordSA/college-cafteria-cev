@@ -42,6 +42,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Disclosed upfront across checkout, order tracking, printable receipts, terms of service, and payment FAQs that freshly prepared takeaway food is strictly non-refundable and cannot be cancelled or modified once placed.
 
 ### Changed
+- **Next.js Security Upgrade to 16.4.6 (`customer/`, `admin/`)**:
+  - Upgraded Next.js from `16.4.3` to patched `16.4.6` in both `customer` and `admin` packages resolving published security advisory.
+  - Configured `experimental.agentUpgrade: 'security'` in `customer/next.config.mjs` and `admin/next.config.mjs`.
+  - Verified clean static HTML exports across all 21 customer routes and 16 admin routes.
 - **Post-Authentication Redirection to Home Page (`customer/src/context/AuthContext.tsx`, `customer/src/app/verify-email/page.tsx`)**:
   - Configured Google OAuth `redirectTo` callback in `AuthContext.tsx` to redirect users directly to the home page (`/`) instead of the profile page upon signing in or registering.
   - Updated email verification OTP completion flow in `verify-email/page.tsx` to automatically redirect users to the home page (`/`) instead of `/profile`.

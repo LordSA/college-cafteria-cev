@@ -33,7 +33,7 @@ college-canteen-cev/
 
 ### 2.1 Customer Application (`customer/`)
 * **Role:** Student and faculty ordering portal.
-* **Stack:** Next.js 16.4.3 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Stack:** Next.js 16.4.6 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3000` (`http://localhost:3000`).
 * **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`.
@@ -82,7 +82,7 @@ college-canteen-cev/
 
 ### 2.2 Admin Application (`admin/`)
 * **Role:** Operations management, kitchen dispatch (KDS), cashier operations, testing wallet controls, QR scanner, staff approvals, catalog, and developer console.
-* **Stack:** Next.js 16.4.3 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
+* **Stack:** Next.js 16.4.6 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Theme:** Campus Canteen Minimalist & Warm Culinary Orange (`#F47721` primary, `#E06310` hover, `#FFF7F0` soft peach surface, `#FFFFFF` pure-white canvas, `#252525` high-contrast text, `#EEEEEE` borders, `#269B62` success, `#D94A43` error, `#F59E0B` warning). 100% theme parity with customer portal, featuring organic wave footer with IEDC CEV attribution.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3001` (`http://localhost:3001`).
