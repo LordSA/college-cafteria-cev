@@ -7,6 +7,7 @@ const nextConfig = {
   reactStrictMode: true,
   experimental: {
     cpus: 1,
+    agentUpgrade: 'security',
   },
 };
 
