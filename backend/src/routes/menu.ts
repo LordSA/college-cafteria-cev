@@ -36,6 +36,7 @@ export const adminMenuRouter = new Hono<{
 }>();
 
 publicMenuRouter.get('/', async (c) => {
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   const adminClient = getSupabaseAdminClient(c.env);
   if (!adminClient) {
     return c.json(

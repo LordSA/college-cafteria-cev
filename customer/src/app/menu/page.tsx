@@ -85,8 +85,8 @@ export default function MenuPage() {
       setError(null);
       try {
         const [catRes, menuRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/v1/categories`),
-          fetch(`${API_BASE_URL}/api/v1/menu`),
+          fetch(`${API_BASE_URL}/api/v1/categories?t=${Date.now()}`, { cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/menu?t=${Date.now()}`, { cache: 'no-store' }),
         ]);
 
         if (!catRes.ok || !menuRes.ok) {

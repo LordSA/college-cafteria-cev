@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import app from '../src/index';
 import * as supabaseLib from '../src/lib/supabase';
+import * as razorpayLib from '../src/lib/razorpay';
 
 describe('Phase 4: Cart, Order Management & Inventory Control Test Suite', () => {
   const mockAdminUser = {
@@ -707,5 +708,196 @@ describe('Phase 4: Cart, Order Management & Inventory Control Test Suite', () =>
     expect(body.success).toBe(true);
     expect(body.data.stock_quantity).toBe(35);
     expect(body.data.low_stock_threshold).toBe(10);
+  });
+
+  it('POST /api/v1/orders/verify-payment succeeds when order_id is provided', async () => {
+    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
+      success: true,
+      user: mockCustomerUser,
+      profile: mockCustomerProfile,
+    });
+
+    vi.spyOn(razorpayLib, 'verifyRazorpayCheckoutSignature').mockResolvedValueOnce(true);
+    vi.spyOn(razorpayLib, 'fetchRazorpayPayment').mockResolvedValueOnce({
+      id: 'pay_123',
+      entity: 'payment',
+      amount: 9000,
+      currency: 'INR',
+      status: 'captured',
+      order_id: 'order_rzp_123',
+      method: 'upi',
+      captured: true,
+    });
+
+    const mockOrder = {
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      customer_id: 'usr-001',
+      order_number: 'CAF-261021-9988',
+      order_stage: 'ORDER_PLACED',
+      order_status: 'pending',
+      payment_status: 'unpaid',
+      payment_method: 'razorpay',
+      total: 9000,
+      razorpay_order_id: 'order_rzp_123',
+      qr_verification_token: null,
+      order_items: [{ id: 'oi-1', item_name: 'Special Biryani', quantity: 1 }],
+    };
+
+    const mockDb = {
+      from: vi.fn((table: string) => {
+        if (table === 'orders') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: mockOrder, error: null }),
+              }),
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { ...mockOrder, payment_status: 'paid', razorpay_payment_id: 'pay_123' },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'payments') {
+          return {
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ error: null }),
+            }),
+          };
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
+
+    const res = await app.request(
+      '/api/v1/orders/verify-payment',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid-customer-token',
+        },
+        body: JSON.stringify({
+          order_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+          razorpay_order_id: 'order_rzp_123',
+          razorpay_payment_id: 'pay_123',
+          razorpay_signature: 'sig_123',
+        }),
+      },
+      {
+        RAZORPAY_KEY_SECRET: 'test-secret',
+        RAZORPAY_KEY_ID: 'test-id',
+        SUPABASE_URL: 'http://localhost:54321',
+        SUPABASE_SERVICE_ROLE_KEY: 'test-key',
+      }
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.payment_status).toBe('paid');
+  });
+
+  it('POST /api/v1/orders/verify-payment succeeds without order_id using razorpay_order_id lookup', async () => {
+    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
+      success: true,
+      user: mockCustomerUser,
+      profile: mockCustomerProfile,
+    });
+
+    vi.spyOn(razorpayLib, 'verifyRazorpayCheckoutSignature').mockResolvedValueOnce(true);
+    vi.spyOn(razorpayLib, 'fetchRazorpayPayment').mockResolvedValueOnce({
+      id: 'pay_123',
+      entity: 'payment',
+      amount: 9000,
+      currency: 'INR',
+      status: 'captured',
+      order_id: 'order_rzp_123',
+      method: 'upi',
+      captured: true,
+    });
+
+    const mockOrder = {
+      id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+      customer_id: 'usr-001',
+      order_number: 'CAF-261021-9988',
+      order_stage: 'ORDER_PLACED',
+      order_status: 'pending',
+      payment_status: 'unpaid',
+      payment_method: 'razorpay',
+      total: 9000,
+      razorpay_order_id: 'order_rzp_123',
+      qr_verification_token: null,
+      order_items: [{ id: 'oi-1', item_name: 'Special Biryani', quantity: 1 }],
+    };
+
+    const mockDb = {
+      from: vi.fn((table: string) => {
+        if (table === 'orders') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({ data: mockOrder, error: null }),
+              }),
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                select: vi.fn().mockReturnValue({
+                  single: vi.fn().mockResolvedValue({
+                    data: { ...mockOrder, payment_status: 'paid', razorpay_payment_id: 'pay_123' },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'payments') {
+          return {
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ error: null }),
+            }),
+          };
+        }
+        return {};
+      }),
+    };
+
+    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
+
+    const res = await app.request(
+      '/api/v1/orders/verify-payment',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid-customer-token',
+        },
+        body: JSON.stringify({
+          razorpay_order_id: 'order_rzp_123',
+          razorpay_payment_id: 'pay_123',
+          razorpay_signature: 'sig_123',
+        }),
+      },
+      {
+        RAZORPAY_KEY_SECRET: 'test-secret',
+        RAZORPAY_KEY_ID: 'test-id',
+        SUPABASE_URL: 'http://localhost:54321',
+        SUPABASE_SERVICE_ROLE_KEY: 'test-key',
+      }
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.payment_status).toBe('paid');
   });
 });

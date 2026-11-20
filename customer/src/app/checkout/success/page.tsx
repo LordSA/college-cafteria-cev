@@ -19,7 +19,7 @@ const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('id');
+  const orderId = searchParams.get('order_id') || searchParams.get('id');
   const { session, loading: authLoading } = useAuth();
 
   const [order, setOrder] = useState<PrinterOrder | null>(null);

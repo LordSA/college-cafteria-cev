@@ -22,7 +22,7 @@ const OrderCreateSchema = z.object({
 });
 
 const VerifyPaymentSchema = z.object({
-  order_id: z.string().uuid('Invalid order ID'),
+  order_id: z.string().uuid('Invalid order ID').optional().nullable(),
   razorpay_order_id: z.string().min(1, 'Razorpay order ID required'),
   razorpay_payment_id: z.string().min(1, 'Razorpay payment ID required'),
   razorpay_signature: z.string().min(1, 'Razorpay signature required'),
@@ -66,6 +66,8 @@ customerOrdersRouter.post(
             success: true,
             data: {
               ...existingOrder,
+              id: existingOrder.id,
+              order_id: existingOrder.id,
               items: existingOrder.order_items || [],
               is_idempotent_replay: true,
               razorpay_order_id: existingOrder.razorpay_order_id,
@@ -467,6 +469,8 @@ customerOrdersRouter.post(
         success: true,
         data: {
           ...createdOrder,
+          id: createdOrder.id,
+          order_id: createdOrder.id,
           items: insertedItems || [],
           is_idempotent_replay: false,
           razorpay_order_id: razorpayOrderId,
@@ -495,11 +499,14 @@ customerOrdersRouter.post(
       );
     }
 
-    const { data: order, error: orderErr } = await adminClient
-      .from('orders')
-      .select('*, order_items(*)')
-      .eq('id', order_id)
-      .maybeSingle();
+    let orderQuery = adminClient.from('orders').select('*, order_items(*)');
+    if (order_id) {
+      orderQuery = orderQuery.eq('id', order_id);
+    } else {
+      orderQuery = orderQuery.eq('razorpay_order_id', razorpay_order_id);
+    }
+
+    const { data: order, error: orderErr } = await orderQuery.maybeSingle();
 
     if (orderErr || !order) {
       return c.json(

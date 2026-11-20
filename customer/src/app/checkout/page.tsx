@@ -68,7 +68,7 @@ export default function CheckoutPage() {
       }
 
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/menu`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/menu?t=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.data)) {
@@ -158,6 +158,8 @@ export default function CheckoutPage() {
         throw new Error(data.error?.message || 'Failed to place order');
       }
 
+      const orderId = data.data.id || data.data.order_id;
+
       if (paymentMethod === 'razorpay') {
         const scriptReady = await loadRazorpayScript();
         if (!scriptReady || !(window as any).Razorpay) {
@@ -182,7 +184,7 @@ export default function CheckoutPage() {
                   Authorization: `Bearer ${session.access_token}`,
                 },
                 body: JSON.stringify({
-                  order_id: data.data.order_id,
+                  order_id: orderId,
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
@@ -195,7 +197,7 @@ export default function CheckoutPage() {
               }
 
               clearCart();
-              router.push(`/checkout/success?order_id=${data.data.order_id}`);
+              router.push(`/checkout/success?order_id=${orderId}`);
             } catch (vErr: any) {
               setError(vErr?.message || 'Payment completed but server confirmation failed. Please refresh order tracker.');
             }
@@ -227,12 +229,12 @@ export default function CheckoutPage() {
 
       if (paymentMethod === 'pay_later') {
         clearCart();
-        router.push(`/checkout/success?order_id=${data.data.order_id}`);
+        router.push(`/checkout/success?order_id=${orderId}`);
         return;
       }
 
       clearCart();
-      router.push(`/checkout/success?order_id=${data.data.order_id}`);
+      router.push(`/checkout/success?order_id=${orderId}`);
     } catch (err: any) {
       setError(err?.message || 'Network error occurred while creating order');
       setSubmitting(false);
