@@ -50,7 +50,7 @@ customerOrdersRouter.post(
       );
     }
 
-    const idempotencyKey = payload.idempotency_key?.trim() || null;
+    const idempotencyKey = payload.idempotency_key?.trim() || c.req.header('Idempotency-Key')?.trim() || c.req.header('idempotency-key')?.trim() || null;
 
     if (idempotencyKey) {
       const { data: existingOrder } = await adminClient

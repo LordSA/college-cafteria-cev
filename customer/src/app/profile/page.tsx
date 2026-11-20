@@ -20,7 +20,7 @@ import {
   Building2,
 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 const PRESET_AVATARS = [
   { id: 'avatar-1', label: 'Chef Hat', path: '/avatars/avatar-1.svg' },

@@ -56,6 +56,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Added helpful diagnostic feedback banner on admin staff requests page guiding administrators if remote Supabase schema migration `20261111000000_add_email_to_profiles.sql` is pending.
 
 ### Fixed
+- **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
+  - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
+  - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
+  - Sanitized `API_BASE_URL` across all frontend pages (`checkout`, `cart`, `menu`, `orders`, `profile`, `page.tsx`, etc.) with `.replace(/\/+$/, '')` and removed trailing slash from `customer/.env.local` to prevent malformed double-slash endpoints (`//api/v1/orders`).
 - **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
   - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
   - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.
@@ -342,6 +346,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ### Fixed
+- **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
+  - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
+  - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
+  - Sanitized `API_BASE_URL` across all frontend pages (`checkout`, `cart`, `menu`, `orders`, `profile`, `page.tsx`, etc.) with `.replace(/\/+$/, '')` and removed trailing slash from `customer/.env.local` to prevent malformed double-slash endpoints (`//api/v1/orders`).
 - **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
   - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
   - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.
@@ -425,6 +433,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Amazon-style multi-column desktop footer with "Back to top" action.
 
 ### Fixed
+- **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
+  - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
+  - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
+  - Sanitized `API_BASE_URL` across all frontend pages (`checkout`, `cart`, `menu`, `orders`, `profile`, `page.tsx`, etc.) with `.replace(/\/+$/, '')` and removed trailing slash from `customer/.env.local` to prevent malformed double-slash endpoints (`//api/v1/orders`).
 - **Staff Requests Fallback & Supabase Email Sync (`admin/src/app/staff-requests/page.tsx`, `backend/migrations/0009_add_profile_email.sql`)**:
   - Resolved `column profiles.email does not exist` PostgreSQL error by adding a resilient direct Supabase fallback in `admin/src/app/staff-requests/page.tsx` for both loading requests and processing approvals/rejections, ensuring the board operates seamlessly even if remote API calls encounter schema mismatches.
   - Added migration `0009_add_profile_email.sql` to add `email text` to `public.profiles`, backfill from `auth.users`, and keep it updated via `handle_new_user()`.

@@ -47,7 +47,7 @@ interface OrderDetail {
   items: OrderItem[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 function OrderTrackerContent() {
   const searchParams = useSearchParams();

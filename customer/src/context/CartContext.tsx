@@ -31,7 +31,7 @@ const CART_STORAGE_KEY = 'cafteria_customer_cart';
 const CART_EXPIRY_KEY = 'cafteria_cart_expires_at';
 const CART_SESSION_KEY = 'cafteria_cart_session_id';
 const LOCK_DURATION_SECONDS = 300;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 

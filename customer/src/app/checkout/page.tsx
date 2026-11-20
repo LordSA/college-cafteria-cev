@@ -19,7 +19,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -144,11 +144,11 @@ export default function CheckoutPage() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
-          'Idempotency-Key': idempotencyKey,
         },
         body: JSON.stringify({
           items: items.map((i) => ({ menu_item_id: i.id, quantity: i.quantity })),
           payment_method: paymentMethod,
+          idempotency_key: idempotencyKey,
         }),
       });
 

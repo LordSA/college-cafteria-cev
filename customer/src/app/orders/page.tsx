@@ -37,7 +37,7 @@ interface Order {
   items: OrderItem[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 export default function CustomerOrdersPage() {
   const router = useRouter();

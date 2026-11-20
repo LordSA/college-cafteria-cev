@@ -65,7 +65,7 @@ college-canteen-cev/
   - `src/app/orders/track/page.tsx`: Live order tracking page with QR pickup pass and strict No-Refund policy disclosure.
   - `src/app/orders/receipt/page.tsx`: Printable customer receipt with order token, QR verification token, and strict No-Refund policy disclosure.
   - `src/app/wallet/page.tsx`: Legacy route redirected automatically to `/`.
-  - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later.
+  - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later. Includes sanitized `API_BASE_URL` and JSON-body idempotency key passing.
   - `src/app/checkout/success/page.tsx`: Order confirmation screen featuring the mechanical `ReceiptPrinterAnimation` thermal takeaway ticket, live pickup token, and quick action buttons.
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.
   - `src/app/orders/page.tsx`: Customer order record list featuring curved gradient header, 2-stage status badges (`ORDER_PLACED`, `COLLECTED`), and links to trackers. Order cancellation completely removed.
@@ -119,7 +119,7 @@ college-canteen-cev/
 * **Key Files:**
   - `src/index.ts`: Primary Hono router, global middleware binding, route mounting, and 404/error handler.
   - `src/middleware/auth.ts`: Reusable `requireAuth` (Bearer token verification), `requireRole(allowedRoles)`, `requireAdmin`, and `requireDeveloper` middlewares with context caching.
-  - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding.
+  - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding with localhost and 127.0.0.1 port allowances and Idempotency-Key header support.
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
   - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, and webhook signature verification using Web Crypto HMAC SHA-256 and constant-time comparison.

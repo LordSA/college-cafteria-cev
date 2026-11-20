@@ -13,13 +13,17 @@ export const configureCors = () => {
     const corsMiddleware = cors({
       origin: (requestOrigin) => {
         if (!requestOrigin) return null;
-        if (allowedOrigins.includes('*') || allowedOrigins.includes(requestOrigin)) {
+        if (
+          allowedOrigins.includes('*') ||
+          allowedOrigins.includes(requestOrigin) ||
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(requestOrigin)
+        ) {
           return requestOrigin;
         }
         return null;
       },
       allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Idempotency-Key', 'idempotency-key'],
       exposeHeaders: ['Content-Length', 'X-Request-Id'],
       maxAge: 86400,
       credentials: true,
