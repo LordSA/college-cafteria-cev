@@ -56,6 +56,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Added helpful diagnostic feedback banner on admin staff requests page guiding administrators if remote Supabase schema migration `20261111000000_add_email_to_profiles.sql` is pending.
 
 ### Fixed
+- **Real-Time Menu & Catalog Cache Busting (`backend/src/routes/menu.ts`, `backend/src/routes/categories.ts`, `customer/src/app/page.tsx`, `customer/src/app/menu/page.tsx`, `customer/src/app/checkout/page.tsx`)**:
+  - Added strict `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` response headers on public `/api/v1/menu` and `/api/v1/categories` routes to prevent Cloudflare edge and browser caching of menu/category listings when modified by admin.
+  - Implemented dynamic timestamp cache-busting (`?t=${Date.now()}`) and `{ cache: 'no-store' }` in customer catalog requests across home (`/`), menu (`/menu`), and checkout cart validation (`/checkout`).
+- **Payment Verification Resilience & Order Lookup Fallback (`backend/src/routes/orders.ts`, `customer/src/app/checkout/page.tsx`, `customer/src/app/checkout/success/page.tsx`, `backend/tests/phase4.test.ts`)**:
+  - Fixed 400 Bad Request verification failure by making `order_id` optional in `VerifyPaymentSchema` and adding fallback lookup by `razorpay_order_id` in `POST /api/v1/orders/verify-payment`.
+  - Added explicit `order_id` alongside `id` in `POST /api/v1/orders` responses for both new orders and idempotent replays.
+  - Resolved `order_id` undefined issue in `customer/src/app/checkout/page.tsx` by resolving `const orderId = data.data.id || data.data.order_id` and passing it to the server verification payload and success redirect.
+  - Updated `customer/src/app/checkout/success/page.tsx` to read both `order_id` and `id` search parameters (`searchParams.get('order_id') || searchParams.get('id')`).
+  - Added comprehensive unit tests in `backend/tests/phase4.test.ts` covering both standard order ID verification and Razorpay order ID fallback verification.
 - **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
   - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
   - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
@@ -346,6 +355,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ### Fixed
+- **Real-Time Menu & Catalog Cache Busting (`backend/src/routes/menu.ts`, `backend/src/routes/categories.ts`, `customer/src/app/page.tsx`, `customer/src/app/menu/page.tsx`, `customer/src/app/checkout/page.tsx`)**:
+  - Added strict `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` response headers on public `/api/v1/menu` and `/api/v1/categories` routes to prevent Cloudflare edge and browser caching of menu/category listings when modified by admin.
+  - Implemented dynamic timestamp cache-busting (`?t=${Date.now()}`) and `{ cache: 'no-store' }` in customer catalog requests across home (`/`), menu (`/menu`), and checkout cart validation (`/checkout`).
+- **Payment Verification Resilience & Order Lookup Fallback (`backend/src/routes/orders.ts`, `customer/src/app/checkout/page.tsx`, `customer/src/app/checkout/success/page.tsx`, `backend/tests/phase4.test.ts`)**:
+  - Fixed 400 Bad Request verification failure by making `order_id` optional in `VerifyPaymentSchema` and adding fallback lookup by `razorpay_order_id` in `POST /api/v1/orders/verify-payment`.
+  - Added explicit `order_id` alongside `id` in `POST /api/v1/orders` responses for both new orders and idempotent replays.
+  - Resolved `order_id` undefined issue in `customer/src/app/checkout/page.tsx` by resolving `const orderId = data.data.id || data.data.order_id` and passing it to the server verification payload and success redirect.
+  - Updated `customer/src/app/checkout/success/page.tsx` to read both `order_id` and `id` search parameters (`searchParams.get('order_id') || searchParams.get('id')`).
+  - Added comprehensive unit tests in `backend/tests/phase4.test.ts` covering both standard order ID verification and Razorpay order ID fallback verification.
 - **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
   - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
   - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
@@ -433,6 +451,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Amazon-style multi-column desktop footer with "Back to top" action.
 
 ### Fixed
+- **Real-Time Menu & Catalog Cache Busting (`backend/src/routes/menu.ts`, `backend/src/routes/categories.ts`, `customer/src/app/page.tsx`, `customer/src/app/menu/page.tsx`, `customer/src/app/checkout/page.tsx`)**:
+  - Added strict `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` response headers on public `/api/v1/menu` and `/api/v1/categories` routes to prevent Cloudflare edge and browser caching of menu/category listings when modified by admin.
+  - Implemented dynamic timestamp cache-busting (`?t=${Date.now()}`) and `{ cache: 'no-store' }` in customer catalog requests across home (`/`), menu (`/menu`), and checkout cart validation (`/checkout`).
+- **Payment Verification Resilience & Order Lookup Fallback (`backend/src/routes/orders.ts`, `customer/src/app/checkout/page.tsx`, `customer/src/app/checkout/success/page.tsx`, `backend/tests/phase4.test.ts`)**:
+  - Fixed 400 Bad Request verification failure by making `order_id` optional in `VerifyPaymentSchema` and adding fallback lookup by `razorpay_order_id` in `POST /api/v1/orders/verify-payment`.
+  - Added explicit `order_id` alongside `id` in `POST /api/v1/orders` responses for both new orders and idempotent replays.
+  - Resolved `order_id` undefined issue in `customer/src/app/checkout/page.tsx` by resolving `const orderId = data.data.id || data.data.order_id` and passing it to the server verification payload and success redirect.
+  - Updated `customer/src/app/checkout/success/page.tsx` to read both `order_id` and `id` search parameters (`searchParams.get('order_id') || searchParams.get('id')`).
+  - Added comprehensive unit tests in `backend/tests/phase4.test.ts` covering both standard order ID verification and Razorpay order ID fallback verification.
 - **Checkout "Failed to Fetch" & Trailing Slash Resolution (`customer/src/app/checkout/page.tsx`, `customer/.env.local`, `backend/src/middleware/cors.ts`, `backend/src/routes/orders.ts`)**:
   - Fixed "Failed to fetch" browser error on order checkout by moving `idempotency_key` into the JSON payload body and removing the custom `'Idempotency-Key'` HTTP header, preventing CORS preflight request failures.
   - Added `'Idempotency-Key'` and `'idempotency-key'` to `Access-Control-Allow-Headers` in `backend/src/middleware/cors.ts` and enabled dynamic localhost/127.0.0.1 CORS origin allowance for development.
