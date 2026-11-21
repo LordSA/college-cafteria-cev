@@ -9,11 +9,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Faculty & Staff Pay Later Online Dues Settlement via Razorpay**:
+  - Implemented custom dues settlement modal in `customer/src/app/profile/page.tsx` allowing faculty members to enter custom partial or full payment amounts.
+  - Added quick-preset chips (Pay Full, ₹500, ₹200, ₹100, ₹50) and live calculation of remaining debt after payment.
+  - Integrated with Razorpay checkout gateway via `customer/src/lib/razorpay.ts` (`loadRazorpayScript()`).
+  - Added backend endpoints in `backend/src/routes/orders.ts`:
+    - `POST /api/v1/orders/pay-later/initiate-settlement`: Creates Razorpay order for custom amount in paise, validates amount against total outstanding debt, and returns order metadata.
+    - `POST /api/v1/orders/pay-later/verify-settlement`: Verifies Razorpay checkout signature, applies FIFO payment reduction across pending pay later orders (marking completely covered orders as `paid` and updating remaining totals on fractional orders), and records verified payment in `payments` table.
+
 ### Fixed
-- **Cart Toggle Mobile Alignment & Bottom Navigation Collision**:
-  - Resolved mobile layout collision where the floating cart bar ("View Cart") overlapped the curved `MobileBottomNav` dock.
-  - Adjusted bottom positioning from `bottom-20` (80px) to `bottom-[92px]` across `customer/src/app/page.tsx` and `customer/src/app/menu/page.tsx`, establishing a clean 14px floating gap above the navigation dock.
-  - Increased bottom scroll padding on `<main>` from `pb-32` to `pb-36` to ensure the lowest dishes remain completely visible and unobstructed when the cart toggle is active.
+- **Cart Toggle Mobile Alignment & Safe-Area Aware Bottom Spacing**:
+  - Resolved visual overlap between the floating cart bar ("View Cart") and the curved `MobileBottomNav` dock.
+  - Created `.floating-cart-bottom` utility in `customer/src/app/globals.css` with dynamic `calc(6rem + max(0.75rem, env(safe-area-inset-bottom, 0px)))` positioning on mobile and `1.5rem` (`md:bottom-6`) on desktop, ensuring an exact 16px floating clearance above `MobileBottomNav`.
+  - Updated `customer/src/app/page.tsx` and `customer/src/app/menu/page.tsx` to use `.floating-cart-bottom` and expanded bottom scroll padding from `pb-36` to `pb-44` so all bottom dishes remain fully visible when the cart bar is active.
 - **Cart Expiry Notification Behavior & Route Scoping**:
   - Removed cart reservation expiry notification banners from `customer/src/app/menu/page.tsx` so the notice is scoped exclusively to the Cart page (`/cart`).
   - Added 1-minute auto-dismiss timer (`EXPIRED_NOTICE_DURATION_MS = 60000`) in `customer/src/context/CartContext.tsx` with local storage timestamp persistence (`cafteria_cart_expired_at`). The notification automatically hides 60 seconds after reservation expiry or immediately upon adding new dishes.

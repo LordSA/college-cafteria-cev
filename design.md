@@ -55,6 +55,7 @@ Exclusively powered by `lucide-react` across both applications:
     - Hot Products Carousel: Horizontal card scroll for top campus favorites ("Most Ordered & Clicked") with star ratings (`★ 4.8`), order volume (`12K+ orders`), prep times (`⏱ 4-12 Min`), and instant Add-to-cart buttons.
     - Exclusive Deals: Vibrant tri-color gradient circular offer badges.
     - Floating Curved Mobile Bottom Dock (`rounded-[28px]`): Fixed 4-tab floating glass dock (`Home`, `Menu`, `Cart`, `Profile`) with active orange pill highlight, safe-area-bottom padding, and live cart badge counter.
+    - Floating Cart Checkout Bar (`.floating-cart-bottom`): Responsive floating action card pinned at `calc(6rem + max(0.75rem, env(safe-area-inset-bottom, 0px)))` on mobile viewports to guarantee an exact, collision-free 16px clearance above the mobile bottom dock on all viewport heights and iOS devices, with desktop fallback to `md:bottom-6`. Scroll padding expanded to `pb-44`.
   - **PC Desktop Layout (`hidden md:block`):**
     - Clean Unified Navbar (`Navbar.tsx`): Header across all desktop pages with `logo title.svg`, dynamic theme icon, primary navigation links (`Home`, `Menu`), Cart button with item count badge, and User Profile with preset avatar / Login button.
   - **Menu & Cart Column Layout:**
