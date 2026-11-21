@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 
 const CategoryCreateSchema = z.object({
@@ -59,9 +59,10 @@ publicCategoriesRouter.get('/', async (c) => {
 });
 
 adminCategoriesRouter.use('*', requireAuth);
-adminCategoriesRouter.use('*', requireAdmin);
+adminCategoriesRouter.use('*', requireRole(['developer', 'admin', 'staff']));
 
 adminCategoriesRouter.get('/', async (c) => {
+  c.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   const adminClient = getSupabaseAdminClient(c.env);
   if (!adminClient) {
     return c.json(

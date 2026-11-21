@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -13,7 +12,6 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  ArrowLeft,
   RefreshCw,
   Camera,
   Trash2,
@@ -90,11 +88,13 @@ export default function AdminMenuPage() {
     setError(null);
     try {
       const [menuRes, catRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/v1/admin/menu`, {
+        fetch(`${API_BASE_URL}/api/v1/admin/menu?t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
         }),
-        fetch(`${API_BASE_URL}/api/v1/admin/categories`, {
+        fetch(`${API_BASE_URL}/api/v1/admin/categories?t=${Date.now()}`, {
           headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
         }),
       ]);
 
@@ -108,11 +108,18 @@ export default function AdminMenuPage() {
         throw new Error(catBody.error?.message || 'Failed to fetch categories');
       }
 
-      setMenuItems(menuBody.data?.items || []);
-      setCategories(catBody.data?.categories || []);
+      const itemsList = Array.isArray(menuBody.data)
+        ? menuBody.data
+        : (menuBody.data?.items || []);
+      const catsList = Array.isArray(catBody.data)
+        ? catBody.data
+        : (catBody.data?.categories || []);
 
-      if (catBody.data?.categories?.length > 0 && !categoryId) {
-        setCategoryId(catBody.data.categories[0].id);
+      setMenuItems(itemsList);
+      setCategories(catsList);
+
+      if (catsList.length > 0 && !categoryId) {
+        setCategoryId(catsList[0].id);
       }
     } catch (err: any) {
       setError(err.message || 'Error loading menu data');

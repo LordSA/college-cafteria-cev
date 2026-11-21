@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -14,7 +13,6 @@ import {
   Clock,
   AlertCircle,
   Loader2,
-  ArrowLeft,
   Mail,
   Calendar,
   RefreshCw,

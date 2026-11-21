@@ -122,12 +122,12 @@ export default function AdminDashboardPage() {
           inventoryRes,
           financialRes,
         ] = await Promise.allSettled([
-          fetch(`${API_BASE_URL}/api/v1/admin/menu/items`, { headers }),
-          fetch(`${API_BASE_URL}/api/v1/admin/menu/categories`, { headers }),
-          fetch(`${API_BASE_URL}/api/v1/admin/staff/requests`, { headers }),
-          fetch(`${API_BASE_URL}/api/v1/admin/orders?limit=6`, { headers }),
-          fetch(`${API_BASE_URL}/api/v1/admin/inventory/portions`, { headers }),
-          fetch(`${API_BASE_URL}/api/v1/admin/reports/stats?range=${timeframe}`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/admin/menu?t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/categories?t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/staff-requests?t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/orders?limit=6&t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/inventory?t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/reports/stats?range=${timeframe}&t=${Date.now()}`, { headers, cache: 'no-store' }),
         ]);
 
         if (!isMounted) return;
@@ -136,7 +136,7 @@ export default function AdminDashboardPage() {
         let availableMenu = 0;
         if (menuRes.status === 'fulfilled' && menuRes.value.ok) {
           const json = await menuRes.value.json();
-          const items = json.data?.items || [];
+          const items = Array.isArray(json.data) ? json.data : (json.data?.items || []);
           totalMenu = items.length;
           availableMenu = items.filter((i: any) => i.is_available).length;
         }
@@ -144,14 +144,15 @@ export default function AdminDashboardPage() {
         let totalCategories = 0;
         if (catsRes.status === 'fulfilled' && catsRes.value.ok) {
           const json = await catsRes.value.json();
-          totalCategories = (json.data?.categories || []).length;
+          const cats = Array.isArray(json.data) ? json.data : (json.data?.categories || []);
+          totalCategories = cats.length;
         }
 
         let pendingStaff = 0;
         let staffRequests: DashboardStaffRequest[] = [];
         if (staffRes.status === 'fulfilled' && staffRes.value.ok) {
           const json = await staffRes.value.json();
-          staffRequests = json.data?.requests || [];
+          staffRequests = Array.isArray(json.data) ? json.data : (json.data?.requests || []);
           pendingStaff = staffRequests.length;
           setPendingStaffList(staffRequests.slice(0, 3));
         }
@@ -160,7 +161,7 @@ export default function AdminDashboardPage() {
         let fetchedOrders: DashboardOrder[] = [];
         if (ordersRes.status === 'fulfilled' && ordersRes.value.ok) {
           const json = await ordersRes.value.json();
-          fetchedOrders = json.data?.orders || [];
+          fetchedOrders = Array.isArray(json.data) ? json.data : (json.data?.orders || []);
           activeOrdersCount = fetchedOrders.filter(
             (o) => (o.order_stage || o.order_status) === 'ORDER_PLACED'
           ).length;
@@ -171,7 +172,7 @@ export default function AdminDashboardPage() {
         let lowPortions: DashboardInventoryItem[] = [];
         if (inventoryRes.status === 'fulfilled' && inventoryRes.value.ok) {
           const json = await inventoryRes.value.json();
-          const items: DashboardInventoryItem[] = json.data?.inventory || [];
+          const items: DashboardInventoryItem[] = Array.isArray(json.data) ? json.data : (json.data?.inventory || []);
           lowPortions = items.filter(
             (i) => i.stock_quantity <= i.low_stock_threshold
           );

@@ -9,6 +9,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Admin Menu & Category Page Data Document & Items Display Issue**:
+  - Resolved issue where active dishes and categories failed to render on the Admin Menu page (`/menu`) due to data shape mismatch (`menuBody.data?.items` vs array `menuBody.data`). Implemented defensive array/object normalization (`Array.isArray(body.data) ? body.data : body.data?.items`).
+  - Added cache-busting timestamp queries (`?t=${Date.now()}`) and `{ cache: 'no-store' }` headers across `admin/src/app/menu/page.tsx`, `admin/src/app/categories/page.tsx`, and `admin/src/app/page.tsx` to ensure real-time synchronization with database updates.
+  - Added strict `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` response headers on backend `adminMenuRouter.get('/')` and `adminCategoriesRouter.get('/')`.
+  - Configured `adminCategoriesRouter` to permit `staff` store workers alongside `developer` and `admin`, preventing 403 Forbidden errors when staff workers manage dishes.
+  - Corrected inventory item availability toggle in `admin/src/app/inventory/page.tsx` from 404 endpoint `/api/v1/admin/menu/items/:id` to `/api/v1/admin/inventory/:id`.
+  - Cleaned up unused imports across admin components with zero UI design changes and zero comments.
+
 ### Added
 - **Full Role Systems & Assigned Modes Reconfiguration Across Stack**:
   - Reconfigured the role and authorization systems across customer frontend, admin frontend, backend API, and database to eliminate naming collision between campus teachers and canteen workers.

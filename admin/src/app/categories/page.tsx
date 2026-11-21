@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -12,7 +11,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  ArrowLeft,
   RefreshCw,
   ToggleLeft,
   ToggleRight,
@@ -60,10 +58,11 @@ export default function AdminCategoriesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/categories`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/categories?t=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        cache: 'no-store',
       });
 
       const body = await res.json();
@@ -71,7 +70,11 @@ export default function AdminCategoriesPage() {
         throw new Error(body.error?.message || 'Failed to fetch categories');
       }
 
-      setCategories(body.data || []);
+      const catsList = Array.isArray(body.data)
+        ? body.data
+        : (body.data?.categories || []);
+
+      setCategories(catsList);
     } catch (err: any) {
       setError(err.message || 'Error loading categories');
     } finally {

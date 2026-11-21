@@ -8,7 +8,6 @@ import {
   ListTodo,
   ListCollapse,
   Layers,
-  Settings,
   Terminal,
   Printer,
   LogOut,

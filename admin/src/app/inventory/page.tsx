@@ -6,7 +6,6 @@ import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
-  ClipboardList,
   Search,
   RefreshCw,
   AlertTriangle,
@@ -106,7 +105,7 @@ export default function AdminInventoryPage() {
     if (!session?.access_token) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/menu/items/${item.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/inventory/${item.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
