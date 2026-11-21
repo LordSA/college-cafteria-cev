@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { ShieldAlert, ArrowLeft, LogOut } from 'lucide-react';
