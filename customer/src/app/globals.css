@@ -31,6 +31,16 @@ body {
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
+.floating-cart-bottom {
+  bottom: calc(6rem + max(0.75rem, env(safe-area-inset-bottom, 0px)));
+}
+
+@media (min-width: 768px) {
+  .floating-cart-bottom {
+    bottom: 1.5rem;
+  }
+}
+
 .glass-surface {
   background-color: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(16px);

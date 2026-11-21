@@ -226,7 +226,7 @@ export default function MenuPage() {
         </header>
       </div>
 
-      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-36 md:pb-16">
+      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-44 md:pb-16">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="hidden md:block">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-7 text-white shadow-xl shadow-orange-500/15">
@@ -521,7 +521,7 @@ export default function MenuPage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed bottom-[92px] md:bottom-6 left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed floating-cart-bottom left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">

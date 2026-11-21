@@ -822,6 +822,237 @@ customerOrdersRouter.post(
   }
 );
 
+const InitiateSettlementSchema = z.object({
+  amount: z.number().int().positive('Payment amount must be greater than 0'),
+});
+
+customerOrdersRouter.post(
+  '/pay-later/initiate-settlement',
+  zValidator('json', InitiateSettlementSchema),
+  async (c) => {
+    const user = c.get('user');
+    const { amount } = c.req.valid('json');
+    const adminClient = getSupabaseAdminClient(c.env);
+
+    if (!adminClient) {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+        500
+      );
+    }
+
+    const { data: pendingOrders, error: fetchErr } = await adminClient
+      .from('orders')
+      .select('id, total')
+      .eq('customer_id', user.id)
+      .eq('payment_method', 'pay_later')
+      .in('payment_status', ['unpaid', 'pending'])
+      .neq('order_status', 'cancelled');
+
+    if (fetchErr) {
+      return c.json(
+        { success: false, error: { code: 'QUERY_FAILED', message: fetchErr.message } },
+        500
+      );
+    }
+
+    const totalPending = (pendingOrders || []).reduce((sum, o: any) => sum + (o.total || 0), 0);
+    if (!pendingOrders || pendingOrders.length === 0 || totalPending <= 0) {
+      return c.json(
+        { success: false, error: { code: 'NO_PENDING_DUES', message: 'No outstanding Pay Later dues found' } },
+        400
+      );
+    }
+
+    if (amount > totalPending) {
+      return c.json(
+        { success: false, error: { code: 'AMOUNT_EXCEEDS_DUES', message: 'Payment amount exceeds outstanding Pay Later debt' } },
+        400
+      );
+    }
+
+    let razorpayOrderId: string;
+    if (c.env?.RAZORPAY_KEY_ID && c.env?.RAZORPAY_KEY_SECRET) {
+      try {
+        const rzpOrder = await createRazorpayOrder(c.env, {
+          amountPaise: amount,
+          receipt: `pl_${Date.now()}`.slice(0, 40),
+          notes: {
+            type: 'pay_later_settlement',
+            customer_id: user.id,
+            amount: amount.toString(),
+          },
+        });
+        razorpayOrderId = rzpOrder.id;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Gateway initialization failed';
+        return c.json(
+          { success: false, error: { code: 'GATEWAY_ERROR', message: msg } },
+          500
+        );
+      }
+    } else {
+      razorpayOrderId = `order_sim_${Date.now()}`;
+    }
+
+    let customerName = user.email?.split('@')[0] || 'Faculty Member';
+    let customerPhone = '';
+    try {
+      const { data: profile } = await adminClient
+        .from('profiles')
+        .select('display_name, phone_number')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.display_name) customerName = profile.display_name;
+      if (profile?.phone_number) customerPhone = profile.phone_number;
+    } catch {}
+
+    return c.json({
+      success: true,
+      data: {
+        razorpay_order_id: razorpayOrderId,
+        razorpay_key_id: c.env?.RAZORPAY_KEY_ID || null,
+        amount,
+        currency: 'INR',
+        customer: {
+          name: customerName,
+          email: user.email || '',
+          phone: customerPhone,
+        },
+      },
+    });
+  }
+);
+
+const VerifySettlementSchema = z.object({
+  razorpay_order_id: z.string().min(1, 'Razorpay order ID required'),
+  razorpay_payment_id: z.string().min(1, 'Razorpay payment ID required'),
+  razorpay_signature: z.string().min(1, 'Razorpay signature required'),
+  amount: z.number().int().positive('Payment amount must be greater than 0'),
+});
+
+customerOrdersRouter.post(
+  '/pay-later/verify-settlement',
+  zValidator('json', VerifySettlementSchema),
+  async (c) => {
+    const user = c.get('user');
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = c.req.valid('json');
+    const adminClient = getSupabaseAdminClient(c.env);
+
+    if (!adminClient) {
+      return c.json(
+        { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+        500
+      );
+    }
+
+    if (c.env?.RAZORPAY_KEY_SECRET && !razorpay_order_id.startsWith('order_sim_')) {
+      const isValid = await verifyRazorpayCheckoutSignature(
+        c.env.RAZORPAY_KEY_SECRET,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+      );
+      if (!isValid) {
+        return c.json(
+          { success: false, error: { code: 'INVALID_SIGNATURE', message: 'Payment signature verification failed' } },
+          400
+        );
+      }
+    }
+
+    const { data: pendingOrders, error: fetchErr } = await adminClient
+      .from('orders')
+      .select('id, total, order_number')
+      .eq('customer_id', user.id)
+      .eq('payment_method', 'pay_later')
+      .in('payment_status', ['unpaid', 'pending'])
+      .neq('order_status', 'cancelled')
+      .order('created_at', { ascending: true });
+
+    if (fetchErr) {
+      return c.json(
+        { success: false, error: { code: 'QUERY_FAILED', message: fetchErr.message } },
+        500
+      );
+    }
+
+    if (!pendingOrders || pendingOrders.length === 0) {
+      return c.json(
+        { success: false, error: { code: 'NO_PENDING_DUES', message: 'No outstanding Pay Later dues found' } },
+        400
+      );
+    }
+
+    let remainingPayment = amount;
+    const now = new Date().toISOString();
+    const fullyPaidOrderIds: string[] = [];
+    let partialOrder: { id: string; original_total: number; new_total: number } | null = null;
+
+    for (const order of pendingOrders) {
+      if (remainingPayment <= 0) break;
+      const orderTotal = order.total || 0;
+
+      if (remainingPayment >= orderTotal) {
+        fullyPaidOrderIds.push(order.id);
+        remainingPayment -= orderTotal;
+      } else {
+        const newTotal = orderTotal - remainingPayment;
+        partialOrder = { id: order.id, original_total: orderTotal, new_total: newTotal };
+        remainingPayment = 0;
+        await adminClient
+          .from('orders')
+          .update({
+            total: newTotal,
+            pay_later_settled_via: `razorpay_partial:${razorpay_payment_id}`,
+            updated_at: now,
+          })
+          .eq('id', order.id);
+      }
+    }
+
+    if (fullyPaidOrderIds.length > 0) {
+      await adminClient
+        .from('orders')
+        .update({
+          payment_status: 'paid',
+          paid_at: now,
+          pay_later_settled_at: now,
+          pay_later_settled_via: `razorpay:${razorpay_payment_id}`,
+          updated_at: now,
+        })
+        .in('id', fullyPaidOrderIds);
+    }
+
+    try {
+      const primaryOrderId = fullyPaidOrderIds[0] || (partialOrder ? partialOrder.id : (pendingOrders && pendingOrders[0] ? pendingOrders[0].id : null));
+      await adminClient.from('payments').insert({
+        order_id: primaryOrderId,
+        customer_id: user.id,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        amount,
+        currency: 'INR',
+        status: 'captured',
+        payment_method: 'razorpay',
+        captured_at: now,
+      });
+    } catch {}
+
+    return c.json({
+      success: true,
+      data: {
+        amount_settled: amount,
+        fully_settled_count: fullyPaidOrderIds.length,
+        partially_settled: partialOrder,
+        settled_at: now,
+      },
+    });
+  }
+);
+
 customerOrdersRouter.get('/:id', async (c) => {
   const user = c.get('user');
   const orderId = c.req.param('id');

@@ -16,7 +16,6 @@ import {
   RefreshCw,
   ShieldAlert,
   Printer,
-  QrCode,
   Clock,
 } from 'lucide-react';
 
@@ -150,7 +149,7 @@ function OrderTrackerContent() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <Link
             href={`/orders/receipt/?id=${order.id}`}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
           >
             <Printer className="h-3.5 w-3.5" />
             <span>Receipt</span>
@@ -158,7 +157,7 @@ function OrderTrackerContent() {
 
           <button
             onClick={fetchOrder}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] px-3.5 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
           >
             <RefreshCw className="h-3.5 w-3.5 text-[#ff5e3a]" />
             <span>Refresh</span>
@@ -168,16 +167,16 @@ function OrderTrackerContent() {
 
       <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-5 shadow-xs">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-4">
-          Order Progress
+          Order Status
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <div className={`p-3.5 rounded-2xl text-center border ${isPlaced || isCollected ? 'border-orange-300 dark:border-orange-500/40 bg-orange-50/70 dark:bg-orange-950/20 text-[#ff5e3a]' : 'border-stone-100 dark:border-white/5 bg-stone-50 dark:bg-white/5 text-stone-400 dark:text-stone-500'}`}>
             <Clock className="h-5 w-5 mx-auto mb-1 text-current" />
-            <p className="text-xs font-bold">1. Order Placed</p>
+            <p className="text-xs font-bold">Order Placed</p>
           </div>
           <div className={`p-3.5 rounded-2xl text-center border ${isCollected ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/70 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' : 'border-stone-100 dark:border-white/5 bg-stone-50 dark:bg-white/5 text-stone-400 dark:text-stone-500'}`}>
             <CheckCircle2 className="h-5 w-5 mx-auto mb-1 text-current" />
-            <p className="text-xs font-bold">2. Collected</p>
+            <p className="text-xs font-bold">Collected</p>
           </div>
         </div>
       </div>
@@ -186,7 +185,7 @@ function OrderTrackerContent() {
         <div className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-3">
           <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">This historical order was cancelled</p>
+            <p className="font-bold">This order was cancelled</p>
             <p className="mt-0.5">
               Reason: {order.cancellation_reason || 'Cancelled'}
             </p>
@@ -236,11 +235,6 @@ function OrderTrackerContent() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-stone-800 dark:text-stone-200">
-                <QrCode className="h-4 w-4 text-[#ff5e3a]" />
-                <span>Collection Pass &bull; Scan at Counter</span>
-              </div>
-
               <div className="flex justify-center py-2">
                 <div className="p-3.5 bg-stone-50 dark:bg-white rounded-2xl border border-stone-100 dark:border-white/10 shadow-sm">
                   <QRCodeSvg value={order.qr_verification_token} size={210} />
@@ -266,7 +260,7 @@ function OrderTrackerContent() {
 
       <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] p-6 shadow-xs space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 border-b border-stone-100 dark:border-white/10 pb-2">
-          Ordered Dishes
+          Ordered Items
         </h2>
 
         <div className="divide-y divide-stone-100 dark:divide-white/10 text-xs">

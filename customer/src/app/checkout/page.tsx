@@ -9,30 +9,17 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import {
   ArrowLeft,
-  CheckCircle2,
   AlertCircle,
   Loader2,
   User,
   AlertTriangle,
   CreditCard,
   Building2,
-  ShieldAlert,
 } from 'lucide-react';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+import { loadRazorpayScript } from '../../lib/razorpay';
 
-function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (typeof window === 'undefined') return resolve(false);
-    if ((window as any).Razorpay) return resolve(true);
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -111,7 +98,7 @@ export default function CheckoutPage() {
             setPendingPayLater(plJson.data.total_pending || 0);
           }
         }
-      } catch {}
+      } catch { }
     }
 
     loadPayLater();
@@ -364,16 +351,15 @@ export default function CheckoutPage() {
           <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
               <h2 className="text-sm font-bold text-stone-900 dark:text-white">Select Payment Method</h2>
-              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Official Campus Checkout</span>
+              <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">Checkout</span>
             </div>
 
             <div className="space-y-3">
               <label
-                className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
-                  paymentMethod === 'razorpay'
-                    ? 'border-[#ff5e3a] bg-orange-50/50 dark:bg-orange-950/20 ring-1 ring-[#ff5e3a]'
-                    : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
-                }`}
+                className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${paymentMethod === 'razorpay'
+                  ? 'border-[#ff5e3a] bg-orange-50/50 dark:bg-orange-950/20 ring-1 ring-[#ff5e3a]'
+                  : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
+                  }`}
               >
                 <input
                   type="radio"
@@ -392,18 +378,17 @@ export default function CheckoutPage() {
                         Recommended
                       </span>
                     </div>
-                    <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span>
+                    {/* <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span> */}
                   </div>
                 </div>
               </label>
 
               {isFacultyOrStaff && (
                 <label
-                  className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
-                    paymentMethod === 'pay_later'
-                      ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-indigo-500'
-                      : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
-                  }`}
+                  className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${paymentMethod === 'pay_later'
+                    ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-indigo-500'
+                    : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
+                    }`}
                 >
                   <input
                     type="radio"
@@ -417,9 +402,9 @@ export default function CheckoutPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-indigo-600" />
-                        <span className="text-xs font-bold text-stone-900 dark:text-white">Pay Later (Faculty & Staff Credit)</span>
+                        <span className="text-xs font-bold text-stone-900 dark:text-white">Pay Later</span>
                         <span className="rounded bg-indigo-100 dark:bg-indigo-950/40 px-1.5 py-0.5 text-[10px] font-bold text-indigo-800 dark:text-indigo-300">
-                          Faculty Benefit
+                          Faculty Credit
                         </span>
                       </div>
                       {pendingPayLater > 0 && (
@@ -433,17 +418,6 @@ export default function CheckoutPage() {
               )}
             </div>
           </div>
-
-          <div className="rounded-3xl border border-amber-500/20 bg-amber-500/10 dark:bg-amber-500/15 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-3 shadow-xs">
-            <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <span className="font-bold block text-xs">Strict No-Refund & No-Cancellation Policy</span>
-              <p className="text-[11px] leading-relaxed opacity-90">
-                All canteen meals are freshly prepared on-demand immediately upon order placement. Once submitted, orders cannot be cancelled and payments are strictly non-refundable.
-              </p>
-            </div>
-          </div>
-
           <button
             onClick={handlePlaceOrder}
             disabled={submitting || validating || unavailableItems.length > 0}
@@ -456,13 +430,11 @@ export default function CheckoutPage() {
               </>
             ) : paymentMethod === 'razorpay' ? (
               <>
-                <CreditCard className="h-4 w-4" />
-                <span>Pay ₹{(subtotal / 100).toFixed(2)} Online via Razorpay</span>
+                <span>Pay ₹{(subtotal / 100).toFixed(2)}</span>
               </>
             ) : (
               <>
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Confirm Pay Later Order</span>
+                <span>Confirm Order</span>
               </>
             )}
           </button>

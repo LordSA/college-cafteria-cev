@@ -11,7 +11,6 @@ import { isOrderQrExpired } from '../../../lib/orderExpiry';
 import {
   Printer,
   ArrowLeft,
-  UtensilsCrossed,
   AlertCircle,
   Loader2,
 } from 'lucide-react';
@@ -133,7 +132,7 @@ function ReceiptContent() {
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 transition"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Order Tracking</span>
+          <span>Back to Order</span>
         </Link>
 
         <button
@@ -141,31 +140,27 @@ function ReceiptContent() {
           className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 dark:bg-white px-4 py-2 text-xs font-bold text-white dark:text-stone-900 shadow-sm hover:bg-stone-800 dark:hover:bg-stone-100 transition active:scale-95"
         >
           <Printer className="h-4 w-4" />
-          <span>Print Receipt</span>
+          <span>Print</span>
         </button>
       </div>
 
       <div className="rounded-3xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#161822] p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-stone-900 dark:text-stone-100 font-sans">
         <div className="border-b border-stone-200 dark:border-white/10 pb-6 text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff5e3a] text-white shadow-xs print:border print:border-stone-900">
-            <UtensilsCrossed className="h-6 w-6" />
-          </div>
-          <h1 className="text-xl font-extrabold tracking-tight text-stone-900 dark:text-white uppercase">
-            {receipt.canteen.name}
+          <img src="/logo/logo_bl.svg" alt="icon" className="h-16 w-full object-contain" />
+          <h1 className="text-xl font-extrabold tracking-tight text-[#252525] uppercase">
+            Cafeteria CEV
           </h1>
-          <p className="text-xs text-stone-600 dark:text-stone-400">{receipt.canteen.campus}</p>
-          <p className="text-[11px] text-stone-500 dark:text-stone-400">{receipt.canteen.address}</p>
           <div className="inline-block rounded-full bg-emerald-100 dark:bg-emerald-950/40 px-3 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider print:border print:border-emerald-800">
-            Official Canteen Tax Invoice / Bill
+            Cafeteria Receipt
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs border-b border-stone-200 dark:border-white/10 pb-4">
           <div>
             <span className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">
-              Bill / Token No.
+              Token No.
             </span>
-            <span className="font-mono text-base font-extrabold text-[#ff5e3a]">
+            <span className="font-mono text-base font-extrabold text-[#000000]">
               {receipt.order_number}
             </span>
           </div>
@@ -187,7 +182,6 @@ function ReceiptContent() {
               Billed To
             </span>
             <p className="font-bold text-stone-900 dark:text-white">{receipt.customer.display_name}</p>
-            <p className="text-[11px] text-stone-500 dark:text-stone-400 capitalize">{receipt.customer.account_type}</p>
           </div>
 
           <div className="text-right">
@@ -214,7 +208,7 @@ function ReceiptContent() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-stone-200 dark:border-white/10 text-[10px] uppercase font-bold text-stone-500 dark:text-stone-400 tracking-wider">
-                <th className="py-2">Item Description</th>
+                <th className="py-2">Item</th>
                 <th className="py-2 text-center">Qty</th>
                 <th className="py-2 text-right">Price</th>
                 <th className="py-2 text-right">Amount</th>
@@ -247,7 +241,7 @@ function ReceiptContent() {
             </span>
           </div>
           <div className="flex justify-between text-stone-600 dark:text-stone-400">
-            <span>Campus Surcharge / SGST / CGST</span>
+            <span>SGST / CGST</span>
             <span className="font-mono tabular-nums text-emerald-700 dark:text-emerald-400 font-semibold">₹0.00</span>
           </div>
           <div className="flex justify-between items-baseline border-t border-stone-200 dark:border-white/10 pt-2 text-sm font-extrabold text-stone-900 dark:text-white">
@@ -276,7 +270,7 @@ function ReceiptContent() {
           ) : isOrderQrExpired(receipt.created_at) ? (
             <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-2">
               <div className="inline-block rounded-xl border border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/20 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
-                Pickup Pass Expired
+                QR Expired
               </div>
               <p className="text-[11px] text-stone-500 dark:text-stone-400">
                 This meal collection pass expired at 10:00 PM IST on the order date.
@@ -285,7 +279,7 @@ function ReceiptContent() {
           ) : (
             <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-3">
               <p className="text-[11px] font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
-                Pickup Collection Ticket
+                Qr Code
               </p>
               <div className="flex justify-center">
                 <div className="bg-white p-3 rounded-2xl inline-block shadow-sm">

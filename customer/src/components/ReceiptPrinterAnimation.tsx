@@ -213,18 +213,15 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
       className="relative z-10 bg-[#FAFAFA] border-x border-t border-[#E5E5E5] px-6 pt-6 pb-9 font-mono text-[#252525] shadow-sm select-none"
     >
       <div className="text-center pb-3 border-b border-dashed border-gray-300">
-        <span className="text-[10px] font-bold text-[#F47721] tracking-widest uppercase block font-sans">
-          College of Engineering Vadakara
-        </span>
         <h3 className="text-base font-extrabold tracking-wider text-[#252525] uppercase mt-0.5 font-sans">
-          CAFETERIA
+          CAFETERIA CEV
         </h3>
-        <p className="text-[10px] text-gray-500 mt-0.5 font-sans">Takeaway Pickup Receipt</p>
+        <p className="text-[10px] text-gray-500 mt-0.5 font-sans">Order Receipt</p>
       </div>
 
       <div className="flex justify-between items-center py-2 text-xs border-b border-dashed border-gray-300">
         <div>
-          <span className="text-[10px] text-gray-500 block uppercase font-sans">Order Token</span>
+          <span className="text-[10px] text-gray-500 block uppercase font-sans">Token</span>
           <span className="font-bold text-sm text-[#F47721] font-mono">
             #{order.order_number}
           </span>
@@ -233,9 +230,9 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
           <span className="text-[10px] text-gray-500 block uppercase font-sans">Payment</span>
           <span className={`font-bold text-[11px] uppercase font-sans ${order.payment_status === 'paid' ? 'text-[#269B62]' : 'text-[#F47721]'}`}>
             {order.payment_status === 'paid'
-              ? 'PAID ONLINE (UPI)'
+              ? 'PAID'
               : order.payment_method === 'pay_later'
-                ? 'FACULTY CREDIT (PAY LATER)'
+                ? 'FACULTY CREDIT'
                 : 'PAYMENT PENDING'}
           </span>
         </div>
@@ -260,7 +257,7 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
           <span className="tabular-nums">{formatCurrency(order.subtotal)}</span>
         </div>
         <div className="flex justify-between text-gray-500 text-[11px]">
-          <span>Campus Tax / SGST / CGST</span>
+          <span>Tax / SGST / CGST</span>
           <span className="tabular-nums font-semibold text-[#269B62]">₹0.00</span>
         </div>
         <div className="flex justify-between font-extrabold text-sm text-[#252525] pt-1 border-t border-gray-200">
@@ -276,12 +273,6 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
             size={110}
           />
         </div>
-        <span className="text-[9px] font-bold text-[#F47721] mt-2 font-sans uppercase tracking-wider block">
-          SCAN AT DELIVERY COUNTER
-        </span>
-        <p className="text-[10px] text-gray-500 mt-0.5 font-sans leading-tight max-w-[210px]">
-          Show this QR token to collect your takeaway order.
-        </p>
       </div>
     </article>
   );

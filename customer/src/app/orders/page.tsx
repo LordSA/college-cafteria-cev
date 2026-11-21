@@ -37,7 +37,7 @@ interface Order {
   items: OrderItem[];
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CustomerOrdersPage() {
   const router = useRouter();
@@ -129,14 +129,11 @@ export default function CustomerOrdersPage() {
 
       <div className="md:hidden">
         <header className="rounded-b-[2.5rem] bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-5 pb-7 text-white shadow-xl shadow-orange-500/15">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-orange-100">
-            Personal Dining Record
-          </span>
           <h1 className="text-2xl font-black tracking-tight text-white mt-0.5">
-            My Campus Orders
+            My Orders
           </h1>
           <p className="mt-1 text-xs text-orange-100">
-            Track live kitchen status, token numbers, and previous canteen orders
+            Cafeteria CEV
           </p>
         </header>
       </div>
@@ -145,14 +142,11 @@ export default function CustomerOrdersPage() {
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="hidden md:block">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-7 text-white shadow-xl shadow-orange-500/15">
-              <span className="text-xs font-bold uppercase tracking-wider text-orange-100">
-                Personal Dining Record
-              </span>
               <h1 className="mt-1 text-3xl font-black tracking-tight text-white">
-                My Campus Orders
+                My Orders
               </h1>
               <p className="mt-1 text-xs text-orange-100">
-                Track live kitchen status, token numbers, and previous canteen orders
+                Cafeteria CEV
               </p>
             </div>
           </div>
@@ -162,7 +156,7 @@ export default function CustomerOrdersPage() {
               <ReceiptText className="mx-auto h-10 w-10 text-stone-300 dark:text-stone-600" />
               <h2 className="text-base font-bold text-stone-900 dark:text-white">Sign in to view your orders</h2>
               <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-                Authenticate with your college account to view active prep queues and receipts.
+                Authenticate with your account to view active prep queues and receipts.
               </p>
               <Link
                 href="/login?redirect=/orders"
@@ -174,7 +168,7 @@ export default function CustomerOrdersPage() {
           ) : loading ? (
             <div className="flex flex-col items-center justify-center py-20 text-stone-400 gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-[#ff5e3a]" />
-              <p className="text-xs font-medium">Loading your orders...</p>
+              <p className="text-xs font-medium">Loading...</p>
             </div>
           ) : error ? (
             <div className="rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
@@ -186,7 +180,7 @@ export default function CustomerOrdersPage() {
               <ReceiptText className="mx-auto h-10 w-10 text-stone-300 dark:text-stone-600" />
               <h2 className="text-base font-bold text-stone-900 dark:text-white">No orders placed yet</h2>
               <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-                When you order from the campus canteen, your live kitchen status and tickets will show up here.
+                When you order from the cafeteria, your order status and tickets will show up here.
               </p>
               <Link
                 href="/menu"

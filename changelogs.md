@@ -10,6 +10,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Fixed
+- **Cart Toggle Mobile Alignment & Bottom Navigation Collision**:
+  - Resolved mobile layout collision where the floating cart bar ("View Cart") overlapped the curved `MobileBottomNav` dock.
+  - Adjusted bottom positioning from `bottom-20` (80px) to `bottom-[92px]` across `customer/src/app/page.tsx` and `customer/src/app/menu/page.tsx`, establishing a clean 14px floating gap above the navigation dock.
+  - Increased bottom scroll padding on `<main>` from `pb-32` to `pb-36` to ensure the lowest dishes remain completely visible and unobstructed when the cart toggle is active.
+- **Cart Expiry Notification Behavior & Route Scoping**:
+  - Removed cart reservation expiry notification banners from `customer/src/app/menu/page.tsx` so the notice is scoped exclusively to the Cart page (`/cart`).
+  - Added 1-minute auto-dismiss timer (`EXPIRED_NOTICE_DURATION_MS = 60000`) in `customer/src/context/CartContext.tsx` with local storage timestamp persistence (`cafteria_cart_expired_at`). The notification automatically hides 60 seconds after reservation expiry or immediately upon adding new dishes.
+- **Order QR Code Expiry at 10:00 PM Indian Standard Time (IST)**:
+  - Created universal `isOrderQrExpired()` utility in `backend/src/utils/orderExpiry.ts` and `customer/src/lib/orderExpiry.ts` that calculates the exact 10:00 PM IST (22:00 IST / UTC+05:30) service cutoff for any order.
+  - Backend enforcement: `POST /api/v1/admin/orders/collect-qr` and `POST /api/v1/admin/orders/:id/collect` reject attempts to collect uncollected meals past 10:00 PM IST with `400 QR_EXPIRED`. `POST /verify-qr` returns `is_qr_expired: true` and sets collection eligibility to false.
+  - Customer tracking and receipts: `customer/src/app/orders/track/page.tsx` and `customer/src/app/orders/receipt/page.tsx` detect expired uncollected orders and display a clear "Collection Pass Expired" card instead of the active QR code.
+  - Added backend unit tests in `backend/tests/reconfigured_roles.test.ts` verifying that scanning an order past 10:00 PM IST is rejected with `QR_EXPIRED`.
+
+### Fixed
 - **Customer Mobile Header Filter & Real Dedicated Search Experience**:
   - Wired mobile header category filter button (`SlidersHorizontal`) in `customer/src/app/page.tsx` to launch an interactive category selection bottom modal with live dish counts and category icons.
   - Implemented dynamic active filter indicators on the filter button and category rail pills when filtering dishes by category.
