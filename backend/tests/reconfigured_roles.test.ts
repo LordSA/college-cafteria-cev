@@ -323,4 +323,60 @@ describe('Reconfigured Roles & Authorization Architecture', () => {
     const guestBody = await guestOrderRes.json();
     expect(guestBody.error.code).toBe('FORBIDDEN_PAY_LATER');
   });
+
+  it('Rejects order collection when QR is expired after 10:00 PM IST', async () => {
+    const staffUser = createMockUser('staff-worker-1', 'staff@campus.edu');
+    const staffProfile = createMockProfile('staff-worker-1', 'staff', 'student');
+
+    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
+      success: true,
+      user: staffUser,
+      profile: staffProfile,
+    });
+
+    const mockOrder = {
+      id: 'ord-expired-1',
+      order_number: 'CAF-261120-E100',
+      order_stage: 'ORDER_PLACED',
+      order_status: 'ORDER_PLACED',
+      payment_status: 'paid',
+      qr_verification_token: 'CAF-QR-EXPIRED-9999',
+      qr_consumed_at: null,
+      collected_at: null,
+      created_at: '2026-11-20T08:00:00.000Z',
+      order_items: [],
+    };
+
+    const mockDb = {
+      from: vi.fn((table: string) => {
+        if (table === 'orders') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                maybeSingle: vi.fn().mockResolvedValue({ data: mockOrder, error: null }),
+              })),
+            })),
+          };
+        }
+        return {};
+      }),
+    };
+    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
+
+    const res = await app.request('/api/v1/admin/orders/collect-qr', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer staff-token',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        qr_token: 'CAF-QR-EXPIRED-9999',
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.success).toBe(false);
+    expect(body.error.code).toBe('QR_EXPIRED');
+  });
 });

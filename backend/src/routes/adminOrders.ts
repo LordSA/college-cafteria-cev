@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
+import { isOrderQrExpired } from '../utils/orderExpiry';
 
 const OrderStatusUpdateSchema = z.object({
   status: z.enum([
@@ -574,6 +575,7 @@ adminOrdersRouter.post(
     const stage = order.order_stage === 'COLLECTED' || order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED';
     let isEligible = false;
     let ineligibilityReason: string | null = null;
+    const isExpired = isOrderQrExpired(order.created_at);
 
     if (order.payment_status !== 'paid') {
       isEligible = false;
@@ -581,6 +583,9 @@ adminOrdersRouter.post(
     } else if (stage === 'COLLECTED' || order.qr_consumed_at) {
       isEligible = false;
       ineligibilityReason = 'Order already collected';
+    } else if (isExpired) {
+      isEligible = false;
+      ineligibilityReason = 'Order pickup pass expired at 10:00 PM IST. Uncollected meal closed.';
     } else {
       isEligible = true;
       ineligibilityReason = null;
@@ -663,6 +668,13 @@ adminOrdersRouter.post(
     if (stage === 'COLLECTED' || order.qr_consumed_at) {
       return c.json(
         { success: false, error: { code: 'ALREADY_COLLECTED', message: 'Order has already been collected' } },
+        400
+      );
+    }
+
+    if (isOrderQrExpired(order.created_at)) {
+      return c.json(
+        { success: false, error: { code: 'QR_EXPIRED', message: 'Order pickup pass expired at 10:00 PM IST. Uncollected order cannot be collected.' } },
         400
       );
     }
@@ -761,6 +773,21 @@ adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'staff
       { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
       500
     );
+  }
+
+  if (typeof adminClient.from === 'function') {
+    const { data: existingOrder } = await adminClient
+      .from('orders')
+      .select('created_at, order_stage, order_status, qr_consumed_at')
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (existingOrder && isOrderQrExpired(existingOrder.created_at)) {
+      return c.json(
+        { success: false, error: { code: 'QR_EXPIRED', message: 'Order pickup pass expired at 10:00 PM IST. Uncollected order cannot be collected.' } },
+        400
+      );
+    }
   }
 
   if (typeof adminClient.rpc === 'function') {

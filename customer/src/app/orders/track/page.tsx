@@ -7,6 +7,7 @@ import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import { QRCodeSvg } from '../../../components/QRCodeSvg';
+import { isOrderQrExpired } from '../../../lib/orderExpiry';
 import {
   CheckCircle2,
   XCircle,
@@ -47,7 +48,7 @@ interface OrderDetail {
   items: OrderItem[];
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function OrderTrackerContent() {
   const searchParams = useSearchParams();
@@ -214,6 +215,24 @@ function OrderTrackerContent() {
                   Collected on {new Date(order.collected_at).toLocaleTimeString('en-IN')}
                 </p>
               )}
+            </div>
+          ) : isOrderQrExpired(order.created_at) ? (
+            <div className="space-y-3 py-6">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-500">
+                <Clock className="h-8 w-8" />
+              </div>
+              <h2 className="text-base font-bold text-stone-900 dark:text-white">Collection Pass Expired</h2>
+              <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold max-w-sm mx-auto">
+                This meal pickup pass expired at 10:00 PM IST. Uncollected orders cannot be scanned after canteen closing.
+              </p>
+              <div className="pt-2">
+                <span className="text-[10px] text-stone-400 uppercase tracking-wider font-semibold">
+                  Expired Token
+                </span>
+                <p className="font-mono text-2xl font-black text-stone-400 line-through tracking-wider mt-0.5">
+                  #{order.order_number}
+                </p>
+              </div>
             </div>
           ) : (
             <>

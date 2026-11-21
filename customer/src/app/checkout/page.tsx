@@ -387,16 +387,13 @@ export default function CheckoutPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-[#ff5e3a]" />
-                      <span className="text-xs font-bold text-stone-900 dark:text-white">Online Payment (Razorpay)</span>
+                      <span className="text-xs font-bold text-stone-900 dark:text-white">Online Payment</span>
                       <span className="rounded bg-orange-100 dark:bg-orange-950/40 px-1.5 py-0.5 text-[10px] font-bold text-[#ff5e3a]">
                         Recommended
                       </span>
                     </div>
                     <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span>
                   </div>
-                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
-                    Pay securely via Razorpay Standard Checkout. Instant QR pickup pass generated upon confirmation.
-                  </p>
                 </div>
               </label>
 
@@ -431,9 +428,6 @@ export default function CheckoutPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
-                      Order now with instant QR token without upfront payment. Settle dues from your profile.
-                    </p>
                   </div>
                 </label>
               )}

@@ -47,12 +47,12 @@ interface MenuItem {
   stock_quantity?: number;
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function MenuPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { items: cartItems, addItem, updateQuantity, itemCount, subtotal, remainingSeconds, isExpired } = useCart();
+  const { items: cartItems, addItem, updateQuantity, itemCount, subtotal, remainingSeconds } = useCart();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -226,7 +226,7 @@ export default function MenuPage() {
         </header>
       </div>
 
-      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-32 md:pb-16">
+      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 pb-36 md:pb-16">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="hidden md:block">
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#ff5e3a] via-[#ff7043] to-[#ffa040] p-7 text-white shadow-xl shadow-orange-500/15">
@@ -302,13 +302,6 @@ export default function MenuPage() {
               <span className="font-mono font-black text-amber-700 dark:text-amber-300 bg-white dark:bg-[#202230] px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-500/40">
                 {formatTimer(remainingSeconds)}
               </span>
-            </div>
-          )}
-
-          {isExpired && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600" />
-              <span>Your previous cart reservation expired. Stock has been returned to the menu.</span>
             </div>
           )}
 
@@ -528,7 +521,7 @@ export default function MenuPage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed bottom-[92px] md:bottom-6 left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">

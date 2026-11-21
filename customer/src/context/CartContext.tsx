@@ -29,8 +29,10 @@ export interface CartContextType {
 
 const CART_STORAGE_KEY = 'cafteria_customer_cart';
 const CART_EXPIRY_KEY = 'cafteria_cart_expires_at';
+const CART_EXPIRED_AT_KEY = 'cafteria_cart_expired_at';
 const CART_SESSION_KEY = 'cafteria_cart_session_id';
 const LOCK_DURATION_SECONDS = 300;
+const EXPIRED_NOTICE_DURATION_MS = 60 * 1000;
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -43,6 +45,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isExpired, setIsExpired] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const triggerExpired = useCallback(() => {
+    setIsExpired(true);
+    try {
+      localStorage.setItem(CART_EXPIRED_AT_KEY, Date.now().toString());
+    } catch {}
+  }, []);
 
   useEffect(() => {
     let sid = '';
@@ -65,7 +74,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           } else {
             localStorage.removeItem(CART_STORAGE_KEY);
             localStorage.removeItem(CART_EXPIRY_KEY);
-            setIsExpired(true);
+            triggerExpired();
           }
         }
       }
@@ -80,12 +89,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           localStorage.removeItem(CART_EXPIRY_KEY);
           setItems([]);
           setExpiresAt(null);
+          triggerExpired();
+        }
+      }
+
+      const storedExpiredAt = localStorage.getItem(CART_EXPIRED_AT_KEY);
+      if (storedExpiredAt) {
+        const expTime = parseInt(storedExpiredAt, 10);
+        if (!isNaN(expTime) && Date.now() - expTime < EXPIRED_NOTICE_DURATION_MS) {
           setIsExpired(true);
+        } else {
+          localStorage.removeItem(CART_EXPIRED_AT_KEY);
+          setIsExpired(false);
         }
       }
     } catch {}
     setIsInitialized(true);
-  }, []);
+  }, [triggerExpired]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -163,11 +183,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setIsExpired(false);
     try {
       localStorage.setItem(CART_EXPIRY_KEY, newExpiry.toString());
+      localStorage.removeItem(CART_EXPIRED_AT_KEY);
     } catch {}
   }, []);
 
   const handleExpiryTimeout = useCallback(async () => {
-    setIsExpired(true);
+    triggerExpired();
     setItems([]);
     setExpiresAt(null);
     setRemainingSeconds(0);
@@ -176,7 +197,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(CART_EXPIRY_KEY);
     } catch {}
     await syncBackendReleaseAll();
-  }, [sessionId, session]);
+  }, [sessionId, session, triggerExpired]);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -197,7 +218,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (remaining.length === 0) {
-          setIsExpired(true);
+          triggerExpired();
           setItems([]);
           setExpiresAt(null);
           setRemainingSeconds(0);
@@ -235,7 +256,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const interval = setInterval(checkAndTick, 1000);
 
     return () => clearInterval(interval);
-  }, [items, expiresAt, handleExpiryTimeout]);
+  }, [items, expiresAt, handleExpiryTimeout, triggerExpired]);
+
+  useEffect(() => {
+    if (!isExpired) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const storedTime = localStorage.getItem(CART_EXPIRED_AT_KEY);
+      const expiredAt = storedTime ? parseInt(storedTime, 10) : Date.now();
+      const elapsed = Date.now() - expiredAt;
+      const remaining = Math.max(0, EXPIRED_NOTICE_DURATION_MS - elapsed);
+
+      if (remaining <= 0) {
+        setIsExpired(false);
+        localStorage.removeItem(CART_EXPIRED_AT_KEY);
+      } else {
+        timer = setTimeout(() => {
+          setIsExpired(false);
+          try {
+            localStorage.removeItem(CART_EXPIRED_AT_KEY);
+          } catch {}
+        }, remaining);
+      }
+    } catch {
+      timer = setTimeout(() => {
+        setIsExpired(false);
+      }, EXPIRED_NOTICE_DURATION_MS);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isExpired]);
 
   const addItem = useCallback(
     async (newItem: Omit<CartItem, 'quantity'>): Promise<{ success: boolean; error?: string }> => {

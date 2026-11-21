@@ -7,6 +7,7 @@ import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
 import { useAuth } from '../../../context/AuthContext';
 import { QRCodeSvg } from '../../../components/QRCodeSvg';
+import { isOrderQrExpired } from '../../../lib/orderExpiry';
 import {
   Printer,
   ArrowLeft,
@@ -51,7 +52,7 @@ interface ReceiptData {
   };
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function ReceiptContent() {
   const searchParams = useSearchParams();
@@ -271,6 +272,15 @@ function ReceiptContent() {
                   Collected on: {new Date(receipt.collected_at).toLocaleString('en-IN')}
                 </p>
               )}
+            </div>
+          ) : isOrderQrExpired(receipt.created_at) ? (
+            <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-2">
+              <div className="inline-block rounded-xl border border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/20 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-rose-600 dark:text-rose-400">
+                Pickup Pass Expired
+              </div>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                This meal collection pass expired at 10:00 PM IST on the order date.
+              </p>
             </div>
           ) : (
             <div className="border-t border-dashed border-stone-300 dark:border-white/15 pt-6 text-center space-y-3">

@@ -14,13 +14,12 @@ import {
   Loader2,
   Phone,
   Settings,
-  Camera,
   X,
   CreditCard,
-  Building2,
+  Pen,
 } from 'lucide-react';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const PRESET_AVATARS = [
   { id: 'avatar-1', label: 'Chef Hat', path: '/avatars/avatar-1.svg' },
@@ -203,8 +202,8 @@ export default function ProfilePage() {
       : profile?.account_type === 'staff_t'
         ? 'Teacher (Faculty)'
         : profile?.account_type === 'guest'
-        ? 'Guest Diner'
-        : 'Student';
+          ? 'Guest Diner'
+          : 'Student';
 
   const avatarDisplayUrl = profile?.avatar_key?.startsWith('/')
     ? profile.avatar_key
@@ -239,7 +238,7 @@ export default function ProfilePage() {
                     aria-label="Change profile avatar"
                     className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white shadow-md transition hover:bg-stone-800 active:scale-90 border-2 border-white"
                   >
-                    <Camera className="h-4 w-4" />
+                    <Pen className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -262,7 +261,7 @@ export default function ProfilePage() {
 
               <Link
                 href="/settings"
-                className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl bg-white/20 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 shadow-xs"
+                className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-md transition hover:bg-white/30 active:scale-95 shadow-xs"
                 aria-label="Account Settings"
               >
                 <Settings className="h-5 w-5" />
@@ -286,13 +285,12 @@ export default function ProfilePage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                     <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-                      Faculty / Staff Pay Later Account
+                      Faculty Pay Later Account
                     </span>
                   </div>
                   <h2 className="text-xl font-black text-stone-900 dark:text-white">
-                    Outstanding Balance: ₹{((pendingPayLater.total_pending || 0) / 100).toFixed(2)}
+                    Due Amount : ₹{((pendingPayLater.total_pending || 0) / 100).toFixed(2)}
                   </h2>
                   <p className="text-xs text-stone-500 dark:text-stone-400">
                     {pendingPayLater.order_count > 0
@@ -305,10 +303,10 @@ export default function ProfilePage() {
                   <button
                     type="button"
                     onClick={() => setShowSettleModal(true)}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 active:scale-95 transition"
+                    className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-700 active:scale-95 transition"
                   >
                     <CreditCard className="h-4 w-4" />
-                    <span>Clear Dues Now</span>
+                    <span>Clear Dues</span>
                   </button>
                 )}
               </div>
@@ -318,7 +316,7 @@ export default function ProfilePage() {
           <div className="rounded-3xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-6 shadow-xs">
             <h2 className="text-base font-black text-stone-900 dark:text-white flex items-center gap-2 mb-4">
               <User className="h-4 w-4 text-[#ff5e3a]" />
-              <span>Personal Profile Information</span>
+              <span>Profile Information</span>
             </h2>
 
             {saveSuccess && (
@@ -346,7 +344,7 @@ export default function ProfilePage() {
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] px-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  className="w-full rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] px-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                 />
               </div>
 
@@ -361,24 +359,24 @@ export default function ProfilePage() {
                   <input
                     id="phone"
                     type="tel"
-                    placeholder="Enter 10-digit mobile number"
+                    placeholder="Enter mobile number"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] pl-9 pr-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                    className="w-full rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-[#12131a] pl-9 pr-3.5 py-2.5 text-xs font-semibold text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 mb-1" htmlFor="email">
-                  College Email Address
+                  Email
                 </label>
                 <input
                   id="email"
                   type="email"
                   disabled
                   value={user.email || ''}
-                  className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-white/5 px-3.5 py-2.5 text-xs text-stone-500 dark:text-stone-400 cursor-not-allowed"
+                  className="w-full rounded-full border border-stone-200 dark:border-white/10 bg-stone-100 dark:bg-white/5 px-3.5 py-2.5 text-xs text-stone-500 dark:text-stone-400 cursor-not-allowed"
                 />
               </div>
 
@@ -386,7 +384,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 disabled:opacity-50 transition active:scale-95"
                 >
                   {saving ? (
                     <>
@@ -396,7 +394,7 @@ export default function ProfilePage() {
                   ) : (
                     <>
                       <Save className="h-3.5 w-3.5" />
-                      <span>Save Changes</span>
+                      <span>Save</span>
                     </>
                   )}
                 </button>
@@ -445,11 +443,10 @@ export default function ProfilePage() {
                       type="button"
                       disabled={updatingAvatar}
                       onClick={() => handleSelectPresetAvatar(av.path)}
-                      className={`group relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border-2 transition active:scale-95 ${
-                        isSelected
-                          ? 'border-[#ff5e3a] bg-orange-50 dark:bg-orange-950/30 shadow-xs'
-                          : 'border-stone-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:bg-stone-50 dark:hover:bg-white/5'
-                      }`}
+                      className={`group relative flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border-2 transition active:scale-95 ${isSelected
+                        ? 'border-[#ff5e3a] bg-orange-50 dark:bg-orange-950/30 shadow-xs'
+                        : 'border-stone-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:bg-stone-50 dark:hover:bg-white/5'
+                        }`}
                     >
                       <div className="h-14 w-14 rounded-full overflow-hidden bg-white dark:bg-white/10 border border-stone-200 dark:border-white/10 p-1 flex items-center justify-center">
                         <img

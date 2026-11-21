@@ -264,7 +264,7 @@ export default function CustomerHomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] dark:bg-[#0d0e12] text-stone-900 dark:text-stone-100 flex flex-col pb-28 md:pb-0 transition-colors duration-200">
+    <div className="min-h-screen bg-[#fafaf9] dark:bg-[#0d0e12] text-stone-900 dark:text-stone-100 flex flex-col pb-36 md:pb-0 transition-colors duration-200">
       <SidebarDrawer isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <div className="hidden md:block">
@@ -989,7 +989,7 @@ export default function CustomerHomePage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 z-30 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed bottom-[92px] md:bottom-6 left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">
