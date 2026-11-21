@@ -219,17 +219,26 @@ export default function ProfilePage() {
         return;
       }
 
+      const razorpayKey =
+        orderData.razorpay_key_id ||
+        orderData.key_id ||
+        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+      if (!razorpayKey) {
+        throw new Error('Payment gateway authentication key is missing. Please contact canteen administration.');
+      }
+
       const options = {
-        key: orderData.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
         name: 'Cafteria CEV',
         description: 'Pay Later Faculty Dues Settlement',
         order_id: orderData.razorpay_order_id,
-        prefill: orderData.prefill || {
-          name: profile?.display_name || user?.email?.split('@')[0] || '',
-          email: user?.email || '',
-          contact: phoneNumber || '',
+        prefill: {
+          name: orderData.customer?.name || profile?.display_name || user?.email?.split('@')[0] || '',
+          email: orderData.customer?.email || user?.email || '',
+          contact: orderData.customer?.phone || phoneNumber || '',
         },
         theme: { color: '#ff5e3a' },
         handler: async (resp: any) => {

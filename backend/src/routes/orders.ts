@@ -913,6 +913,7 @@ customerOrdersRouter.post(
       data: {
         razorpay_order_id: razorpayOrderId,
         razorpay_key_id: c.env?.RAZORPAY_KEY_ID || null,
+        key_id: c.env?.RAZORPAY_KEY_ID || null,
         amount,
         currency: 'INR',
         customer: {
