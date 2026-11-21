@@ -219,13 +219,10 @@ export default function ProfilePage() {
         return;
       }
 
-      const razorpayKey =
-        orderData.razorpay_key_id ||
-        orderData.key_id ||
-        process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      const razorpayKey = orderData.razorpay_key_id || orderData.key_id;
 
       if (!razorpayKey) {
-        throw new Error('Payment gateway authentication key is missing. Please contact canteen administration.');
+        throw new Error('Payment gateway authentication key was not provided by the server. Please verify backend gateway configuration.');
       }
 
       const options = {

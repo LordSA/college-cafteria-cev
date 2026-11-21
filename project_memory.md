@@ -36,7 +36,7 @@ college-canteen-cev/
 * **Stack:** Next.js 16.4.6 (App Router), React 19, TypeScript (Strict), Tailwind CSS, Lucide React, `@supabase/supabase-js`, `qrcode`.
 * **Target:** Cloudflare Pages (Static export via `output: 'export'`).
 * **Dev Port:** `3000` (`http://localhost:3000`).
-* **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`.
+* **Environment:** `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. (Razorpay key is delivered dynamically by backend API responses).
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `ThemeProvider`, `AuthProvider`, and `CartProvider` wrappers.
   - `src/context/ThemeContext.tsx`: Client-side theme provider supporting 3 modes (`device` | `dark` | `light`), live OS media query tracking (`prefers-color-scheme: dark`), and local storage persistence.

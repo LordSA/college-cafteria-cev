@@ -153,7 +153,10 @@ export default function CheckoutPage() {
           throw new Error('Payment gateway failed to load. Please check your network connection.');
         }
 
-        const razorpayKeyId = data.data.razorpay_key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        const razorpayKeyId = data.data.razorpay_key_id || data.data.key_id;
+        if (!razorpayKeyId) {
+          throw new Error('Payment gateway authentication key was not provided by the server. Please verify backend gateway configuration.');
+        }
 
         const options = {
           key: razorpayKeyId,

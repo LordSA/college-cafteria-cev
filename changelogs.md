@@ -13,10 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Faculty & Staff Pay Later Online Dues Settlement via Razorpay**:
   - Implemented custom dues settlement modal in `customer/src/app/profile/page.tsx` allowing faculty members to enter custom partial or full payment amounts.
   - Added quick-preset chips (Pay Full, ₹500, ₹200, ₹100, ₹50) and live calculation of remaining debt after payment.
-  - Integrated with Razorpay checkout gateway via `customer/src/lib/razorpay.ts` (`loadRazorpayScript()`).
+  - Integrated with Razorpay checkout gateway dynamically supplied via backend without requiring any Razorpay public key in customer frontend environment.
   - Added backend endpoints in `backend/src/routes/orders.ts`:
-    - `POST /api/v1/orders/pay-later/initiate-settlement`: Creates Razorpay order for custom amount in paise, validates amount against total outstanding debt, and returns order metadata.
+    - `POST /api/v1/orders/pay-later/initiate-settlement`: Creates Razorpay order for custom amount in paise, validates amount against total outstanding debt, and returns `razorpay_order_id`, `razorpay_key_id`, and `key_id` directly from backend configuration.
     - `POST /api/v1/orders/pay-later/verify-settlement`: Verifies Razorpay checkout signature, applies FIFO payment reduction across pending pay later orders (marking completely covered orders as `paid` and updating remaining totals on fractional orders), and records verified payment in `payments` table.
+- **Backend-Driven Razorpay Gateway Initialization**:
+  - Removed all frontend environment dependencies on `NEXT_PUBLIC_RAZORPAY_KEY_ID`.
+  - Both takeaway order checkout (`/checkout`) and dues settlement (`/profile`) dynamically resolve `razorpay_key_id` delivered directly by backend order initialization responses.
 
 ### Fixed
 - **Cart Toggle Mobile Alignment & Safe-Area Aware Bottom Spacing**:
