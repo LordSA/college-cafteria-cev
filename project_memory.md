@@ -106,7 +106,7 @@ college-canteen-cev/
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request card.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
   - `src/app/staff-requests/page.tsx`: Operational review board for pending Teacher & Faculty (`staff_t`) account approvals displaying applicant Teacher ID badge alongside email and registration date.
-  - `src/app/categories/page.tsx`: Category management (list, add card, active toggle) with cache-busting real-time loading and array/object response normalization.
+  - `src/app/categories/page.tsx`: Category management (list, add card, active toggle, interactive edit modal, and safe dependency-checked deletion) with cache-busting real-time loading and array/object response normalization.
   - `src/app/menu/page.tsx`: Menu item catalog management with cache-busting real-time loading, array/object response normalization, interactive dish edit modal, quick archive/restore, and permanent deletion. Allows `developer`, `admin`, and `staff` (store workers) to add, edit, and remove dishes; restricted from `retail`.
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/app/not-found.tsx`: Clean 404 administration error page.

@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Cleaned up unused imports across admin components with zero UI design changes and zero comments.
 
 ### Added
+- **Admin Category Editing & Removal Capabilities**:
+  - Added dedicated Edit Modal on the Admin Categories page (`/categories`) to update category name, description, sort order, and active visibility status via `PATCH /api/v1/admin/categories/:id`.
+  - Added category deletion capability with `DELETE /api/v1/admin/categories/:id`. Includes server-side dependency check verifying if menu items reference the category, safely preventing foreign key constraint violations with user-friendly error guidance when dishes remain assigned.
+  - Added action buttons (Edit, Active/Inactive toggle, Delete) for each row in the categories list.
 - **Admin Menu Item Editing & Permanent Removal Capabilities**:
   - Added comprehensive item editing modal to the Admin Menu page (`/menu`), enabling canteen staff and administrators to edit dish name, category, price in ₹, description, catalog image (with presigned R2 replacement or removal), kitchen availability, and archive status.
   - Added permanent dish removal feature with confirmation prompt, invoking `DELETE /api/v1/admin/menu/:id?permanent=true` to delete items directly from the database without breaking order history (`order_items.menu_item_id` foreign keys are preserved with `ON DELETE SET NULL`).
