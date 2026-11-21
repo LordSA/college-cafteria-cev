@@ -38,7 +38,7 @@ interface DiagnosticsData {
   unresolvedWebhooks: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function DeveloperPage() {
   const router = useRouter();
@@ -315,16 +315,16 @@ export default function DeveloperPage() {
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${u.app_role === 'developer'
-                                  ? 'bg-purple-50 border-purple-200 text-purple-700'
-                                  : u.app_role === 'admin'
-                                    ? 'bg-[#FFF7F0] border-[#F47721]/30 text-[#F47721]'
-                                    : u.app_role === 'retail'
-                                      ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                      : u.app_role === 'staff'
-                                        ? 'bg-green-50 border-green-200 text-[#269B62]'
-                                        : u.app_role === 'printer'
-                                          ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                          : 'bg-[#FAFAFA] border-[#EEEEEE] text-[#666666]'
+                                ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                : u.app_role === 'admin'
+                                  ? 'bg-[#FFF7F0] border-[#F47721]/30 text-[#F47721]'
+                                  : u.app_role === 'retail'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : u.app_role === 'staff'
+                                      ? 'bg-green-50 border-green-200 text-[#269B62]'
+                                      : u.app_role === 'printer'
+                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                        : 'bg-[#FAFAFA] border-[#EEEEEE] text-[#666666]'
                                 }`}
                             >
                               {u.app_role.toUpperCase()}
