@@ -46,7 +46,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 export default function AdminMenuPage() {
   const router = useRouter();
-  const { adminUser, isUnauthorized, loading: authLoading, session } = useAdminAuth();
+  const { adminUser, isUnauthorized, loading: authLoading, session, canManageMenu, role } = useAdminAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -72,11 +72,17 @@ export default function AdminMenuPage() {
     if (!authLoading) {
       if (!adminUser) {
         router.push('/login');
-      } else if (isUnauthorized) {
-        router.push('/unauthorized');
+      } else if (isUnauthorized || !canManageMenu) {
+        if (role === 'retail') {
+          router.push('/inventory');
+        } else if (role === 'printer') {
+          router.push('/printer');
+        } else {
+          router.push('/unauthorized');
+        }
       }
     }
-  }, [adminUser, isUnauthorized, authLoading, router]);
+  }, [adminUser, isUnauthorized, canManageMenu, role, authLoading, router]);
 
   const loadData = async () => {
     if (!session?.access_token) return;

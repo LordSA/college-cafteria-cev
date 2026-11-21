@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const [settleError, setSettleError] = useState<string | null>(null);
   const [settleSuccess, setSettleSuccess] = useState<string | null>(null);
 
-  const isFacultyOrStaff = ['faculty', 'staff'].includes(
+  const isFacultyOrStaff = ['faculty', 'staff', 'staff_t'].includes(
     profile?.approved_account_type || profile?.account_type || ''
   );
 
@@ -200,8 +200,10 @@ export default function ProfilePage() {
   const roleLabel =
     profile?.app_role === 'admin' || profile?.app_role === 'developer'
       ? 'Administrator'
-      : profile?.account_type === 'staff' || profile?.approved_account_type === 'staff'
-        ? 'Faculty / Staff'
+      : profile?.account_type === 'staff_t'
+        ? 'Teacher (Faculty)'
+        : profile?.account_type === 'guest'
+        ? 'Guest Diner'
         : 'Student';
 
   const avatarDisplayUrl = profile?.avatar_key?.startsWith('/')

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth, AccountType } from '../../context/AuthContext';
-import { AlertCircle, Loader2, GraduationCap, Briefcase, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Loader2, GraduationCap, Briefcase, Globe, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -49,10 +49,10 @@ export default function SignUpPage() {
       return;
     }
 
-    if (accountType === 'staff') {
+    if (accountType === 'staff_t') {
       const trimmedTid = teacherId.trim();
       if (!trimmedTid) {
-        setFormError('Teacher ID is required for faculty/staff registration');
+        setFormError('Teacher ID is required for faculty/teacher registration');
         return;
       }
       if (trimmedTid.length < 3 || trimmedTid.length > 20) {
@@ -82,7 +82,7 @@ export default function SignUpPage() {
       email,
       password,
       accountType,
-      teacherId: accountType === 'staff' ? teacherId.trim().toUpperCase() : undefined,
+      teacherId: accountType === 'staff_t' ? teacherId.trim().toUpperCase() : undefined,
     });
     setSubmitting(false);
 
@@ -156,11 +156,11 @@ export default function SignUpPage() {
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5">
                 Campus Classification
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setAccountType('student')}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border py-2.5 px-3 text-xs font-bold transition active:scale-95 ${
+                  className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border py-2.5 px-2 text-xs font-bold transition active:scale-95 ${
                     accountType === 'student'
                       ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
                       : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
@@ -171,20 +171,32 @@ export default function SignUpPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAccountType('staff')}
-                  className={`flex items-center justify-center gap-2 rounded-2xl border py-2.5 px-3 text-xs font-bold transition active:scale-95 ${
-                    accountType === 'staff'
+                  onClick={() => setAccountType('staff_t')}
+                  className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border py-2.5 px-2 text-xs font-bold transition active:scale-95 ${
+                    accountType === 'staff_t'
                       ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
                       : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
                   }`}
                 >
                   <Briefcase className="h-4 w-4" />
-                  <span>Staff / Faculty</span>
+                  <span>Teacher</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountType('guest')}
+                  className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border py-2.5 px-2 text-xs font-bold transition active:scale-95 ${
+                    accountType === 'guest'
+                      ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
+                      : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  <Globe className="h-4 w-4" />
+                  <span>Guest</span>
                 </button>
               </div>
             </div>
 
-            {accountType === 'staff' && (
+            {accountType === 'staff_t' && (
               <div>
                 <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="teacherId">
                   Teacher ID

@@ -24,7 +24,7 @@ interface ManagedUser {
   id: string;
   email: string;
   display_name: string | null;
-  app_role: 'developer' | 'admin' | 'retail' | 'staff' | 'customer';
+  app_role: 'developer' | 'admin' | 'retail' | 'staff' | 'printer' | 'customer';
   account_type: string;
   created_at: string;
 }
@@ -321,8 +321,8 @@ export default function DeveloperPage() {
                           <td className="px-6 py-4 text-[#666666]">
                             {u.email}
                           </td>
-                          <td className="px-6 py-4 capitalize text-[#666666]">
-                            {u.account_type || 'student'}
+                          <td className="px-6 py-4 text-[#666666]">
+                            {u.account_type === 'staff_t' ? 'Teacher (Staff)' : u.account_type === 'guest' ? 'Guest' : 'Student'}
                           </td>
                           <td className="px-6 py-4">
                             <span
@@ -335,6 +335,8 @@ export default function DeveloperPage() {
                                   ? 'bg-amber-50 border-amber-200 text-amber-700'
                                   : u.app_role === 'staff'
                                   ? 'bg-green-50 border-green-200 text-[#269B62]'
+                                  : u.app_role === 'printer'
+                                  ? 'bg-blue-50 border-blue-200 text-blue-700'
                                   : 'bg-[#FAFAFA] border-[#EEEEEE] text-[#666666]'
                               }`}
                             >
@@ -351,11 +353,12 @@ export default function DeveloperPage() {
                                   onChange={(e) => handleRoleChange(u.id, e.target.value)}
                                   className="rounded-lg bg-white border border-[#EEEEEE] px-2.5 py-1 text-xs font-semibold text-[#252525] focus:outline-none focus:border-[#F47721]"
                                 >
-                                  <option value="customer">Customer</option>
-                                  <option value="staff">Staff (QR Only)</option>
-                                  <option value="retail">Retail (Inventory & Orders)</option>
-                                  <option value="admin">Admin</option>
-                                  <option value="developer">Developer</option>
+                                  <option value="customer">Customer (Student / Teacher / Guest)</option>
+                                  <option value="staff">Staff (Store Worker - Scan & Stock)</option>
+                                  <option value="retail">Retail (Stock Update Only)</option>
+                                  <option value="printer">Printer (Hardware Kiosk - QR & Bill)</option>
+                                  <option value="admin">Admin (Full Operations)</option>
+                                  <option value="developer">Developer (Full Access & Debug)</option>
                                 </select>
                               )}
                             </div>

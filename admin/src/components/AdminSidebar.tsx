@@ -11,23 +11,36 @@ import {
   Layers,
   Settings,
   Terminal,
+  Printer,
   LogOut,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { signOut, isDeveloper, isAdmin, isRetail, isStaff } = useAdminAuth();
+  const {
+    signOut,
+    canAccessDashboard,
+    canManageOrders,
+    canScanQr,
+    canManageInventory,
+    canUpdateStockOnly,
+    canManageMenu,
+    canReviewStaff,
+    canAccessDeveloper,
+    isPrinter,
+  } = useAdminAuth();
 
   const navLinks = [
-    { label: 'Dashboard', shortLabel: 'Dashboard', href: '/', icon: Home, show: isAdmin },
-    { label: 'Orders Queue', shortLabel: 'Orders', href: '/orders', icon: Timer, show: isRetail || isStaff },
-    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: Calendar, show: isStaff },
-    { label: 'Pantry Inventory', shortLabel: 'Inventory', href: '/inventory', icon: Trophy, show: isRetail },
-    { label: 'Menu Dishes', shortLabel: 'Menu', href: '/menu', icon: Bookmark, show: isRetail },
-    { label: 'Categories', shortLabel: 'Categories', href: '/categories', icon: Layers, show: isRetail },
-    { label: 'Staff Requests', shortLabel: 'Staff', href: '/staff-requests', icon: Settings, show: isAdmin },
-    { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: isDeveloper },
+    { label: 'Dashboard', shortLabel: 'Dashboard', href: '/', icon: Home, show: canAccessDashboard },
+    { label: 'Orders Queue', shortLabel: 'Orders', href: '/orders', icon: Timer, show: canManageOrders },
+    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: Calendar, show: canScanQr && !isPrinter },
+    { label: 'Pantry Inventory', shortLabel: 'Inventory', href: '/inventory', icon: Trophy, show: canManageInventory || canUpdateStockOnly },
+    { label: 'Menu Dishes', shortLabel: 'Menu', href: '/menu', icon: Bookmark, show: canManageMenu },
+    { label: 'Categories', shortLabel: 'Categories', href: '/categories', icon: Layers, show: canReviewStaff },
+    { label: 'Teacher Requests', shortLabel: 'Teachers', href: '/staff-requests', icon: Settings, show: canReviewStaff },
+    { label: 'Printer Kiosk', shortLabel: 'Printer', href: '/printer', icon: Printer, show: isPrinter },
+    { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: canAccessDeveloper },
   ];
 
   const visibleLinks = navLinks.filter((l) => l.show);

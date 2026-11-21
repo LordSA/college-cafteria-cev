@@ -40,7 +40,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
 
 export default function StaffRequestsPage() {
   const router = useRouter();
-  const { adminUser, isUnauthorized, loading: authLoading, session } = useAdminAuth();
+  const { adminUser, isUnauthorized, loading: authLoading, session, canReviewStaff } = useAdminAuth();
 
   const [requests, setRequests] = useState<StaffRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,11 +52,11 @@ export default function StaffRequestsPage() {
     if (!authLoading) {
       if (!adminUser) {
         router.push('/login');
-      } else if (isUnauthorized) {
+      } else if (isUnauthorized || !canReviewStaff) {
         router.push('/unauthorized');
       }
     }
-  }, [adminUser, isUnauthorized, authLoading, router]);
+  }, [adminUser, isUnauthorized, canReviewStaff, authLoading, router]);
 
   const loadRequests = async () => {
     if (!session?.access_token) return;
@@ -171,10 +171,10 @@ export default function StaffRequestsPage() {
                     Cafeteria.cev • Access Verification
                   </span>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Staff Verification Requests
+                    Teacher & Faculty Verification Requests
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
-                    Review and approve faculty/staff dining access and pay-later privileges
+                    Review and approve faculty/teacher dining access and pay-later privileges (staff_t)
                   </p>
                 </div>
               </div>

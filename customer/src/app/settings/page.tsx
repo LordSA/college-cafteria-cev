@@ -121,7 +121,7 @@ export default function SettingsPage() {
         .from('profiles')
         .update({
           teacher_id: trimmed,
-          requested_account_type: 'staff',
+          requested_account_type: 'staff_t',
           staff_approval_status: 'pending',
         })
         .eq('id', user?.id);
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                 <span className="text-stone-400 dark:text-stone-500 font-medium">Account Role</span>
                 <div className="mt-0.5 flex items-center gap-2">
                   <span className="font-bold text-stone-900 dark:text-white capitalize">
-                    {profile?.account_type || 'Student'}
+                    {profile?.account_type === 'staff_t' ? 'Teacher / Faculty' : profile?.account_type === 'guest' ? 'Guest Diner' : 'Student'}
                   </span>
                   <span className="rounded-full bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 text-[10px] font-bold text-[#ff5e3a] uppercase">
                     {profile?.app_role || 'Customer'}

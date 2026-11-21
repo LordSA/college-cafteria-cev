@@ -18,8 +18,16 @@ export default function AdminLoginPage() {
 
   useEffect(() => {
     if (!loading) {
-      if (adminUser && adminProfile?.app_role === 'admin') {
-        router.push('/');
+      if (adminUser && adminProfile) {
+        if (adminProfile.app_role === 'developer' || adminProfile.app_role === 'admin') {
+          router.push('/');
+        } else if (adminProfile.app_role === 'staff') {
+          router.push('/orders');
+        } else if (adminProfile.app_role === 'retail') {
+          router.push('/inventory');
+        } else if (adminProfile.app_role === 'printer') {
+          router.push('/printer');
+        }
       } else if (adminUser && isUnauthorized) {
         router.push('/unauthorized');
       }
@@ -45,8 +53,6 @@ export default function AdminLoginPage() {
       } else {
         setFormError(result.error || 'Authentication failed. Please verify credentials.');
       }
-    } else {
-      router.push('/');
     }
   };
 

@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../../components/Header';
 import { Footer } from '../../../components/Footer';
 import { AdminSidebar } from '../../../components/AdminSidebar';
 import { useAdminAuth } from '../../../context/AdminAuthContext';
@@ -11,7 +10,6 @@ import { QRCodeSvg } from '../../../components/QRCodeSvg';
 import {
   Printer,
   ArrowLeft,
-  UtensilsCrossed,
   Shield,
   AlertCircle,
   Loader2,
@@ -52,7 +50,7 @@ interface ReceiptData {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 function AdminReceiptContent() {
   const searchParams = useSearchParams();
@@ -165,31 +163,27 @@ function AdminReceiptContent() {
           className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition active:scale-95"
         >
           <Printer className="h-4 w-4" />
-          <span>Print Cashier Bill</span>
+          <span>Print</span>
         </button>
       </div>
 
       <div className="rounded-3xl border border-[#EEEEEE] bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-[#252525] font-sans">
         <div className="border-b border-[#EEEEEE] pb-6 text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-xs print:border print:border-black">
-            <UtensilsCrossed className="h-6 w-6" />
-          </div>
+          <img src="/logo/logo_bl.svg" alt="icon" className="h-16 w-full object-contain drop-shadow-md" />
           <h1 className="text-xl font-extrabold tracking-tight text-[#252525] uppercase">
-            {receipt.canteen.name}
+            {/* {receipt.canteen.name} */}Cafeteria CEV
           </h1>
-          <p className="text-xs text-[#666666]">{receipt.canteen.campus}</p>
-          <p className="text-[11px] text-[#888888]">{receipt.canteen.address}</p>
-          <div className="inline-block rounded-full bg-green-50 px-3 py-0.5 text-[10px] font-bold text-[#269B62] border border-green-200 uppercase tracking-wider print:border print:border-green-800">
-            Operations Register Receipt / Tax Invoice
+          <div className="inline-block px-3 py-0.2 text-[10px] font-bold text-black uppercase tracking-wider">
+            Receipt
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs border-b border-[#EEEEEE] pb-4">
           <div>
             <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
-              Bill / Token No.
+              Token No.
             </span>
-            <span className="font-mono text-base font-extrabold text-[#F47721]">
+            <span className="font-mono text-base font-extrabold text-[#000000]">
               {receipt.order_number}
             </span>
           </div>
@@ -211,24 +205,18 @@ function AdminReceiptContent() {
               Customer Details
             </span>
             <p className="font-bold text-[#252525]">{receipt.customer.display_name}</p>
-            <p className="text-[11px] text-[#666666] capitalize">{receipt.customer.account_type}</p>
           </div>
 
           <div className="text-right">
             <span className="text-[10px] font-bold text-[#888888] uppercase tracking-wider block">
-              Payment & Dispatch
+              Payment
             </span>
             <p className="font-bold text-[#269B62] uppercase">
-              {receipt.payment_status} • {receipt.payment_method === 'testing_wallet' ? 'Testing Wallet' : receipt.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'Counter Cash'}
+              {receipt.payment_status} • {receipt.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'UPI'}
             </p>
             {receipt.paid_at && (
               <p className="text-[10px] text-[#888888]">
                 Paid: {new Date(receipt.paid_at).toLocaleTimeString('en-IN')}
-              </p>
-            )}
-            {receipt.collected_at && (
-              <p className="text-[10px] text-[#269B62] font-semibold">
-                Collected: {new Date(receipt.collected_at).toLocaleTimeString('en-IN')}
               </p>
             )}
           </div>
@@ -238,7 +226,7 @@ function AdminReceiptContent() {
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-[#EEEEEE] text-[10px] uppercase font-bold text-[#666666] tracking-wider">
-                <th className="py-2">Item Description</th>
+                <th className="py-2">Item </th>
                 <th className="py-2 text-center">Qty</th>
                 <th className="py-2 text-right">Price</th>
                 <th className="py-2 text-right">Amount</th>
@@ -271,8 +259,8 @@ function AdminReceiptContent() {
             </span>
           </div>
           <div className="flex justify-between text-[#666666]">
-            <span>Campus Canteen Surcharge</span>
-            <span className="font-mono tabular-nums text-[#269B62] font-semibold">₹0.00</span>
+            <span>CGST/SGST</span>
+            <span className="font-mono tabular-nums text-[#000000] font-semibold">₹0.00</span>
           </div>
           <div className="flex justify-between items-baseline border-t border-[#EEEEEE] pt-2 text-sm font-extrabold text-[#252525]">
             <span>Grand Total</span>
@@ -284,9 +272,6 @@ function AdminReceiptContent() {
 
         {receipt.qr_verification_token && (
           <div className="border-t border-dashed border-gray-300 pt-6 text-center space-y-3">
-            <p className="text-[11px] font-bold text-[#666666] uppercase tracking-wider">
-              Order QR Pass & Dispatch Verification
-            </p>
             <div className="flex justify-center">
               <QRCodeSvg value={receipt.qr_verification_token} size={150} />
             </div>
@@ -301,7 +286,6 @@ function AdminReceiptContent() {
 
         <div className="border-t border-[#EEEEEE] pt-4 text-center space-y-1 text-[10px] text-[#888888]">
           <p className="font-bold text-[#666666]">{receipt.canteen.notice}</p>
-          <p>Official Cafteria Register Copy • Verified by Staff Dispatcher</p>
         </div>
       </div>
     </div>
@@ -316,7 +300,6 @@ export default function AdminReceiptPage() {
       </div>
       <div className="flex-1 flex flex-col min-w-0">
         <div className="print:hidden">
-          <Header />
         </div>
         <main className="flex-1 pt-10 pb-24 md:py-10 px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:bg-white">
           <Suspense

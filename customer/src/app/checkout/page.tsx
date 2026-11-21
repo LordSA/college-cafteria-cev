@@ -46,7 +46,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'counter_cash' | 'pay_later'>('razorpay');
   const [pendingPayLater, setPendingPayLater] = useState<number>(0);
 
-  const isFacultyOrStaff = ['faculty', 'staff'].includes(
+  const isFacultyOrStaff = ['faculty', 'staff', 'staff_t'].includes(
     profile?.approved_account_type || profile?.account_type || ''
   );
 

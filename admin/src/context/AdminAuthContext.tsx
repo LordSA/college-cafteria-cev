@@ -4,14 +4,14 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'customer';
-export type AdminRole = 'developer' | 'admin' | 'retail' | 'staff';
+export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer' | 'customer';
+export type AdminRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer';
 
 export interface AdminProfile {
   id: string;
   display_name: string | null;
   avatar_key: string | null;
-  account_type: 'student' | 'staff';
+  account_type: 'student' | 'staff_t' | 'guest';
   app_role: AppRole;
   created_at: string;
   updated_at: string;
@@ -29,10 +29,16 @@ interface AdminAuthContextType {
   isAdmin: boolean;
   isRetail: boolean;
   isStaff: boolean;
+  isPrinter: boolean;
+  canAccessDeveloper: boolean;
+  canAccessDashboard: boolean;
   canManageUsers: boolean;
   canManageInventory: boolean;
+  canUpdateStockOnly: boolean;
+  canManageMenu: boolean;
   canManageOrders: boolean;
   canScanQr: boolean;
+  canReviewStaff: boolean;
   canViewReports: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; isUnauthorized?: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -63,7 +69,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         const json = await res.json();
         const profile = json.data?.profile as AdminProfile;
         const role = profile?.app_role;
-        const isAllowed = ['developer', 'admin', 'retail', 'staff'].includes(role);
+        const isAllowed = ['developer', 'admin', 'retail', 'staff', 'printer'].includes(role);
         return { isAllowed, profile: isAllowed ? profile : null };
       }
 
@@ -79,7 +85,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         .eq('id', userId)
         .maybeSingle();
 
-      if (!profileErr && data && ['developer', 'admin', 'retail', 'staff'].includes(data.app_role)) {
+      if (!profileErr && data && ['developer', 'admin', 'retail', 'staff', 'printer'].includes(data.app_role)) {
         return { isAllowed: true, profile: data as AdminProfile };
       }
     } catch {}
@@ -200,15 +206,21 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const role = (adminProfile?.app_role as AdminRole) || null;
   const isDeveloper = role === 'developer';
-  const isAdmin = role === 'admin' || isDeveloper;
-  const isRetail = role === 'retail' || isAdmin;
-  const isStaff = role === 'staff' || isRetail;
+  const isAdmin = role === 'admin';
+  const isRetail = role === 'retail';
+  const isStaff = role === 'staff';
+  const isPrinter = role === 'printer';
 
+  const canAccessDeveloper = isDeveloper;
+  const canAccessDashboard = isDeveloper || isAdmin;
   const canManageUsers = isDeveloper;
-  const canViewReports = isAdmin;
-  const canManageInventory = isRetail;
-  const canManageOrders = isRetail;
-  const canScanQr = isStaff;
+  const canManageInventory = isDeveloper || isAdmin || isStaff;
+  const canUpdateStockOnly = isRetail;
+  const canManageMenu = isDeveloper || isAdmin || isStaff;
+  const canManageOrders = isDeveloper || isAdmin || isStaff;
+  const canScanQr = isDeveloper || isAdmin || isStaff || isPrinter;
+  const canReviewStaff = isDeveloper || isAdmin;
+  const canViewReports = isDeveloper || isAdmin;
 
   return (
     <AdminAuthContext.Provider
@@ -224,10 +236,16 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         isAdmin,
         isRetail,
         isStaff,
+        isPrinter,
+        canAccessDeveloper,
+        canAccessDashboard,
         canManageUsers,
         canManageInventory,
+        canUpdateStockOnly,
+        canManageMenu,
         canManageOrders,
         canScanQr,
+        canReviewStaff,
         canViewReports,
         signIn,
         signOut,

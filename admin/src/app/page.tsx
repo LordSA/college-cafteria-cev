@@ -2,27 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { AdminSidebar } from '../components/AdminSidebar';
 import {
   ShieldAlert,
   Lock,
   Loader2,
-  Check,
   Search,
-  LogOut,
-  Timer,
-  Trophy,
-  Bookmark,
-  Settings,
-  Sparkles,
   ExternalLink,
   Download,
-  AlertTriangle,
-  QrCode,
-  Users,
   CheckCircle2,
-  Clock,
   ArrowRight,
 } from 'lucide-react';
 
@@ -83,7 +73,20 @@ const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'
 const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
 
 export default function AdminDashboardPage() {
-  const { adminUser, adminProfile, isUnauthorized, loading, session, signOut, role } = useAdminAuth();
+  const router = useRouter();
+  const { adminUser, isUnauthorized, loading, session, signOut, role, canAccessDashboard } = useAdminAuth();
+
+  useEffect(() => {
+    if (!loading && adminUser) {
+      if (role === 'staff') {
+        router.push('/orders');
+      } else if (role === 'retail') {
+        router.push('/inventory');
+      } else if (role === 'printer') {
+        router.push('/printer');
+      }
+    }
+  }, [loading, adminUser, role, router]);
 
   const [stats, setStats] = useState<OperationalStats>({
     totalMenu: 0,
@@ -105,7 +108,7 @@ export default function AdminDashboardPage() {
     let isMounted = true;
 
     async function fetchStats() {
-      if (!session?.access_token || !adminUser || isUnauthorized) return;
+      if (!session?.access_token || !adminUser || isUnauthorized || !canAccessDashboard) return;
       setStatsLoading(true);
 
       try {

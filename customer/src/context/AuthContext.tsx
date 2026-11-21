@@ -4,9 +4,9 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export type AccountType = 'student' | 'staff';
+export type AccountType = 'student' | 'staff_t' | 'guest';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
-export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'customer';
+export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer' | 'customer';
 
 export interface UserProfile {
   id: string;
@@ -76,6 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw profileErr;
       }
 
+      const normalizeAccountType = (val: any): AccountType => {
+        if (val === 'staff' || val === 'staff_t') return 'staff_t';
+        if (val === 'guest') return 'guest';
+        return 'student';
+      };
+
       if (data) {
         setProfile({
           id: data.id,
@@ -83,9 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           phone: data.phone || userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: data.avatar_key,
           teacher_id: data.teacher_id || userMeta?.teacher_id || null,
-          account_type: data.account_type || 'student',
-          requested_account_type: data.requested_account_type || 'student',
-          approved_account_type: data.approved_account_type || 'student',
+          account_type: normalizeAccountType(data.account_type),
+          requested_account_type: normalizeAccountType(data.requested_account_type),
+          approved_account_type: normalizeAccountType(data.approved_account_type),
           staff_approval_status: data.staff_approval_status || 'not_requested',
           reviewed_by: data.reviewed_by,
           reviewed_at: data.reviewed_at,
@@ -94,34 +100,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           updated_at: data.updated_at,
         });
       } else {
-        const reqType = userMeta?.account_type === 'staff' ? 'staff' : 'student';
+        const reqType = normalizeAccountType(userMeta?.account_type);
+        const appType = reqType === 'guest' ? 'guest' : 'student';
         setProfile({
           id: userId,
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
           phone: userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: null,
           teacher_id: userMeta?.teacher_id || null,
-          account_type: 'student',
+          account_type: appType,
           requested_account_type: reqType,
-          approved_account_type: 'student',
-          staff_approval_status: reqType === 'staff' ? 'pending' : 'not_requested',
+          approved_account_type: appType,
+          staff_approval_status: reqType === 'staff_t' ? 'pending' : 'not_requested',
           app_role: 'customer',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
       }
     } catch {
-      const reqType = userMeta?.account_type === 'staff' ? 'staff' : 'student';
+      const rawType = userMeta?.account_type;
+      const reqType = rawType === 'staff' || rawType === 'staff_t' ? 'staff_t' : rawType === 'guest' ? 'guest' : 'student';
+      const appType = reqType === 'guest' ? 'guest' : 'student';
       setProfile({
         id: userId,
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
         phone: userMeta?.phone || userMeta?.phone_number || null,
         avatar_key: null,
         teacher_id: userMeta?.teacher_id || null,
-        account_type: 'student',
+        account_type: appType,
         requested_account_type: reqType,
-        approved_account_type: 'student',
-        staff_approval_status: reqType === 'staff' ? 'pending' : 'not_requested',
+        approved_account_type: appType,
+        staff_approval_status: reqType === 'staff_t' ? 'pending' : 'not_requested',
         app_role: 'customer',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -200,7 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             display_name: displayName,
             account_type: accountType,
-            teacher_id: accountType === 'staff' ? teacherId : undefined,
+            teacher_id: accountType === 'staff_t' ? teacherId : undefined,
           },
         },
       });

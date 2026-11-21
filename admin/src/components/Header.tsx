@@ -33,6 +33,12 @@ export function Header() {
             STAFF
           </span>
         );
+      case 'printer':
+        return (
+          <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+            PRINTER
+          </span>
+        );
       default:
         return null;
     }

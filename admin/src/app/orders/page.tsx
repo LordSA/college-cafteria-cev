@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -49,11 +48,11 @@ interface AdminOrder {
   items: OrderItem[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminOrdersPage() {
   const router = useRouter();
-  const { adminUser, isUnauthorized, loading: authLoading, session } = useAdminAuth();
+  const { adminUser, isUnauthorized, loading: authLoading, session, canManageOrders, role } = useAdminAuth();
 
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,11 +65,17 @@ export default function AdminOrdersPage() {
     if (!authLoading) {
       if (!adminUser) {
         router.push('/login');
-      } else if (isUnauthorized) {
-        router.push('/unauthorized');
+      } else if (isUnauthorized || !canManageOrders) {
+        if (role === 'retail') {
+          router.push('/inventory');
+        } else if (role === 'printer') {
+          router.push('/printer');
+        } else {
+          router.push('/unauthorized');
+        }
       }
     }
-  }, [adminUser, isUnauthorized, authLoading, router]);
+  }, [adminUser, isUnauthorized, canManageOrders, role, authLoading, router]);
 
   const loadOrders = useCallback(async () => {
     if (!session?.access_token) return;
@@ -156,25 +161,21 @@ export default function AdminOrdersPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                  Cafeteria.cev • Kitchen Dispatch & POS
-                </span>
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                  Live Orders Management
+                  Orders
                 </h1>
                 <p className="mt-1 text-xs text-[#666666]">
-                  Monitor incoming tickets, kitchen prep progression, and meal pickup fulfillment
+                  Monitor incoming orders
                 </p>
               </div>
 
               <button
                 onClick={loadOrders}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs self-start sm:self-auto"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs self-start sm:self-auto"
               >
                 <RefreshCw className="h-3.5 w-3.5 text-[#F47721]" />
                 <span>Refresh Queue</span>
@@ -194,11 +195,10 @@ export default function AdminOrdersPage() {
                   <button
                     key={tab.key}
                     onClick={() => setStatusFilter(tab.key)}
-                    className={`rounded-xl px-4 py-1.5 text-xs font-bold whitespace-nowrap transition ${
-                      statusFilter === tab.key
-                        ? 'bg-[#F47721] text-white shadow-md shadow-[#F47721]/20'
-                        : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
-                    }`}
+                    className={`rounded-full px-4 py-1.5 text-xs font-bold whitespace-nowrap transition ${statusFilter === tab.key
+                      ? 'bg-[#F47721] text-white shadow-md shadow-[#F47721]/20'
+                      : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -213,7 +213,7 @@ export default function AdminOrdersPage() {
                     placeholder="Search order #..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white pl-9 pr-4 py-2 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                    className="w-full rounded-full border border-[#EEEEEE] hover:border-gray-300 bg-white pl-9 pr-4 py-2 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                   />
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function AdminOrdersPage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 text-[#666666] gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-                <p className="text-xs font-semibold">Retrieving active orders queue...</p>
+                <p className="text-xs font-semibold">Loading...</p>
               </div>
             ) : orders.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center space-y-3">
@@ -252,11 +252,10 @@ export default function AdminOrdersPage() {
                               {order.order_number}
                             </span>
                             {renderStageBadge(stage)}
-                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                              order.payment_status === 'paid'
-                                ? 'bg-green-50 text-[#269B62] border-green-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>
+                            <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${order.payment_status === 'paid'
+                              ? 'bg-green-50 text-[#269B62] border-green-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
                               {order.payment_status}
                             </span>
                             <span className="rounded-full bg-[#FAFAFA] px-2.5 py-0.5 text-[10px] font-semibold text-[#252525] border border-[#EEEEEE]">
@@ -264,7 +263,7 @@ export default function AdminOrdersPage() {
                             </span>
                             {order.payment_method && (
                               <span className="text-[10px] text-[#666666]">
-                                via {order.payment_method === 'testing_wallet' ? 'Testing Wallet' : order.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'Counter Cash'}
+                                via {order.payment_method === 'pay_later' ? 'Pay Later (Staff Credit)' : 'UPI'}
                               </span>
                             )}
                           </div>
@@ -273,11 +272,6 @@ export default function AdminOrdersPage() {
                               Placed: {new Date(order.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} •{' '}
                               {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                             </span>
-                            {order.collected_at && (
-                              <span className="text-[#269B62] font-semibold text-[11px]">
-                                • Collected at {new Date(order.collected_at).toLocaleTimeString()}
-                              </span>
-                            )}
                           </div>
                         </div>
 
@@ -301,7 +295,7 @@ export default function AdminOrdersPage() {
 
                           <button
                             onClick={() => toggleExpand(order.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] text-[#666666] hover:text-[#252525] hover:bg-gray-100 transition"
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#EEEEEE] bg-[#FAFAFA] text-[#666666] hover:text-[#252525] hover:bg-gray-100 transition"
                             title="Toggle details"
                           >
                             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -316,7 +310,7 @@ export default function AdminOrdersPage() {
                             className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition"
                           >
                             <QrCode className="h-3.5 w-3.5" />
-                            <span>Scan QR / Complete Order</span>
+                            <span>Scan QR</span>
                           </Link>
                         )}
 

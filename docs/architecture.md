@@ -72,15 +72,22 @@ graph TD
   - Direct consumption of backend endpoints via `fetch()` using `NEXT_PUBLIC_API_URL`.
 
 ### 3.2 Admin Application (`admin/`)
-* **Role:** Back-office portal for canteen management, kitchen operators, cashier counters, and college administration.
+* **Role:** Back-office portal for canteen management, kitchen operators, cashier counters, stockkeepers, and hardware kiosks.
 * **Technology:** Next.js (App Router), TypeScript (strict mode), Tailwind CSS, Lucide React.
 * **Hosting Target:** Cloudflare Pages (Static Export via `output: 'export'`).
 * **Port (Dev):** `http://localhost:3001`
+* **Roles Supported (`app_role`):**
+  - `developer`: Superadmin authority with diagnostic logs and user role assignment tools (`/developer`).
+  - `admin`: Full operations authority over orders, menu dishes, categories, inventory, teacher verification, and reports.
+  - `staff`: Kitchen/store floor worker authority. Can scan QR pickup tokens, accept checkouts, update portion stocks, and add new dish stocks (`/orders`, `/scan`, `/inventory`, `/menu`).
+  - `retail`: Inventory portion manager ONLY. Can adjust portion stock quantities and low-stock cut-offs (`/inventory`).
+  - `printer`: Hardware terminal kiosk role with barcode/QR scanner and thermal receipt bill printer (`/printer`). Scans pickup QR codes, executes `/collect-qr`, and generates thermal bills via `/:id/receipt`.
 * **Responsibilities:**
-  - Secure operational dashboard (locked until authentication is introduced in Phase 2).
-  - Real-time Kitchen Display System (KDS) order dispatch queue (Upcoming).
-  - Menu catalog management (item toggling, pricing, meal slots) (Upcoming).
-  - Inventory alerts and daily sales reconciliation (Upcoming).
+  - Secure operational dashboards mapped by specific role permissions.
+  - Real-time Kitchen Display System (KDS) order dispatch queue (`/orders`).
+  - Menu catalog management and category controls (`/menu`, `/categories`).
+  - Inventory portion adjustments and stock logging (`/inventory`).
+  - Hardware bill printing terminal interface (`/printer`).
   - Zero privileged business logic in client code; all state transitions are authorized and executed by the backend.
 
 ### 3.3 Backend API (`backend/`)

@@ -18,39 +18,39 @@ Cafteria enforces a **zero-trust security model**:
 
 ## 2. Roles & Account Classifications
 
-The system separates **Account Type** (who the user is on campus) from **Application Role** (what capabilities the user has in Cafteria):
+The system separates **Account Type** (who the diner is on campus) from **Application Role** (what operational capabilities the user has in Cafteria):
 
-### Account Types (`account_type`)
-* `student`: Undergraduate, graduate, or research students placing food pre-orders.
-* `staff`: University professors, lecturers, lab assistants, or administrative personnel.
+### Customer Account Types (`account_type`)
+* `student`: Undergraduate, graduate, or campus student diners placing pre-orders via Razorpay.
+* `staff_t`: College professors, lecturers, and faculty teachers. Verified via unique Teacher ID with access to Faculty Pay Later credit lines upon administrative approval.
+* `guest`: Campus visitors, guest lecturers, parents, or external campus diners. Registers without Teacher ID and orders with standard Razorpay payments.
 
-### Application Roles (`app_role`)
-* `customer`: Standard end-users permitted to browse menus, schedule pre-orders, and manage personal profile details. Customers have zero access to administrative controls.
-* `admin`: Canteen managers, kitchen operators, cashier desks, and operations supervisors. Authorized to manage live orders (KDS), edit menus, adjust stock, and review turnover reports.
+### Administrative Application Roles (`app_role`)
+* `developer`: Full access plus debug tools, system diagnostics, and user role authority (`/developer`).
+* `admin`: Full canteen operations (orders, menu catalog, inventory, teacher verification requests, financial reports) without debug tools.
+* `staff`: Canteen floor and kitchen workers. Can view the live orders queue, scan QR tokens to accept checkout, update portion stocks, and add new dish stocks.
+* `retail`: Stock/inventory manager ONLY. Restricted to viewing pantry stock quantities and adjusting existing portion availability (cannot view live orders or add new items).
+* `printer`: Dedicated hardware kiosk / POS terminal role with barcode/QR scanner and thermal receipt printer access (`/printer`). Scans customer pickup tokens to accept checkouts and prints bills via `/collect-qr` and `/:id/receipt`.
+* `customer`: Standard consumer diners across all three account types. Zero access to administrative panels.
 
 ---
 
 ## 3. Database Schema & RLS Policies
 
 Database migration files:
-- `backend/migrations/0001_create_profiles.sql`
-- `supabase/migrations/20261020000000_create_profiles_and_auth_schema.sql`
+- `backend/migrations/0010_reconfigure_roles_and_account_types.sql`
+- `supabase/migrations/20261121000000_reconfigure_roles_and_account_types.sql`
 
 ### 3.1 Table Definition: `public.profiles`
 
 ```sql
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  display_name text,
-  avatar_key text,
-  account_type text NOT NULL DEFAULT 'student' CHECK (account_type IN ('student', 'staff')),
-  app_role text NOT NULL DEFAULT 'customer' CHECK (app_role IN ('customer', 'admin')),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_account_type_check
+  CHECK (account_type IN ('student', 'staff_t', 'guest'));
 
-CREATE INDEX IF NOT EXISTS idx_profiles_app_role ON public.profiles(app_role);
-CREATE INDEX IF NOT EXISTS idx_profiles_account_type ON public.profiles(account_type);
+ALTER TABLE public.profiles
+  ADD CONSTRAINT profiles_app_role_check
+  CHECK (app_role IN ('customer', 'developer', 'admin', 'retail', 'staff', 'printer'));
 ```
 
 ### 3.2 Secure Registration Trigger (`handle_new_user`)
