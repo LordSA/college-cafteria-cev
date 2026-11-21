@@ -232,7 +232,11 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
         <div className="text-right">
           <span className="text-[10px] text-gray-500 block uppercase font-sans">Payment</span>
           <span className={`font-bold text-[11px] uppercase font-sans ${order.payment_status === 'paid' ? 'text-[#269B62]' : 'text-[#F47721]'}`}>
-            {order.payment_status === 'paid' ? 'PAID ONLINE (UPI)' : 'PAY AT COUNTER'}
+            {order.payment_status === 'paid'
+              ? 'PAID ONLINE (UPI)'
+              : order.payment_method === 'pay_later'
+                ? 'FACULTY CREDIT (PAY LATER)'
+                : 'PAYMENT PENDING'}
           </span>
         </div>
       </div>
@@ -279,10 +283,6 @@ function ThermalReceiptPaper({ order }: { order: Order }) {
           Show this QR token to collect your takeaway order.
         </p>
       </div>
-
-      {/* <div className="text-center pt-2.5 border-t border-dashed border-gray-300 text-[9px] text-gray-400 font-sans">
-        Designed & Developed by IEDC CEV
-      </div> */}
     </article>
   );
 }

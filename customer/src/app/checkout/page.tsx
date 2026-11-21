@@ -43,7 +43,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [validating, setValidating] = useState(true);
   const [unavailableItems, setUnavailableItems] = useState<string[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'counter_cash' | 'pay_later'>('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'pay_later'>('razorpay');
   const [pendingPayLater, setPendingPayLater] = useState<number>(0);
 
   const isFacultyOrStaff = ['faculty', 'staff', 'staff_t'].includes(
@@ -437,34 +437,6 @@ export default function CheckoutPage() {
                   </div>
                 </label>
               )}
-
-              <label
-                className={`relative flex items-start gap-3.5 rounded-2xl border p-4 cursor-pointer transition ${
-                  paymentMethod === 'counter_cash'
-                    ? 'border-stone-400 bg-stone-50 dark:bg-white/[0.06] ring-1 ring-stone-400'
-                    : 'border-stone-200 dark:border-white/10 hover:border-stone-300 dark:hover:border-white/20 bg-white dark:bg-white/[0.02]'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment_method"
-                  value="counter_cash"
-                  checked={paymentMethod === 'counter_cash'}
-                  onChange={() => setPaymentMethod('counter_cash')}
-                  className="mt-1 h-4 w-4 text-stone-700 focus:ring-stone-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-900 dark:text-white">Pay at Counter (Cash/Physical UPI)</span>
-                    <span className="rounded bg-stone-200 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-stone-700 dark:text-stone-300">
-                      Unpaid Order
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
-                    Order is placed as unpaid. Pay canteen staff directly at the collection desk to complete pickup.
-                  </p>
-                </div>
-              </label>
             </div>
           </div>
 
@@ -493,15 +465,10 @@ export default function CheckoutPage() {
                 <CreditCard className="h-4 w-4" />
                 <span>Pay ₹{(subtotal / 100).toFixed(2)} Online via Razorpay</span>
               </>
-            ) : paymentMethod === 'pay_later' ? (
-              <>
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Confirm Pay Later Order</span>
-              </>
             ) : (
               <>
                 <CheckCircle2 className="h-4 w-4" />
-                <span>Place Order & Pay at Counter</span>
+                <span>Confirm Pay Later Order</span>
               </>
             )}
           </button>

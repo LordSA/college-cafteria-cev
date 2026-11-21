@@ -10,6 +10,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Fixed
+- **Customer Mobile Header Filter & Real Dedicated Search Experience**:
+  - Wired mobile header category filter button (`SlidersHorizontal`) in `customer/src/app/page.tsx` to launch an interactive category selection bottom modal with live dish counts and category icons.
+  - Implemented dynamic active filter indicators on the filter button and category rail pills when filtering dishes by category.
+  - Replaced inline mixed search rendering with a dedicated real-time Search Results list view when `searchQuery` is active:
+    - Bypasses static Categories horizontal rail and Hot Products during active queries.
+    - Displays exact search query summary, matching item count, clear search button (`X`), and category filter pill.
+    - Renders search matches in a full horizontal list layout with dish image, category tag, title, description, price, and direct Add / quantity steppers.
+    - Provides a dedicated zero-result empty state with quick actions to browse all dishes or search across all categories.
+    - Added quick clear (`X`) buttons directly inside both mobile and desktop search input bars.
+
+### Removed
+- **Pay at Counter Payment Option Removed Entirely**:
+  - Removed `counter_cash` ("Pay at Counter (Cash/Physical UPI)") option, radio selector, and confirmation buttons from `customer/src/app/checkout/page.tsx`. Only Razorpay online payment and Faculty Pay Later (`staff_t`) remain available.
+  - Updated `customer/src/app/payment-faq/page.tsx` to eliminate all mentions of paying at the counter.
+  - Updated `customer/src/components/ReceiptPrinterAnimation.tsx` takeaway ticket to display `'PAID ONLINE (UPI)'` if paid, `'FACULTY CREDIT (PAY LATER)'` if faculty credit, or `'PAYMENT PENDING'` instead of the legacy `'PAY AT COUNTER'`.
+  - Updated `customer/src/app/profile/page.tsx` settlement description to specify direct online UPI settlement.
+  - Scanned and eliminated all comments across modified customer source files per `AGENTS.md`.
+
+### Fixed
 - **Admin Menu & Category Page Data Document & Items Display Issue**:
   - Resolved issue where active dishes and categories failed to render on the Admin Menu page (`/menu`) due to data shape mismatch (`menuBody.data?.items` vs array `menuBody.data`). Implemented defensive array/object normalization (`Array.isArray(body.data) ? body.data : body.data?.items`).
   - Added cache-busting timestamp queries (`?t=${Date.now()}`) and `{ cache: 'no-store' }` headers across `admin/src/app/menu/page.tsx`, `admin/src/app/categories/page.tsx`, and `admin/src/app/page.tsx` to ensure real-time synchronization with database updates.

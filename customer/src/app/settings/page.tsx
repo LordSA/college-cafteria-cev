@@ -18,7 +18,6 @@ import {
   LogOut,
   User,
   Building2,
-  Check,
   Link as LinkIcon,
   X,
   Smartphone,
@@ -30,7 +29,7 @@ import {
 export default function SettingsPage() {
   const router = useRouter();
   const { user, profile, loading, signOut } = useAuth();
-  const { themeMode, activeTheme, setThemeMode } = useTheme();
+  const { themeMode, setThemeMode } = useTheme();
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -198,9 +197,6 @@ export default function SettingsPage() {
               <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">
                 Account Settings
               </h1>
-              <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-                Manage your credentials, theme appearance, and official campus affiliations
-              </p>
             </div>
           </div>
 
@@ -208,64 +204,41 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <Palette className="h-4 w-4 text-[#ff5e3a]" />
-                <h2 className="text-sm font-bold text-stone-900 dark:text-white">Appearance & Theme</h2>
+                <h2 className="text-sm font-bold text-stone-900 dark:text-white">Theme</h2>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-                Active: {activeTheme}
-              </span>
             </div>
-
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              Customize how Cafeteria CEV looks on your device. Choose Device to automatically match your system preference.
-            </p>
-
-            <div className="grid grid-cols-3 gap-2.5 pt-1">
+            <div className="grid grid-cols-3 gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setThemeMode('device')}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border transition active:scale-95 ${
-                  themeMode === 'device'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
-                }`}
+                className={`flex flex-col items-center justify-center gap-1 p-3.5 rounded-full border transition active:scale-95 ${themeMode === 'device'
+                  ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
+                  : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
+                  }`}
               >
                 <Smartphone className="h-5 w-5" />
-                <div className="text-center leading-tight">
-                  <span className="text-xs block">Device</span>
-                  <span className="text-[9px] opacity-75 font-normal">Auto / OS</span>
-                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setThemeMode('dark')}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border transition active:scale-95 ${
-                  themeMode === 'dark'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
-                }`}
+                className={`flex flex-col items-center justify-center gap-1 p-3.5 rounded-full border transition active:scale-95 ${themeMode === 'dark'
+                  ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
+                  : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
+                  }`}
               >
                 <Moon className="h-5 w-5" />
-                <div className="text-center leading-tight">
-                  <span className="text-xs block">Dark</span>
-                  <span className="text-[9px] opacity-75 font-normal">Obsidian</span>
-                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setThemeMode('light')}
-                className={`flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border transition active:scale-95 ${
-                  themeMode === 'light'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
-                }`}
+                className={`flex flex-col items-center justify-center gap-1 p-3.5 rounded-full border transition active:scale-95 ${themeMode === 'light'
+                  ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] font-bold shadow-xs'
+                  : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300 hover:border-stone-300 dark:hover:border-white/20'
+                  }`}
               >
                 <Sun className="h-5 w-5" />
-                <div className="text-center leading-tight">
-                  <span className="text-xs block">Light</span>
-                  <span className="text-[9px] opacity-75 font-normal">Crisp</span>
-                </div>
               </button>
             </div>
           </div>
@@ -283,7 +256,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <span className="text-stone-400 dark:text-stone-500 font-medium">Account Role</span>
+                <span className="text-stone-400 dark:text-stone-500 font-medium">Role</span>
                 <div className="mt-0.5 flex items-center gap-2">
                   <span className="font-bold text-stone-900 dark:text-white capitalize">
                     {profile?.account_type === 'staff_t' ? 'Teacher / Faculty' : profile?.account_type === 'guest' ? 'Guest Diner' : 'Student'}
@@ -300,10 +273,10 @@ export default function SettingsPage() {
                 <div>
                   <h3 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
                     <Building2 className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                    <span>Official Teacher ID</span>
+                    <span>Teacher ID</span>
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                    Faculty identifier used to verify campus dining benefits and Pay Later eligibility.
+                    Faculty identifier
                   </p>
                 </div>
 
@@ -340,14 +313,14 @@ export default function SettingsPage() {
                   onChange={(e) => setTeacherId(e.target.value)}
                   placeholder="e.g. CEV-T-1042"
                   maxLength={20}
-                  className="flex-1 rounded-xl border border-stone-300 dark:border-white/10 bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-xs font-mono font-bold uppercase text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
+                  className="flex-1 rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-xs font-mono font-bold uppercase text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
                 />
                 <button
                   type="submit"
                   disabled={teacherIdLoading}
-                  className="rounded-xl bg-stone-900 dark:bg-white dark:text-stone-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-stone-800 dark:hover:bg-stone-100 transition disabled:opacity-50"
+                  className="rounded-full bg-stone-900 dark:bg-white dark:text-stone-900 px-4 py-2 text-xs font-bold text-white hover:bg-stone-800 dark:hover:bg-stone-100 transition disabled:opacity-50"
                 >
-                  {teacherIdLoading ? 'Saving...' : 'Save ID'}
+                  {teacherIdLoading ? 'Saving...' : 'Save'}
                 </button>
               </form>
             </div>
@@ -356,18 +329,18 @@ export default function SettingsPage() {
           <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-5">
             <div className="flex items-center gap-2 border-b border-stone-100 dark:border-white/10 pb-3">
               <Shield className="h-4 w-4 text-[#ff5e3a]" />
-              <h2 className="text-sm font-bold text-stone-900 dark:text-white">Account Security</h2>
+              <h2 className="text-sm font-bold text-stone-900 dark:text-white">Security</h2>
             </div>
 
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h3 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
-                    <KeyRound className="h-3.5 w-3.5 text-[#ff5e3a]" />
+                    {/* <KeyRound className="h-3.5 w-3.5 text-[#ff5e3a]" /> */}
                     <span>Change Password</span>
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                    Update your account credentials to keep your profile secure.
+                    Update your account password
                   </p>
                 </div>
 
@@ -380,7 +353,7 @@ export default function SettingsPage() {
                     setConfirmPassword('');
                     setShowPasswordModal(true);
                   }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-95 transition active:scale-95 self-start sm:self-auto"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:opacity-95 transition active:scale-95 self-start sm:self-auto"
                 >
                   <KeyRound className="h-3.5 w-3.5" />
                   <span>Change Password</span>
@@ -392,25 +365,24 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
-                    <LinkIcon className="h-3.5 w-3.5 text-[#ff5e3a]" />
                     <span>Google Account Binding</span>
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                    Link your college Google account for single click sign-in.
+                    Link your Google account
                   </p>
                 </div>
 
                 {isGoogleLinked ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                    <Check className="h-3 w-3" />
-                    Connected
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                    <LinkIcon className="h-2.5 w-2.5 text-emerald-800" />
+                    Binded
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={handleLinkGoogle}
                     disabled={googleLoading}
-                    className="rounded-xl border border-stone-300 dark:border-white/20 bg-white dark:bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/[0.08] transition shadow-xs disabled:opacity-50"
+                    className="rounded-full border border-stone-300 dark:border-white/20 bg-white dark:bg-white/[0.04] px-3 py-1.5 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/[0.08] transition shadow-xs disabled:opacity-50"
                   >
                     {googleLoading ? 'Connecting...' : 'Link Google'}
                   </button>
@@ -441,7 +413,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 px-3.5 py-2 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition shadow-xs"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 <span>Sign Out</span>

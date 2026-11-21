@@ -9,10 +9,10 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cafeteria.campus.shib
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
-  title: 'Cafeteria CEV — Smart Campus Dining',
+  title: 'Cafeteria CEV',
   description: 'Digital ordering, pre-orders, and queue-free meals for college students and faculty at College of Engineering Vadakara.',
   openGraph: {
-    title: 'Cafeteria CEV — Smart Campus Dining',
+    title: 'Cafeteria CEV',
     description: 'Digital ordering, pre-orders, and queue-free meals for college students and faculty at College of Engineering Vadakara.',
     url: appUrl,
     siteName: 'Cafeteria CEV',
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Cafeteria CEV — Smart Campus Dining',
+    title: 'Cafeteria CEV',
     description: 'Digital ordering, pre-orders, and queue-free meals for college students and faculty at College of Engineering Vadakara.',
     images: ['/banner.png'],
   },

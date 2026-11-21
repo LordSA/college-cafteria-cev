@@ -532,9 +532,9 @@ export default function ProfilePage() {
 
                 <div className="flex items-start gap-3 rounded-2xl border border-indigo-600 dark:border-indigo-500/50 bg-indigo-50/40 dark:bg-indigo-950/30 p-3.5 ring-1 ring-indigo-600 dark:ring-indigo-500/50">
                   <div className="flex-1">
-                    <span className="text-xs font-bold text-stone-900 dark:text-white">Direct UPI or Counter Settlement</span>
+                    <span className="text-xs font-bold text-stone-900 dark:text-white">Direct UPI Settlement</span>
                     <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                      Pay via GooglePay, PhonePe, Paytm or at the counter and provide your payment reference.
+                      Pay via GooglePay, PhonePe, Paytm and provide your payment reference.
                     </p>
                   </div>
                 </div>

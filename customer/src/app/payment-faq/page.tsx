@@ -32,13 +32,13 @@ const FAQS: FaqItem[] = [
   {
     question: 'What payment methods can I use at Cafeteria CEV?',
     answer:
-      'You can pay online via Razorpay (supporting GooglePay, PhonePe, Paytm, all UPI apps, Rupay/Visa/MasterCard debit and credit cards, and netbanking), Pay at Counter when collecting, or use Faculty Credit (Pay Later) if you are verified college staff.',
+      'You can pay online via Razorpay (supporting GooglePay, PhonePe, Paytm, all UPI apps, Rupay/Visa/MasterCard debit and credit cards, and netbanking) or use Faculty Credit (Pay Later) if you are verified college staff.',
     icon: CreditCard,
   },
   {
     question: 'How does Faculty Credit (Pay Later) work?',
     answer:
-      'Verified faculty and institutional staff can place orders instantly without paying at checkout. Orders are recorded against their verified teacher profile and can be cleared periodically via digital UPI or at the canteen desk.',
+      'Verified faculty and institutional staff can place orders instantly without paying at checkout. Orders are recorded against their verified teacher profile and can be cleared periodically via digital UPI or direct settlement.',
     icon: UserCheck,
   },
   {
