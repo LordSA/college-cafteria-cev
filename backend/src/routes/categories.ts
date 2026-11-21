@@ -168,3 +168,70 @@ adminCategoriesRouter.patch(
     return c.json({ success: true, data });
   }
 );
+
+adminCategoriesRouter.delete('/:id', async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  const id = c.req.param('id');
+
+  if (!adminClient) {
+    return c.json(
+      {
+        success: false,
+        error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' },
+      },
+      500
+    );
+  }
+
+  const { count, error: countErr } = await adminClient
+    .from('menu_items')
+    .select('*', { count: 'exact', head: true })
+    .eq('category_id', id);
+
+  if (countErr) {
+    return c.json(
+      { success: false, error: { code: 'QUERY_FAILED', message: countErr.message } },
+      500
+    );
+  }
+
+  if (count && count > 0) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'CATEGORY_IN_USE',
+          message: `Cannot remove category: ${count} menu item(s) are currently assigned to it. Please reassign or delete those dishes first, or toggle this category inactive.`,
+        },
+      },
+      400
+    );
+  }
+
+  const { data, error } = await adminClient
+    .from('categories')
+    .delete()
+    .eq('id', id)
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    return c.json(
+      { success: false, error: { code: 'DELETE_FAILED', message: error.message } },
+      500
+    );
+  }
+
+  if (!data) {
+    return c.json(
+      { success: false, error: { code: 'NOT_FOUND', message: 'Category not found' } },
+      404
+    );
+  }
+
+  return c.json({
+    success: true,
+    message: 'Category removed successfully',
+    data,
+  });
+});

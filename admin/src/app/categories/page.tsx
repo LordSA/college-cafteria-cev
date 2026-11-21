@@ -14,6 +14,10 @@ import {
   RefreshCw,
   ToggleLeft,
   ToggleRight,
+  Edit3,
+  Trash2,
+  X,
+  Check,
 } from 'lucide-react';
 
 interface Category {
@@ -41,6 +45,14 @@ export default function AdminCategoriesPage() {
   const [sortOrder, setSortOrder] = useState<number>(0);
   const [creating, setCreating] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSortOrder, setEditSortOrder] = useState<number>(0);
+  const [editIsActive, setEditIsActive] = useState(true);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -159,6 +171,91 @@ export default function AdminCategoriesPage() {
       setError(err.message || 'Failed to update category');
     } finally {
       setTogglingId(null);
+    }
+  };
+
+  const openEditModal = (cat: Category) => {
+    setEditingCategory(cat);
+    setEditName(cat.name);
+    setEditDescription(cat.description || '');
+    setEditSortOrder(cat.sort_order);
+    setEditIsActive(cat.is_active);
+    setError(null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory || !session?.access_token) return;
+
+    if (!editName.trim()) {
+      setError('Category name cannot be empty');
+      return;
+    }
+
+    setSavingEdit(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/categories/${editingCategory.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          sort_order: editSortOrder,
+          is_active: editIsActive,
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to update category');
+      }
+
+      setEditingCategory(null);
+      setSuccess('Category updated successfully.');
+      setTimeout(() => setSuccess(null), 3000);
+      await loadCategories();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update category');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleRemoveCategory = async (cat: Category) => {
+    if (!session?.access_token) return;
+
+    if (!confirm(`Are you sure you want to delete category "${cat.name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingId(cat.id);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/categories/${cat.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to delete category');
+      }
+
+      setSuccess(`Category "${cat.name}" removed successfully.`);
+      setTimeout(() => setSuccess(null), 3000);
+      await loadCategories();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete category');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -327,10 +424,19 @@ export default function AdminCategoriesPage() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEditModal(cat)}
+                              disabled={togglingId === cat.id || deletingId === cat.id}
+                              title="Edit category"
+                              className="inline-flex items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-2 text-[#666666] hover:text-[#F47721] hover:bg-[#FFF7F0] disabled:opacity-30 transition"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+
                             <button
                               onClick={() => handleToggleActive(cat)}
-                              disabled={togglingId === cat.id}
+                              disabled={togglingId === cat.id || deletingId === cat.id}
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${cat.is_active
                                 ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
                                 : 'bg-[#FAFAFA] border border-[#EEEEEE] text-[#666666] hover:bg-gray-100 hover:text-[#252525]'
@@ -348,6 +454,19 @@ export default function AdminCategoriesPage() {
                                 </>
                               )}
                             </button>
+
+                            <button
+                              onClick={() => handleRemoveCategory(cat)}
+                              disabled={togglingId === cat.id || deletingId === cat.id}
+                              title="Delete category"
+                              className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-[#D94A43] hover:bg-red-100 disabled:opacity-30 transition"
+                            >
+                              {deletingId === cat.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -356,6 +475,107 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
             </div>
+
+            {editingCategory && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-[#EEEEEE] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
+                    <h3 className="text-sm font-bold text-[#252525] flex items-center gap-2">
+                      <Edit3 className="h-4 w-4 text-[#F47721]" />
+                      <span>Edit Category</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategory(null)}
+                      className="rounded-full p-1 text-[#666666] hover:bg-gray-100 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEdit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editCatName">
+                        Category Name
+                      </label>
+                      <input
+                        id="editCatName"
+                        type="text"
+                        required
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editCatDesc">
+                        Description (Optional)
+                      </label>
+                      <textarea
+                        id="editCatDesc"
+                        rows={2}
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editCatOrder">
+                        Display Sort Order
+                      </label>
+                      <input
+                        id="editCatOrder"
+                        type="number"
+                        value={editSortOrder}
+                        onChange={(e) => setEditSortOrder(Number(e.target.value))}
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#252525]">
+                        <input
+                          type="checkbox"
+                          checked={editIsActive}
+                          onChange={(e) => setEditIsActive(e.target.checked)}
+                          className="rounded border-[#EEEEEE] text-[#F47721] focus:ring-0"
+                        />
+                        <span>Active category (visible on ordering menu)</span>
+                      </label>
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">
+                      <button
+                        type="button"
+                        onClick={() => setEditingCategory(null)}
+                        className="rounded-xl border border-[#EEEEEE] bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingEdit}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                      >
+                        {savingEdit ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Update Category</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </main>
         <Footer />

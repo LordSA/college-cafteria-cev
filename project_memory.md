@@ -107,7 +107,7 @@ college-canteen-cev/
   - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
   - `src/app/staff-requests/page.tsx`: Operational review board for pending Teacher & Faculty (`staff_t`) account approvals displaying applicant Teacher ID badge alongside email and registration date.
   - `src/app/categories/page.tsx`: Category management (list, add card, active toggle) with cache-busting real-time loading and array/object response normalization.
-  - `src/app/menu/page.tsx`: Menu item catalog management with cache-busting real-time loading and array/object response normalization. Allows `developer`, `admin`, and `staff` (store workers) to add and manage dishes; restricted from `retail`.
+  - `src/app/menu/page.tsx`: Menu item catalog management with cache-busting real-time loading, array/object response normalization, interactive dish edit modal, quick archive/restore, and permanent deletion. Allows `developer`, `admin`, and `staff` (store workers) to add, edit, and remove dishes; restricted from `retail`.
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/app/not-found.tsx`: Clean 404 administration error page.
   - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 5-tier roles (`developer`, `admin`, `staff`, `retail`, `printer`) with permission flags (`isDeveloper`, `isAdmin`, `isStaff`, `isRetail`, `isPrinter`, `canAccessDeveloper`, `canAccessDashboard`, `canManageUsers`, `canManageInventory`, `canUpdateStockOnly`, `canManageMenu`, `canManageOrders`, `canScanQr`, `canReviewStaff`, `canViewReports`).

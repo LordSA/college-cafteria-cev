@@ -17,6 +17,9 @@ import {
   Trash2,
   Check,
   X,
+  Edit3,
+  RotateCcw,
+  Archive,
 } from 'lucide-react';
 
 interface Category {
@@ -64,6 +67,20 @@ export default function AdminMenuPage() {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editCategoryId, setEditCategoryId] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPriceRupees, setEditPriceRupees] = useState('');
+  const [editIsAvailable, setEditIsAvailable] = useState(true);
+  const [editIsArchived, setEditIsArchived] = useState(false);
+  const [editUploadedImageKey, setEditUploadedImageKey] = useState<string | null>(null);
+  const [editPreviewImageUrl, setEditPreviewImageUrl] = useState<string | null>(null);
+  const [editUploadingImage, setEditUploadingImage] = useState(false);
+  const [editImageUploadError, setEditImageUploadError] = useState<string | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -278,16 +295,169 @@ export default function AdminMenuPage() {
     }
   };
 
-  const handleArchiveItem = async (itemId: string) => {
-    if (!session?.access_token) return;
+  const openEditModal = (item: MenuItem) => {
+    setEditingItem(item);
+    setEditCategoryId(item.category_id);
+    setEditName(item.name);
+    setEditDescription(item.description || '');
+    setEditPriceRupees((item.price / 100).toString());
+    setEditIsAvailable(item.is_available);
+    setEditIsArchived(item.is_archived);
+    setEditUploadedImageKey(item.image_key);
+    setEditPreviewImageUrl(item.image_url);
+    setEditImageUploadError(null);
+  };
 
-    if (!confirm('Are you sure you want to archive this menu item? It will be removed from customer view.')) {
+  const handleEditImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!session?.access_token) {
+      setEditImageUploadError('Authentication session expired');
       return;
     }
 
-    setActionInProgress(itemId);
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(file.type)) {
+      setEditImageUploadError('Allowed image formats: JPEG, PNG, WebP, AVIF');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setEditImageUploadError('Maximum file size is 5MB');
+      return;
+    }
+
+    setEditUploadingImage(true);
+    setEditImageUploadError(null);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/menu/${itemId}`, {
+      const presignRes = await fetch(`${API_BASE_URL}/api/v1/uploads/presign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          contentType: file.type,
+          type: 'food',
+        }),
+      });
+
+      const presignBody = await presignRes.json();
+      if (!presignRes.ok || !presignBody.success) {
+        throw new Error(presignBody.error?.message || 'Failed to get upload authorization');
+      }
+
+      const { uploadUrl, key } = presignBody.data;
+
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error(`Upload to storage bucket failed (HTTP ${uploadRes.status})`);
+      }
+
+      setEditUploadedImageKey(key);
+      setEditPreviewImageUrl(URL.createObjectURL(file));
+    } catch (err: any) {
+      setEditImageUploadError(err.message || 'Image upload failed');
+    } finally {
+      setEditUploadingImage(false);
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem || !session?.access_token) return;
+
+    const parsedPrice = parseFloat(editPriceRupees);
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      setError('Please provide a valid price in ₹');
+      return;
+    }
+
+    setSavingEdit(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/menu/${editingItem.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          category_id: editCategoryId,
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          price: Math.round(parsedPrice * 100),
+          is_available: editIsAvailable,
+          is_archived: editIsArchived,
+          image_key: editUploadedImageKey,
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to update menu item');
+      }
+
+      setEditingItem(null);
+      setSuccess('Menu item updated successfully.');
+      setTimeout(() => setSuccess(null), 3000);
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update menu item');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleToggleArchive = async (item: MenuItem) => {
+    if (!session?.access_token) return;
+
+    setActionInProgress(item.id);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/menu/${item.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          is_archived: !item.is_archived,
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to update item status');
+      }
+
+      setSuccess(item.is_archived ? 'Item restored to active menu.' : 'Item archived.');
+      setTimeout(() => setSuccess(null), 3000);
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update item status');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleRemoveItem = async (item: MenuItem) => {
+    if (!session?.access_token) return;
+
+    if (!confirm(`Are you sure you want to permanently delete "${item.name}" from the menu? This action cannot be undone.`)) {
+      return;
+    }
+
+    setActionInProgress(item.id);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/menu/${item.id}?permanent=true`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -296,14 +466,14 @@ export default function AdminMenuPage() {
 
       const body = await res.json();
       if (!res.ok || !body.success) {
-        throw new Error(body.error?.message || 'Failed to archive item');
+        throw new Error(body.error?.message || 'Failed to remove menu item');
       }
 
-      setSuccess('Menu item archived.');
+      setSuccess(`"${item.name}" permanently removed.`);
       setTimeout(() => setSuccess(null), 3000);
       await loadData();
     } catch (err: any) {
-      setError(err.message || 'Failed to archive item');
+      setError(err.message || 'Failed to remove menu item');
     } finally {
       setActionInProgress(null);
     }
@@ -626,19 +796,237 @@ export default function AdminMenuPage() {
                             </button>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => handleArchiveItem(item.id)}
-                              disabled={actionInProgress === item.id || item.is_archived}
-                              title="Archive menu item"
-                              className="inline-flex items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-2 text-[#666666] hover:text-[#D94A43] hover:bg-red-50 disabled:opacity-30 transition"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => openEditModal(item)}
+                                disabled={actionInProgress === item.id}
+                                title="Edit dish"
+                                className="inline-flex items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-2 text-[#666666] hover:text-[#F47721] hover:bg-[#FFF7F0] disabled:opacity-30 transition"
+                              >
+                                <Edit3 className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleToggleArchive(item)}
+                                disabled={actionInProgress === item.id}
+                                title={item.is_archived ? 'Restore dish' : 'Archive dish'}
+                                className={`inline-flex items-center justify-center rounded-xl border p-2 transition disabled:opacity-30 ${item.is_archived
+                                  ? 'border-green-200 bg-green-50 text-[#269B62] hover:bg-green-100'
+                                  : 'border-amber-200 bg-amber-50 text-[#F59E0B] hover:bg-amber-100'
+                                  }`}
+                              >
+                                {item.is_archived ? <RotateCcw className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
+                              </button>
+                              <button
+                                onClick={() => handleRemoveItem(item)}
+                                disabled={actionInProgress === item.id}
+                                title="Permanently remove dish"
+                                className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-[#D94A43] hover:bg-red-100 disabled:opacity-30 transition"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {editingItem && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                <div className="w-full max-w-2xl rounded-3xl bg-white p-6 shadow-xl border border-[#EEEEEE] space-y-4 max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
+                    <h3 className="text-sm font-bold text-[#252525] flex items-center gap-2">
+                      <Edit3 className="h-4 w-4 text-[#F47721]" />
+                      <span>Edit Menu Item: {editingItem.name}</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingItem(null)}
+                      className="rounded-full p-1 text-[#666666] hover:bg-gray-100 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEdit} className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editCategory">
+                          Category
+                        </label>
+                        <select
+                          id="editCategory"
+                          required
+                          value={editCategoryId}
+                          onChange={(e) => setEditCategoryId(e.target.value)}
+                          className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                        >
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name} {!c.is_active ? '(Inactive)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editName">
+                          Item Name
+                        </label>
+                        <input
+                          id="editName"
+                          type="text"
+                          required
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="e.g. Masala Dosa, Paneer Roll"
+                          className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editPrice">
+                          Price (₹)
+                        </label>
+                        <input
+                          id="editPrice"
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          required
+                          value={editPriceRupees}
+                          onChange={(e) => setEditPriceRupees(e.target.value)}
+                          placeholder="45.00"
+                          className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editDesc">
+                          Description (Optional)
+                        </label>
+                        <textarea
+                          id="editDesc"
+                          rows={2}
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                          placeholder="Dish details..."
+                          className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <span className="block text-xs font-semibold text-[#252525] mb-1.5">Food Catalog Image</span>
+                        <div className="flex items-center gap-4">
+                          <div className="h-28 w-28 rounded-2xl bg-[#FAFAFA] border border-[#EEEEEE] overflow-hidden flex items-center justify-center relative">
+                            {editPreviewImageUrl ? (
+                              <img src={editPreviewImageUrl} alt="Preview" className="h-full w-full object-cover" />
+                            ) : (
+                              <Utensils className="h-8 w-8 text-[#888888]" />
+                            )}
+                            {editUploadingImage && (
+                              <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                                <Loader2 className="h-5 w-5 animate-spin text-[#F47721]" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => editFileInputRef.current?.click()}
+                              disabled={editUploadingImage}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-1.5 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition"
+                            >
+                              <Camera className="h-3.5 w-3.5 text-[#F47721]" />
+                              <span>{editPreviewImageUrl ? 'Replace Image' : 'Select Food Image'}</span>
+                            </button>
+                            {editPreviewImageUrl && (
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditUploadedImageKey(null);
+                                    setEditPreviewImageUrl(null);
+                                  }}
+                                  className="text-[11px] text-[#D94A43] hover:underline"
+                                >
+                                  Remove current image
+                                </button>
+                              </div>
+                            )}
+                            <p className="text-[11px] text-[#666666] leading-tight">
+                              JPEG, PNG, WebP or AVIF (Max 5MB).
+                            </p>
+                            <input
+                              ref={editFileInputRef}
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,image/avif"
+                              onChange={handleEditImageFileChange}
+                              className="hidden"
+                            />
+                          </div>
+                        </div>
+                        {editImageUploadError && (
+                          <p className="mt-2 text-xs text-[#D94A43]">{editImageUploadError}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 pt-2">
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#252525]">
+                          <input
+                            type="checkbox"
+                            checked={editIsAvailable}
+                            onChange={(e) => setEditIsAvailable(e.target.checked)}
+                            className="rounded border-[#EEEEEE] text-[#F47721] focus:ring-0"
+                          />
+                          <span>Mark available for immediate ordering</span>
+                        </label>
+
+                        <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#252525]">
+                          <input
+                            type="checkbox"
+                            checked={editIsArchived}
+                            onChange={(e) => setEditIsArchived(e.target.checked)}
+                            className="rounded border-[#EEEEEE] text-[#D94A43] focus:ring-0"
+                          />
+                          <span className="text-[#666666]">Archive this dish (hidden from customer menu)</span>
+                        </label>
+                      </div>
+
+                      <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">
+                        <button
+                          type="button"
+                          onClick={() => setEditingItem(null)}
+                          className="rounded-xl border border-[#EEEEEE] bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:bg-gray-50 transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={savingEdit || editUploadingImage}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                        >
+                          {savingEdit ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              <span>Saving Changes...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-3.5 w-3.5" />
+                              <span>Update Dish</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}

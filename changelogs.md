@@ -19,6 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Cleaned up unused imports across admin components with zero UI design changes and zero comments.
 
 ### Added
+- **Admin Menu Item Editing & Permanent Removal Capabilities**:
+  - Added comprehensive item editing modal to the Admin Menu page (`/menu`), enabling canteen staff and administrators to edit dish name, category, price in ₹, description, catalog image (with presigned R2 replacement or removal), kitchen availability, and archive status.
+  - Added permanent dish removal feature with confirmation prompt, invoking `DELETE /api/v1/admin/menu/:id?permanent=true` to delete items directly from the database without breaking order history (`order_items.menu_item_id` foreign keys are preserved with `ON DELETE SET NULL`).
+  - Added quick Archive and Restore actions in the menu table so items can be easily hidden or brought back to the active customer catalog.
+  - Updated `backend/src/routes/menu.ts` `adminMenuRouter.delete('/:id')` to handle `?permanent=true` queries and expanded authorization to `['developer', 'admin', 'staff']`.
 - **Full Role Systems & Assigned Modes Reconfiguration Across Stack**:
   - Reconfigured the role and authorization systems across customer frontend, admin frontend, backend API, and database to eliminate naming collision between campus teachers and canteen workers.
   - **Customer 3-Tier Classification (`account_type`)**:

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin, requireRole } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 import { getPublicImageUrl } from '../lib/storage';
 
@@ -212,9 +212,10 @@ adminMenuRouter.patch(
   }
 );
 
-adminMenuRouter.delete('/:id', requireAdmin, async (c) => {
+adminMenuRouter.delete('/:id', requireRole(['developer', 'admin', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const id = c.req.param('id');
+  const permanent = c.req.query('permanent') === 'true';
 
   if (!adminClient) {
     return c.json(
@@ -224,6 +225,35 @@ adminMenuRouter.delete('/:id', requireAdmin, async (c) => {
       },
       500
     );
+  }
+
+  if (permanent) {
+    const { data, error } = await adminClient
+      .from('menu_items')
+      .delete()
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      return c.json(
+        { success: false, error: { code: 'DELETE_FAILED', message: error.message } },
+        500
+      );
+    }
+
+    if (!data) {
+      return c.json(
+        { success: false, error: { code: 'NOT_FOUND', message: 'Menu item not found' } },
+        404
+      );
+    }
+
+    return c.json({
+      success: true,
+      message: 'Menu item permanently removed successfully',
+      data,
+    });
   }
 
   const { data, error } = await adminClient

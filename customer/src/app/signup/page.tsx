@@ -4,12 +4,14 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth, AccountType } from '../../context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { AlertCircle, Loader2, GraduationCap, Briefcase, Globe, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { user, loading, signUp, signInWithGoogle } = useAuth();
   const [displayName, setDisplayName] = useState('');
+  const { activeTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -102,47 +104,47 @@ export default function SignUpPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col lg:flex-row bg-[#fafaf9] dark:bg-[#0d0e12] transition-colors duration-200">
-      <div className="w-full min-h-screen lg:w-[45%] xl:w-[40%] flex flex-col justify-between px-6 py-7 sm:p-10 lg:p-12 bg-white dark:bg-[#161820] lg:border-r border-stone-200/80 dark:border-white/10">
+    <main className="h-[100dvh] overflow-hidden flex flex-col lg:flex-row bg-[#fafaf9] dark:bg-[#0d0e12] transition-colors duration-200">
+      <div className="w-full h-full lg:w-[45%] xl:w-[40%] flex flex-col justify-between px-6 py-4 sm:px-10 sm:py-6 lg:px-12 lg:py-6 bg-white dark:bg-[#161820] lg:border-r border-stone-200/80 dark:border-white/10 overflow-y-auto lg:overflow-hidden">
 
-        <div className="flex items-center">
+        <div className="flex items-center shrink-0">
           <Link href="/" className="inline-flex items-center">
             <img
-              src="/logo/logo_clr.svg"
+              src={activeTheme === 'dark' ? '/logo/logo_clr.svg' : '/logo/logo_clr.svg'}
               alt="Logo"
-              className="h-8 w-auto object-contain"
+              className="h-10 w-auto object-contain"
             />
             <img
-              src="/logo title.svg"
+              src={activeTheme === 'dark' ? '/logo title.svg' : '/lg_title_blk.svg'}
               alt="title"
-              className="px-3 pt-1 h-5 w-auto object-contain"
+              className="px-3 pt-2 h-8 w-auto object-contain"
             />
           </Link>
         </div>
 
-        <div className="w-full max-w-sm mx-auto my-auto py-8 space-y-5">
+        <div className="w-full max-w-sm mx-auto my-auto py-2 space-y-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-stone-900 dark:text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-900 dark:text-white">
               Get started
             </h1>
-            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-1">
+            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-0.5">
               Create a new account
             </p>
           </div>
 
           {formError && (
-            <div className="flex items-start gap-2.5 rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-800 dark:text-rose-300">
-              <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600 mt-0.5" />
+            <div className="flex items-start gap-2 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/40 p-2 text-[11px] text-rose-800 dark:text-rose-300">
+              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0 text-rose-600 mt-0.5" />
               <span>{formError}</span>
             </div>
           )}
 
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             <button
               type="button"
               onClick={handleGoogleSignUp}
               disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-2xl bg-stone-50/60 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 text-stone-700 dark:text-stone-200 font-bold text-xs hover:bg-stone-100/80 dark:hover:bg-white/[0.08] transition active:scale-95 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-2xl bg-stone-50/60 dark:bg-white/[0.04] border border-stone-200 dark:border-white/10 text-stone-700 dark:text-stone-200 font-bold text-xs hover:bg-stone-100/80 dark:hover:bg-white/[0.08] transition active:scale-95 disabled:opacity-50"
             >
               {googleLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-[#ff5e3a]" />
@@ -171,16 +173,16 @@ export default function SignUpPage() {
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-stone-200 dark:bg-white/10" />
-              <span className="text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
+              <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-wider">
                 or
               </span>
               <div className="flex-1 h-px bg-stone-200 dark:bg-white/10" />
             </div>
           </div>
 
-          <form className="space-y-2.5" onSubmit={handleSubmit}>
+          <form className="space-y-2" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="displayName">
+              <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="displayName">
                 Full Name
               </label>
               <input
@@ -190,12 +192,12 @@ export default function SignUpPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Your full name"
-                className="w-full rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
+                className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="email">
+              <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="email">
                 Email
               </label>
               <input
@@ -205,19 +207,19 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="student@college.edu"
-                className="w-full rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
+                className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5">
+              <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1">
                 Campus Classification
               </label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setAccountType('student')}
-                  className={`flex items-center justify-center gap-1.5 rounded-2xl border py-2 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'student'
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'student'
                     ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
                     : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
                     }`}
@@ -228,7 +230,7 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setAccountType('staff_t')}
-                  className={`flex items-center justify-center gap-1.5 rounded-2xl border py-2 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'staff_t'
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'staff_t'
                     ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
                     : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
                     }`}
@@ -239,7 +241,7 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setAccountType('guest')}
-                  className={`flex items-center justify-center gap-1.5 rounded-2xl border py-2 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'guest'
+                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'guest'
                     ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
                     : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
                     }`}
@@ -252,7 +254,7 @@ export default function SignUpPage() {
 
             {accountType === 'staff_t' && (
               <div>
-                <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="teacherId">
+                <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="teacherId">
                   Teacher ID
                 </label>
                 <input
@@ -262,52 +264,54 @@ export default function SignUpPage() {
                   value={teacherId}
                   onChange={(e) => setTeacherId(e.target.value.toUpperCase())}
                   placeholder="e.g. CEV-FAC-102"
-                  className="w-full rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
+                  className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
                 />
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="password">
-                Password
-              </label>
-              <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="password">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 6 chars"
+                    className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 pr-9 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="confirmPassword">
+                  Confirm Password
+                </label>
                 <input
-                  id="password"
+                  id="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min 6 characters"
-                  className="w-full rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-4 py-2.5 pr-11 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 transition"
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 mb-1.5" htmlFor="confirmPassword">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter password"
-                className="w-full rounded-2xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-4 py-2.5 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
-              />
-            </div>
-
-            <div className="pt-1">
+            <div className="pt-0.5">
               <button
                 type="button"
                 onClick={() => setAcceptedTerms(!acceptedTerms)}
@@ -334,7 +338,7 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#ff5e3a] hover:bg-[#ff4b4b] py-3 px-4 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-orange-500/25 transition active:scale-95 disabled:opacity-50 mt-2"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#ff5e3a] hover:bg-[#ff4b4b] py-2.5 px-4 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-orange-500/25 transition active:scale-95 disabled:opacity-50 mt-1"
             >
               {submitting ? (
                 <>
@@ -347,7 +351,7 @@ export default function SignUpPage() {
             </button>
           </form>
 
-          <div className="text-center pt-0">
+          <div className="text-center pt-1">
             <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
               Already have an account?{' '}
               <Link
@@ -359,9 +363,11 @@ export default function SignUpPage() {
             </p>
           </div>
         </div>
+
+        <div className="hidden sm:block" />
       </div>
 
-      <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] relative overflow-hidden bg-stone-100 dark:bg-[#0d0e12]">
+      <div className="hidden lg:flex lg:w-[55%] xl:w-[60%] h-full relative overflow-hidden bg-stone-100 dark:bg-[#0d0e12]">
         <img
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop"
           alt="Freshly prepared canteen meals"
