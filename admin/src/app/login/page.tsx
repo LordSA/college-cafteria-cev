@@ -3,10 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { ShieldCheck, AlertCircle, Loader2, Lock } from 'lucide-react';
+import { AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -14,6 +13,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,29 +52,19 @@ export default function AdminLoginPage() {
 
   return (
     <>
-      <Header />
       <main className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-3xl border border-[#EEEEEE] shadow-sm">
           <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-xs">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721] block mt-4">
-              Cafeteria.cev
-            </span>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525]">Operations Sign In</h1>
-            <p className="mt-1 text-xs text-[#666666]">Management & Kitchen Operations Portal</p>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 dark:text-white leading-[1.1]">
+              <img src="/logo/logo_clr.svg" alt="icon" className="h-16 w-full object-contain drop-shadow-md" />
+              <img
+                src='/lg_title_blk.svg'
+                alt="Cafeteria CEV title"
+                className="mt-4 h-6 w-full object-contain drop-shadow-md"
+              />
+            </h1>
+            <h1 className="mt-6 text-2xl font-black tracking-tight text-[#252525]">Sign In</h1>
           </div>
-
-          <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3.5 text-left">
-            <div className="flex items-start gap-2.5">
-              <Lock className="h-4 w-4 text-amber-700 flex-shrink-0 mt-0.5" />
-              <p className="text-[11px] leading-relaxed text-amber-800">
-                Restricted portal. Administrative accounts are provisioned exclusively through authorized university backend channels.
-              </p>
-            </div>
-          </div>
-
           {formError && (
             <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-xs text-[#D94A43]">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#D94A43] mt-0.5" />
@@ -85,7 +75,7 @@ export default function AdminLoginPage() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="email">
-                Administrator Email Address
+                Email Address
               </label>
               <input
                 id="email"
@@ -110,15 +100,28 @@ export default function AdminLoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 text-sm text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
-              />
+
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 pr-12 text-sm text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#888888] hover:text-[#F47721] transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
             </div>
 
             <button
@@ -129,22 +132,13 @@ export default function AdminLoginPage() {
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Verifying Credentials...</span>
+                  <span>Verifying...</span>
                 </>
               ) : (
-                'Access Operations Portal'
+                'Sign In'
               )}
             </button>
           </form>
-
-          <div className="text-center pt-2 border-t border-[#EEEEEE]">
-            <p className="text-[11px] text-[#666666]">
-              Need customer ordering?{' '}
-              <a href="http://localhost:3000" className="text-[#F47721] hover:underline font-bold">
-                Switch to Customer Portal
-              </a>
-            </p>
-          </div>
         </div>
       </main>
       <Footer />

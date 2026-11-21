@@ -263,7 +263,7 @@ export default function AdminDashboardPage() {
               href={CUSTOMER_URL}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2.5 text-xs font-semibold text-[#252525] hover:text-[#F47721] transition"
             >
-              <span>Return to Customer Portal</span>
+              <span>Return to Customer Site</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
 
@@ -284,34 +284,21 @@ export default function AdminDashboardPage() {
     return (
       <main className="min-h-screen bg-white text-[#252525] flex items-center justify-center p-4">
         <div className="w-full max-w-md rounded-3xl bg-white p-8 border border-[#EEEEEE] shadow-sm text-center space-y-6">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-xs">
-            <Sparkles className="h-7 w-7" />
-          </div>
-
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">Cafeteria.cev</span>
-            <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">Operations Command</h1>
-            <p className="mt-2 text-xs text-[#666666] leading-relaxed">
-              Real-time kitchen orders, pantry portion inventory, QR counter collection, and auditable finance reports.
-            </p>
-          </div>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 leading-[1.1]">
+            <img
+              src="/lg_title_blk.svg"
+              alt="Cafeteria CEV title"
+              className="h-12 w-full object-contain drop-shadow-md"
+            />
+          </h1>
 
           <div className="flex flex-col gap-3 pt-2">
             <Link
               href="/login"
               className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-3 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition active:scale-95"
             >
-              <Lock className="h-4 w-4" />
-              <span>Sign In to Dashboard</span>
+              <span>Sign In</span>
             </Link>
-
-            <a
-              href={CUSTOMER_URL}
-              className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-5 py-2.5 text-xs font-semibold text-[#252525] hover:text-[#F47721] transition active:scale-95"
-            >
-              <ExternalLink className="h-3.5 w-3.5 text-[#666666]" />
-              <span>Open Customer Portal</span>
-            </a>
           </div>
         </div>
       </main>
@@ -531,11 +518,10 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setTimeframe('monthly')}
-                    className={`relative pb-1 transition ${
-                      timeframe === 'monthly'
-                        ? 'text-[#F47721] font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#F47721]'
-                        : 'text-[#666666] hover:text-[#252525]'
-                    }`}
+                    className={`relative pb-1 transition ${timeframe === 'monthly'
+                      ? 'text-[#F47721] font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#F47721]'
+                      : 'text-[#666666] hover:text-[#252525]'
+                      }`}
                   >
                     Monthly
                   </button>
@@ -652,20 +638,18 @@ export default function AdminDashboardPage() {
                   return (
                     <div
                       key={order.id}
-                      className={`p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs rounded-xl transition-all ${
-                        isPlaced
-                          ? 'bg-[#FFF7F0]/50 border border-[#F47721]/30 hover:bg-[#FFF7F0]'
-                          : 'bg-[#FAFAFA] border border-[#EEEEEE] hover:bg-white'
-                      }`}
+                      className={`p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs rounded-xl transition-all ${isPlaced
+                        ? 'bg-[#FFF7F0]/50 border border-[#F47721]/30 hover:bg-[#FFF7F0]'
+                        : 'bg-[#FAFAFA] border border-[#EEEEEE] hover:bg-white'
+                        }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-black text-[#F47721]">{order.order_number}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border ${
-                            isPlaced
-                              ? 'bg-[#F47721] text-white border-[#F47721] shadow-xs'
-                              : 'bg-green-50 text-[#269B62] border-green-200'
-                          }`}>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border ${isPlaced
+                            ? 'bg-[#F47721] text-white border-[#F47721] shadow-xs'
+                            : 'bg-green-50 text-[#269B62] border-green-200'
+                            }`}>
                             {stage}
                           </span>
                           <span className="text-[10px] text-[#666666]">

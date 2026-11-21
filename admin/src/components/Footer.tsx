@@ -20,9 +20,6 @@ export function Footer() {
             <span>·</span>
             <span className="text-xs font-medium">College of Engineering Vadakara</span>
           </div>
-          <div className="text-xs sm:text-sm font-semibold text-white">
-            Designed and Developed by IEDC CEV
-          </div>
         </div>
       </footer>
     </div>
