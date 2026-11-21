@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -28,7 +27,7 @@ interface Category {
   created_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
@@ -163,11 +162,10 @@ export default function AdminCategoriesPage() {
   if (authLoading || !adminUser || isUnauthorized) {
     return (
       <>
-        <Header />
         <main className="flex-1 flex items-center justify-center py-20 bg-white">
           <div className="flex flex-col items-center gap-3 text-[#666666]">
             <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-            <p className="text-xs font-semibold">Verifying administrator authorization...</p>
+            <p className="text-xs font-semibold">Verifying...</p>
           </div>
         </main>
         <Footer />
@@ -179,23 +177,13 @@ export default function AdminCategoriesPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="rounded-xl border border-[#EEEEEE] bg-white p-2 text-[#666666] hover:text-[#252525] hover:bg-gray-50 transition"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                    Cafeteria.cev • Kitchen Taxonomy
-                  </span>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Menu Categories
+                    Categories
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
                     Organize daily canteen menus, breakfast sections, and snack stations
@@ -206,7 +194,7 @@ export default function AdminCategoriesPage() {
               <button
                 onClick={loadCategories}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
@@ -281,7 +269,7 @@ export default function AdminCategoriesPage() {
                     <button
                       type="submit"
                       disabled={creating}
-                      className="w-full min-h-[44px] mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-4 py-2.5 text-xs font-black text-white shadow-md shadow-[#F47721]/20 focus:outline-none disabled:opacity-50 transition active:scale-95"
+                      className="w-full min-h-[44px] mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#F47721] hover:bg-[#E06310] px-4 py-2.5 text-xs font-black text-white shadow-md shadow-[#F47721]/20 focus:outline-none disabled:opacity-50 transition active:scale-95"
                     >
                       {creating ? (
                         <>
@@ -340,11 +328,10 @@ export default function AdminCategoriesPage() {
                             <button
                               onClick={() => handleToggleActive(cat)}
                               disabled={togglingId === cat.id}
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${
-                                cat.is_active
-                                  ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
-                                  : 'bg-[#FAFAFA] border border-[#EEEEEE] text-[#666666] hover:bg-gray-100 hover:text-[#252525]'
-                              }`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition ${cat.is_active
+                                ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
+                                : 'bg-[#FAFAFA] border border-[#EEEEEE] text-[#666666] hover:bg-gray-100 hover:text-[#252525]'
+                                }`}
                             >
                               {cat.is_active ? (
                                 <>

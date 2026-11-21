@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -36,7 +35,7 @@ interface StaffRequest {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function StaffRequestsPage() {
   const router = useRouter();
@@ -139,11 +138,10 @@ export default function StaffRequestsPage() {
   if (authLoading || !adminUser || isUnauthorized) {
     return (
       <>
-        <Header />
         <main className="flex-1 flex items-center justify-center py-20 bg-white">
           <div className="flex flex-col items-center gap-3 text-[#666666]">
             <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-            <p className="text-xs font-semibold">Verifying administrator authorization...</p>
+            <p className="text-xs font-semibold">Verifying...</p>
           </div>
         </main>
         <Footer />
@@ -155,26 +153,16 @@ export default function StaffRequestsPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="rounded-xl border border-[#EEEEEE] bg-white p-2 text-[#666666] hover:text-[#252525] hover:bg-gray-50 transition"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                    Cafeteria.cev • Access Verification
-                  </span>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Teacher & Faculty Verification Requests
+                    Faculty Requests
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
-                    Review and approve faculty/teacher dining access and pay-later privileges (staff_t)
+                    Review and approve faculty/teacher
                   </p>
                 </div>
               </div>
@@ -182,7 +170,7 @@ export default function StaffRequestsPage() {
               <button
                 onClick={loadRequests}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
                 <span>Refresh</span>
@@ -213,7 +201,7 @@ export default function StaffRequestsPage() {
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#666666]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-                <p className="text-xs font-semibold">Fetching pending verification requests...</p>
+                <p className="text-xs font-semibold">Fetching requests...</p>
               </div>
             ) : requests.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center">

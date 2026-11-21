@@ -66,8 +66,8 @@ export function AdminSidebar() {
                   href={link.href}
                   title={link.label}
                   className={`flex items-center justify-center transition active:scale-95 ${isActive
-                    ? 'h-12 w-12 rounded-[20px] bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-md shadow-[#F47721]/15 font-bold'
-                    : 'h-10 w-10 rounded-xl text-[#666666] hover:text-[#252525] hover:bg-gray-50'
+                    ? 'h-12 w-12 rounded-full bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-md shadow-[#F47721]/15 font-bold'
+                    : 'h-10 w-10 rounded-full text-[#666666] hover:text-[#252525] hover:bg-gray-50'
                     }`}
                 >
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />

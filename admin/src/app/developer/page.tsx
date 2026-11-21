@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -144,11 +143,10 @@ export default function DeveloperPage() {
   if (authLoading || !adminUser || !isDeveloper) {
     return (
       <>
-        <Header />
         <main className="flex-1 flex items-center justify-center py-20 bg-white">
           <div className="flex flex-col items-center gap-3 text-[#666666]">
             <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-            <p className="text-xs font-semibold">Verifying developer clearance...</p>
+            <p className="text-xs font-semibold">Verifying...</p>
           </div>
         </main>
         <Footer />
@@ -160,23 +158,13 @@ export default function DeveloperPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="rounded-xl border border-[#EEEEEE] bg-white p-2 text-[#666666] hover:text-[#252525] hover:bg-gray-50 transition"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                    Cafeteria.cev • Core Console
-                  </span>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Developer & System Diagnostics
+                    Developer Dash
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
                     Configure user access control tiers, verify HMAC signature webhooks, and check payment runtimes
@@ -187,10 +175,10 @@ export default function DeveloperPage() {
               <button
                 onClick={loadData}
                 disabled={loading}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh Diagnostics</span>
+                <span>Refresh</span>
               </button>
             </div>
 
@@ -326,19 +314,18 @@ export default function DeveloperPage() {
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                                u.app_role === 'developer'
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${u.app_role === 'developer'
                                   ? 'bg-purple-50 border-purple-200 text-purple-700'
                                   : u.app_role === 'admin'
-                                  ? 'bg-[#FFF7F0] border-[#F47721]/30 text-[#F47721]'
-                                  : u.app_role === 'retail'
-                                  ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                  : u.app_role === 'staff'
-                                  ? 'bg-green-50 border-green-200 text-[#269B62]'
-                                  : u.app_role === 'printer'
-                                  ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                  : 'bg-[#FAFAFA] border-[#EEEEEE] text-[#666666]'
-                              }`}
+                                    ? 'bg-[#FFF7F0] border-[#F47721]/30 text-[#F47721]'
+                                    : u.app_role === 'retail'
+                                      ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                      : u.app_role === 'staff'
+                                        ? 'bg-green-50 border-green-200 text-[#269B62]'
+                                        : u.app_role === 'printer'
+                                          ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                          : 'bg-[#FAFAFA] border-[#EEEEEE] text-[#666666]'
+                                }`}
                             >
                               {u.app_role.toUpperCase()}
                             </span>
