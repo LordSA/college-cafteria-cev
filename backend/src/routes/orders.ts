@@ -90,7 +90,7 @@ customerOrdersRouter.post(
         .eq('id', user.id)
         .maybeSingle();
 
-      const isFacultyStaff = ['faculty', 'staff'].includes(
+      const isFacultyStaff = ['faculty', 'staff', 'staff_t'].includes(
         prof?.approved_account_type || prof?.account_type || ''
       );
 

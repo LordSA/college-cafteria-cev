@@ -2,11 +2,11 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin, requireDeveloper } from '../middleware/auth';
+import { requireAuth, requireDeveloper, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 
 const RoleUpdateSchema = z.object({
-  role: z.enum(['developer', 'admin', 'retail', 'staff', 'customer']),
+  role: z.enum(['developer', 'admin', 'retail', 'staff', 'printer', 'customer']),
 });
 
 export const adminRouter = new Hono<{
@@ -16,7 +16,7 @@ export const adminRouter = new Hono<{
 
 adminRouter.use('*', requireAuth);
 
-adminRouter.get('/me', requireAdmin, (c) => {
+adminRouter.get('/me', requireRole(['developer', 'admin', 'retail', 'staff', 'printer']), (c) => {
   const user = c.get('user');
   const profile = c.get('profile');
 

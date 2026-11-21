@@ -25,7 +25,7 @@ export const adminOrdersRouter = new Hono<{
 
 adminOrdersRouter.use('*', requireAuth);
 
-adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async (c) => {
+adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
 
   if (!adminClient || typeof adminClient.from !== 'function') {
@@ -112,7 +112,7 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'retail']), async 
   });
 });
 
-adminOrdersRouter.get('/:id/receipt', requireRole(['developer', 'admin', 'retail', 'staff']), async (c) => {
+adminOrdersRouter.get('/:id/receipt', requireRole(['developer', 'admin', 'staff', 'printer']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
@@ -203,7 +203,7 @@ adminOrdersRouter.get('/:id/receipt', requireRole(['developer', 'admin', 'retail
   });
 });
 
-adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), async (c) => {
+adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
@@ -255,7 +255,7 @@ adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'retail']), asy
   });
 });
 
-adminOrdersRouter.post('/:id/ready', requireRole(['developer', 'admin']), async (c) => {
+adminOrdersRouter.post('/:id/ready', requireRole(['developer', 'admin', 'staff']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const orderId = c.req.param('id');
 
@@ -372,7 +372,7 @@ adminOrdersRouter.post('/:id/ready', requireRole(['developer', 'admin']), async 
 
 adminOrdersRouter.patch(
   '/:id/status',
-  requireRole(['developer', 'admin']),
+  requireRole(['developer', 'admin', 'staff']),
   zValidator('json', OrderStatusUpdateSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
@@ -504,7 +504,7 @@ const VerifyQrSchema = z.object({
 
 adminOrdersRouter.post(
   '/verify-qr',
-  requireRole(['developer', 'admin', 'retail', 'staff']),
+  requireRole(['developer', 'admin', 'staff', 'printer']),
   zValidator('json', VerifyQrSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
@@ -624,7 +624,7 @@ const CollectQrSchema = z.object({
 
 adminOrdersRouter.post(
   '/collect-qr',
-  requireRole(['developer', 'admin', 'retail', 'staff']),
+  requireRole(['developer', 'admin', 'staff', 'printer']),
   zValidator('json', CollectQrSchema),
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
@@ -751,7 +751,7 @@ adminOrdersRouter.post(
   }
 );
 
-adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'retail', 'staff']), async (c) => {
+adminOrdersRouter.post('/:id/collect', requireRole(['developer', 'admin', 'staff', 'printer']), async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const adminUser = c.get('user');
   const orderId = c.req.param('id');

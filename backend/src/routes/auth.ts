@@ -88,7 +88,7 @@ authRouter.patch('/me/profile', zValidator('json', ProfileUpdateSchema), async (
       }
 
       updateFields.teacher_id = formattedId;
-      updateFields.requested_account_type = 'staff';
+      updateFields.requested_account_type = 'staff_t';
       updateFields.staff_approval_status = 'pending';
     } else {
       updateFields.teacher_id = null;

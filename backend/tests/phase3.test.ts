@@ -13,9 +13,9 @@ describe('Phase 3: Staff Approvals, Menu Management & R2 Uploads Test Suite', ()
     id: 'adm-001',
     display_name: 'Campus Admin',
     avatar_key: null,
-    account_type: 'staff' as const,
-    requested_account_type: 'staff' as const,
-    approved_account_type: 'staff' as const,
+    account_type: 'staff_t' as const,
+    requested_account_type: 'staff_t' as const,
+    approved_account_type: 'staff_t' as const,
     staff_approval_status: 'approved' as const,
     reviewed_by: null,
     reviewed_at: null,
@@ -312,7 +312,7 @@ describe('Phase 3: Staff Approvals, Menu Management & R2 Uploads Test Suite', ()
               single: vi.fn().mockResolvedValue({
                 data: {
                   id: 'usr-staff-pending',
-                  approved_account_type: 'staff',
+                  approved_account_type: 'staff_t',
                   staff_approval_status: 'approved',
                   reviewed_by: mockAdminUser.id,
                 },
@@ -336,7 +336,7 @@ describe('Phase 3: Staff Approvals, Menu Management & R2 Uploads Test Suite', ()
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.staff_approval_status).toBe('approved');
-    expect(body.data.approved_account_type).toBe('staff');
+    expect(body.data.approved_account_type).toBe('staff_t');
   });
 
   it('POST /api/v1/admin/staff-requests/:id/reject sets status to rejected and keeps student type', async () => {

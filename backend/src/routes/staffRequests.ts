@@ -117,7 +117,7 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
     );
   }
 
-  const targetAccountType = existing.requested_account_type || 'staff';
+  const targetAccountType = 'staff_t';
 
   const { data, error } = await adminClient
     .from('profiles')

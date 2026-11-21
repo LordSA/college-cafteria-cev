@@ -184,7 +184,7 @@ describe('Backend API & Auth Middleware Suite', () => {
       id: 'adm-99999-test',
       display_name: 'Canteen Manager',
       avatar_key: null,
-      account_type: 'staff' as const,
+      account_type: 'staff_t' as const,
       app_role: 'admin' as const,
       created_at: '2026-10-20T08:00:00.000Z',
       updated_at: '2026-10-20T08:00:00.000Z',

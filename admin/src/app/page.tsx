@@ -313,11 +313,8 @@ export default function AdminDashboardPage() {
         <main className="xl:col-span-8 space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                Cafeteria.cev • Operations Command Center
-              </span>
               <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-[#252525] mt-1">
-                Kitchen & Financial Overview
+                Dashboard
               </h1>
             </div>
 
@@ -330,32 +327,6 @@ export default function AdminDashboardPage() {
                 />
                 <Search className="absolute right-3.5 top-2.5 h-3.5 w-3.5 text-[#888888]" />
               </div>
-
-              <div className="flex items-center gap-2.5 rounded-full bg-[#FFF7F0] border border-[#F47721]/30 p-1 pr-3">
-                <div className="h-7 w-7 rounded-full overflow-hidden border border-[#F47721]/30 shadow-xs">
-                  <img
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=faces"
-                    alt="Admin user avatar"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-col leading-tight">
-                  <span className="text-xs font-bold text-[#252525] hidden sm:inline max-w-[110px] truncate">
-                    {adminProfile?.display_name || adminUser.email?.split('@')[0]}
-                  </span>
-                  <span className="text-[9px] uppercase font-black text-[#F47721] hidden sm:inline">
-                    {role || 'Admin'}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={signOut}
-                title="Sign Out"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FAFAFA] border border-[#EEEEEE] text-[#666666] hover:text-[#D94A43] hover:bg-red-50 transition"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
             </div>
           </header>
 
@@ -367,9 +338,6 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#F47721] text-white shadow-xs">
-                      <Timer className="h-4 w-4" />
-                    </div>
                     <h3 className="text-xs font-bold text-[#252525] tracking-wide">Live Orders Queue</h3>
                   </div>
                   {statsLoading ? (
@@ -380,25 +348,10 @@ export default function AdminDashboardPage() {
                     </span>
                   )}
                 </div>
-
-                <div className="mt-4 space-y-2 text-[11px] text-[#666666]">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>Real-time counter tickets</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>Instant optical QR collection</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>Zero middle-stage latency</span>
-                  </div>
-                </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-[#F47721]/20 flex items-center justify-between text-[11px] text-[#F47721] font-bold">
-                <span>View Kitchen Queue</span>
+                <span>View Queue</span>
                 <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
               </div>
             </Link>
@@ -410,34 +363,16 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs">
-                      <Trophy className="h-4 w-4" />
-                    </div>
                     <h3 className="text-xs font-bold text-[#252525] tracking-wide">Pantry Inventory</h3>
                   </div>
                   <span className="rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-0.5 border border-amber-300">
                     {stats.availableMenu}/{stats.totalMenu} Live
                   </span>
                 </div>
-
-                <div className="mt-4 space-y-2 text-[11px] text-[#666666]">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>Atomic portion decrement on cart</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>5-min customer hold reservation</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-amber-600 flex-shrink-0" />
-                    <span>{stats.lowStockCount} items near threshold</span>
-                  </div>
-                </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-amber-100 flex items-center justify-between text-[11px] text-amber-700 font-bold group-hover:text-amber-800">
-                <span>Manage Pantry Portions</span>
+                <span>Manage Pantry</span>
                 <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
               </div>
             </Link>
@@ -449,29 +384,11 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30">
-                      <Settings className="h-4 w-4" />
-                    </div>
-                    <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff & Governance</h3>
+                    <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff Requests</h3>
                   </div>
                   <span className="rounded-full bg-[#FFF7F0] text-[#F47721] text-[10px] font-bold px-2 py-0.5 border border-[#F47721]/30">
                     {stats.pendingStaff} Pending
                   </span>
-                </div>
-
-                <div className="mt-4 space-y-2 text-[11px] text-[#666666]">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>Teacher ID verification queue</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#269B62] flex-shrink-0" />
-                    <span>4-tier RBAC authorization</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-[#888888] flex-shrink-0" />
-                    <span>Faculty credit ledger access</span>
-                  </div>
                 </div>
               </div>
 
@@ -485,7 +402,7 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
               <div>
-                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Financial Overview & Velocity</h2>
+                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Financial Overview</h2>
                 <div className="flex items-center gap-2.5 mt-2 text-[11px]">
                   <span className="rounded-lg bg-[#FAFAFA] border border-[#EEEEEE] px-2.5 py-1 text-[#666666]">
                     Gross: <strong className="text-[#252525] font-black">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN')}</strong>
@@ -615,10 +532,7 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30">
-                  <Clock className="h-4 w-4 text-[#F47721]" />
-                </div>
-                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Live Kitchen Stream</h2>
+                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Live Orders</h2>
               </div>
               <Link
                 href="/orders"
@@ -695,10 +609,7 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-50 text-amber-600 border border-amber-200">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                </div>
-                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Pantry Portion Alerts</h3>
+                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Low Stock Alerts</h3>
               </div>
               <Link href="/inventory" className="text-[11px] font-bold text-[#F47721] hover:underline">
                 Manage
@@ -708,7 +619,7 @@ export default function AdminDashboardPage() {
             {lowStockItems.length === 0 ? (
               <div className="p-4 text-center">
                 <CheckCircle2 className="h-6 w-6 text-[#269B62] mx-auto mb-1" />
-                <p className="text-xs text-[#666666]">All pantry inventory portions healthy</p>
+                <p className="text-xs text-[#666666]">All Stocks ok</p>
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -735,10 +646,7 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30">
-                  <Users className="h-3.5 w-3.5" />
-                </div>
-                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff Authorization Queue</h3>
+                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff Request Queue</h3>
               </div>
               <Link href="/staff-requests" className="text-[11px] font-bold text-[#F47721] hover:underline">
                 Review All
@@ -748,7 +656,7 @@ export default function AdminDashboardPage() {
             {pendingStaffList.length === 0 ? (
               <div className="p-4 text-center">
                 <CheckCircle2 className="h-6 w-6 text-[#269B62] mx-auto mb-1" />
-                <p className="text-xs text-[#666666]">No pending staff applications</p>
+                <p className="text-xs text-[#666666]">No pending staff requests</p>
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -770,46 +678,6 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
             )}
-          </div>
-
-          <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-3">
-            <h3 className="text-xs font-bold text-[#252525] tracking-wide border-b border-[#EEEEEE] pb-2">
-              Counter Fast Dispatch
-            </h3>
-
-            <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-              <Link
-                href="/scan"
-                className="rounded-xl bg-gradient-to-r from-[#F68536] via-[#F47721] to-[#E06310] hover:from-[#E06310] hover:to-[#C75207] p-3 text-white text-center shadow-md shadow-[#F47721]/30 border border-[#F47721] ring-2 ring-[#F47721]/20 font-black transition-all flex flex-col items-center justify-center gap-1.5 active:scale-95"
-              >
-                <QrCode className="h-4 w-4" />
-                <span>Scan QR Pass</span>
-              </Link>
-
-              <Link
-                href="/orders"
-                className="rounded-xl bg-[#FFF7F0] hover:bg-[#F47721] text-[#F47721] hover:text-white border-2 border-[#F47721]/30 hover:border-[#F47721] p-3 text-center shadow-xs transition flex flex-col items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Timer className="h-4 w-4" />
-                <span>Orders Queue</span>
-              </Link>
-
-              <Link
-                href="/inventory"
-                className="rounded-xl bg-[#FAFAFA] hover:bg-[#FFF7F0] border border-[#EEEEEE] hover:border-[#F47721]/30 p-3 text-[#252525] hover:text-[#F47721] text-center transition flex flex-col items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Trophy className="h-4 w-4 text-amber-600" />
-                <span>Portions & 86</span>
-              </Link>
-
-              <Link
-                href="/menu"
-                className="rounded-xl bg-[#FAFAFA] hover:bg-[#FFF7F0] border border-[#EEEEEE] hover:border-[#F47721]/30 p-3 text-[#252525] hover:text-[#F47721] text-center transition flex flex-col items-center justify-center gap-1.5 active:scale-95"
-              >
-                <Bookmark className="h-4 w-4 text-[#F47721]" />
-                <span>Menu Dishes</span>
-              </Link>
-            </div>
           </div>
         </aside>
       </div>

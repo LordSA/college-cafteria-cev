@@ -18,7 +18,7 @@ export const adminInventoryRouter = new Hono<{
 }>();
 
 adminInventoryRouter.use('*', requireAuth);
-adminInventoryRouter.use('*', requireRole(['developer', 'admin', 'retail']));
+adminInventoryRouter.use('*', requireRole(['developer', 'admin', 'retail', 'staff']));
 
 adminInventoryRouter.get('/', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);

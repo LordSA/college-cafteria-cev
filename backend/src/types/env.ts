@@ -19,9 +19,10 @@ export interface Env {
 }
 
 export type StorageProviderType = 'supabase' | 'r2';
-export type AccountType = 'student' | 'staff' | 'faculty';
+export type AccountType = 'student' | 'staff_t' | 'guest';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
-export type AppRole = 'customer' | 'developer' | 'admin' | 'retail' | 'staff';
+export type AppRole = 'customer' | 'developer' | 'admin' | 'retail' | 'staff' | 'printer';
+export type AdminRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer';
 
 export interface UserProfile {
   id: string;

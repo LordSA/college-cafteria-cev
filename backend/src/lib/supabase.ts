@@ -103,20 +103,34 @@ export async function verifySupabaseToken(
     };
   }
 
+  const mapAccountType = (type?: string | null): AccountType => {
+    if (type === 'staff' || type === 'staff_t') return 'staff_t';
+    if (type === 'guest') return 'guest';
+    return 'student';
+  };
+
+  const mapAppRole = (role?: string | null): AppRole => {
+    const validRoles: AppRole[] = ['customer', 'developer', 'admin', 'retail', 'staff', 'printer'];
+    if (role && validRoles.includes(role as AppRole)) {
+      return role as AppRole;
+    }
+    return 'customer';
+  };
+
   const profile: UserProfile = profileData
     ? {
         id: profileData.id,
         display_name: profileData.display_name,
         avatar_key: profileData.avatar_key,
-        account_type: (profileData.approved_account_type === 'staff' ? 'staff' : 'student') as AccountType,
-        requested_account_type: (profileData.requested_account_type === 'staff' ? 'staff' : 'student') as AccountType,
-        approved_account_type: (profileData.approved_account_type === 'staff' ? 'staff' : 'student') as AccountType,
+        account_type: mapAccountType(profileData.approved_account_type || profileData.account_type),
+        requested_account_type: mapAccountType(profileData.requested_account_type),
+        approved_account_type: mapAccountType(profileData.approved_account_type),
         staff_approval_status: (['not_requested', 'pending', 'approved', 'rejected'].includes(profileData.staff_approval_status)
           ? profileData.staff_approval_status
           : 'not_requested') as StaffApprovalStatus,
         reviewed_by: profileData.reviewed_by ?? null,
         reviewed_at: profileData.reviewed_at ?? null,
-        app_role: (profileData.app_role === 'admin' ? 'admin' : 'customer') as AppRole,
+        app_role: mapAppRole(profileData.app_role),
         created_at: profileData.created_at,
         updated_at: profileData.updated_at,
       }
@@ -124,10 +138,10 @@ export async function verifySupabaseToken(
         id: user.id,
         display_name: (userData.user.user_metadata?.display_name as string) || (user.email ? user.email.split('@')[0] : 'User'),
         avatar_key: null,
-        account_type: 'student',
-        requested_account_type: (userData.user.user_metadata?.account_type === 'staff' ? 'staff' : 'student') as AccountType,
-        approved_account_type: 'student',
-        staff_approval_status: userData.user.user_metadata?.account_type === 'staff' ? 'pending' : 'not_requested',
+        account_type: mapAccountType(userData.user.user_metadata?.account_type as string),
+        requested_account_type: mapAccountType(userData.user.user_metadata?.account_type as string),
+        approved_account_type: (userData.user.user_metadata?.account_type === 'guest' ? 'guest' : 'student') as AccountType,
+        staff_approval_status: (userData.user.user_metadata?.account_type === 'staff' || userData.user.user_metadata?.account_type === 'staff_t') ? 'pending' : 'not_requested',
         reviewed_by: null,
         reviewed_at: null,
         app_role: 'customer',

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { requireAuth, requireAdmin, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
 import { getPublicImageUrl } from '../lib/storage';
 
@@ -84,7 +84,7 @@ publicMenuRouter.get('/', async (c) => {
 });
 
 adminMenuRouter.use('*', requireAuth);
-adminMenuRouter.use('*', requireAdmin);
+adminMenuRouter.use('*', requireRole(['developer', 'admin', 'staff']));
 
 adminMenuRouter.get('/', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
@@ -211,7 +211,7 @@ adminMenuRouter.patch(
   }
 );
 
-adminMenuRouter.delete('/:id', async (c) => {
+adminMenuRouter.delete('/:id', requireAdmin, async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
   const id = c.req.param('id');
 

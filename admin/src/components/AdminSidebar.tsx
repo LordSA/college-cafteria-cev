@@ -38,11 +38,8 @@ export function AdminSidebar() {
         <div className="flex flex-col items-center gap-7">
           <Link href="/" className="flex flex-col items-center gap-1.5 group">
             <div className="flex h-10 w-10 items-center justify-center">
-              <img src="/logo_clr.svg" alt="Cafeteria Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo/logo_clr.svg" alt="Cafeteria Logo" className="h-8 w-8 object-contain" />
             </div>
-            <span className="text-[8px] font-black tracking-wider text-[#666666] group-hover:text-[#F47721] transition">
-              Cafeteria.cev
-            </span>
           </Link>
 
           <nav className="flex flex-col items-center gap-3">
@@ -54,11 +51,10 @@ export function AdminSidebar() {
                   key={link.href}
                   href={link.href}
                   title={link.label}
-                  className={`flex items-center justify-center transition active:scale-95 ${
-                    isActive
-                      ? 'h-12 w-12 rounded-[20px] bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-md shadow-[#F47721]/15 font-bold'
-                      : 'h-10 w-10 rounded-xl text-[#666666] hover:text-[#252525] hover:bg-gray-50'
-                  }`}
+                  className={`flex items-center justify-center transition active:scale-95 ${isActive
+                    ? 'h-12 w-12 rounded-[20px] bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30 shadow-md shadow-[#F47721]/15 font-bold'
+                    : 'h-10 w-10 rounded-xl text-[#666666] hover:text-[#252525] hover:bg-gray-50'
+                    }`}
                 >
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
                 </Link>
@@ -87,23 +83,20 @@ export function AdminSidebar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex flex-col items-center justify-center flex-1 min-w-[56px] py-1 px-1 rounded-xl transition active:scale-95 ${
-                  isActive
-                    ? 'text-[#F47721]'
-                    : 'text-[#666666] hover:text-[#252525]'
-                }`}
+                className={`flex flex-col items-center justify-center flex-1 min-w-[56px] py-1 px-1 rounded-xl transition active:scale-95 ${isActive
+                  ? 'text-[#F47721]'
+                  : 'text-[#666666] hover:text-[#252525]'
+                  }`}
               >
                 <div
-                  className={`flex items-center justify-center h-8 w-8 rounded-xl transition ${
-                    isActive ? 'bg-[#FFF7F0] text-[#F47721]' : ''
-                  }`}
+                  className={`flex items-center justify-center h-8 w-8 rounded-xl transition ${isActive ? 'bg-[#FFF7F0] text-[#F47721]' : ''
+                    }`}
                 >
                   <Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : 'stroke-2'}`} />
                 </div>
                 <span
-                  className={`text-[9px] font-medium tracking-tight mt-0.5 truncate max-w-[62px] ${
-                    isActive ? 'font-bold text-[#F47721]' : ''
-                  }`}
+                  className={`text-[9px] font-medium tracking-tight mt-0.5 truncate max-w-[62px] ${isActive ? 'font-bold text-[#F47721]' : ''
+                    }`}
                 >
                   {link.shortLabel}
                 </span>
