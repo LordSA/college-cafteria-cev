@@ -13,15 +13,14 @@ export function Footer() {
           fill="#F47721"
         />
       </svg>
-      <footer className="w-full bg-[#F47721] text-white pt-2 pb-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-center sm:text-left">
-          <div className="flex items-center gap-2 text-white/90">
-            <span className="font-extrabold text-sm tracking-widest uppercase">CAFETERIA</span>
-            <span>·</span>
-            <span className="text-xs font-medium">College of Engineering Vadakara</span>
-          </div>
+      <footer className="w-full bg-[#F47721] text-white px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center justify-center text-center text-xs text-white">
+          <p>
+            © {new Date().getFullYear()} Cafeteria CEV. All rights reserved.
+          </p>
         </div>
       </footer>
+
     </div>
   );
 }
