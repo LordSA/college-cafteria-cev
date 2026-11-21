@@ -53,19 +53,19 @@ college-canteen-cev/
   - `src/components/Header.tsx`: Re-exports `Navbar as Header` for backward compatibility.
   - `src/components/Footer.tsx`: Modern campus canteen footer with `logo title.svg`, dark mode glassmorphic styling, and No-Refund policy statement.
   - `src/app/login/page.tsx`: Redesigned minimalist sign-in page with email, password with show/hide eye toggle, orange pill button, and "Continue with Google" OAuth.
-  - `src/app/signup/page.tsx`: Redesigned minimalist registration page with student vs faculty selection, conditional Teacher ID capture, orange pill button, and "Continue with Google".
+  - `src/app/signup/page.tsx`: Redesigned minimalist registration page with 3-way campus classification toggle (Student, Teacher / Faculty `staff_t`, Guest `guest`), conditional Teacher ID capture for teachers, orange pill button, and "Continue with Google".
   - `src/app/verify-email/page.tsx`: 6-digit OTP verification page with resend cooldown timer and automatic redirection to home (`/`).
   - `src/app/forgot-password/page.tsx`: Email password recovery dispatch page.
   - `src/app/reset-password/page.tsx`: New password submission page.
-  - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Appearance & Theme 3-way toggle (`Device`, `Dark`, `Light`), Account Security (Change Password modal popup card, Google Account Link/Unlink, Sign Out), and Account Information.
-  - `src/app/profile/page.tsx`: Account profile with role displayed under name, circular profile avatar with camera overlay badge opening interactive preset SVG avatar selection modal (`avatar-1.svg` to `avatar-5.svg`), phone number input, Pay Later dues settlement via UPI, gear icon link to `/settings`, and prominent bottom red Sign Out button.
+  - `src/app/settings/page.tsx`: Dedicated Account Settings page featuring Appearance & Theme 3-way toggle (`Device`, `Dark`, `Light`), Account Security (Change Password modal popup card, Google Account Link/Unlink, Sign Out), and Account Information with 3-tier classification badges.
+  - `src/app/profile/page.tsx`: Account profile with role and classification displayed under name (Student, Teacher / Faculty `staff_t`, Guest Diner `guest`), circular profile avatar with camera overlay badge opening interactive preset SVG avatar selection modal, phone number input, Pay Later dues settlement via UPI, gear icon link to `/settings`, and prominent bottom red Sign Out button.
   - `src/app/menu/page.tsx`: Menu page featuring curved gradient header (`rounded-b-[2.5rem]` mobile, `rounded-3xl` desktop), real-time live search bar, category filter modal, live ₹ pricing, stock display, item quantity steppers, 5-minute reservation timer banner, and floating bottom cart bar. Auth-gated with automatic redirect to `/login`.
   - `src/app/cart/page.tsx`: Shopping cart management page featuring curved gradient header, line items, line totals, 5-minute lock countdown with automatic expired item eviction, clear cart control, and "My Orders" access buttons. Auth-gated with automatic redirect to `/login`.
   - `src/app/orders/page.tsx`: Orders management page showing active preparation queues and receipts. Auth-gated with automatic redirect to `/login`.
   - `src/app/orders/track/page.tsx`: Live order tracking page with QR pickup pass and strict No-Refund policy disclosure.
   - `src/app/orders/receipt/page.tsx`: Printable customer receipt with order token, QR verification token, and strict No-Refund policy disclosure.
   - `src/app/wallet/page.tsx`: Legacy route redirected automatically to `/`.
-  - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, fallback for testing wallet (in test mode), and Faculty Pay Later. Includes sanitized `API_BASE_URL` and JSON-body idempotency key passing.
+  - `src/app/checkout/page.tsx`: Order checkout page integrating Razorpay Standard Checkout in integer paise (INR), signature verification API call, and Faculty Pay Later strictly reserved for approved `staff_t` accounts. Includes sanitized `API_BASE_URL` and JSON-body idempotency key passing.
   - `src/app/checkout/page.tsx`: Takeaway checkout page featuring real-time menu availability validation (`?t=${Date.now()}` with `{ cache: 'no-store' }`), Razorpay Standard Checkout modal integration, order ID resolution (`data.data.id || data.data.order_id`), server payment verification dispatch (`POST /api/v1/orders/verify-payment`), faculty pay later submission, and strict No-Refund policy disclosure.
   - `src/app/checkout/success/page.tsx`: Order confirmation screen featuring the mechanical `ReceiptPrinterAnimation` thermal takeaway ticket, live pickup token, and quick action buttons. Supports both `order_id` and `id` query parameters (`searchParams.get('order_id') || searchParams.get('id')`).
   - `src/app/wallet/page.tsx`: Testing wallet dashboard showing demo credits balance and auditable transaction ledger.
@@ -90,26 +90,27 @@ college-canteen-cev/
 * **Key Files:**
   - `src/app/layout.tsx`: Root HTML shell with `AdminAuthProvider` and clean white background.
   - `src/app/globals.css`: Brand theme variables, Inter typography, `.btn-glazed-orange`, `.focus-ring`, and safe area spacing.
-  - `src/components/AdminSidebar.tsx`: Pure white responsive navigation rail on desktop (`hidden md:flex md:w-20`) with Cafeteria.cev branding, brand logo, role-gated icon navigation, and active `#F47721` orange pill highlight on `#FFF7F0`.
-  - `src/components/Header.tsx`: Content area top header featuring Cafeteria.cev identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`), user profile avatar, and sign out control.
+  - `src/components/AdminSidebar.tsx`: Pure white responsive navigation rail on desktop (`hidden md:flex md:w-20`) with Cafeteria.cev branding, brand logo, role-gated icon navigation, and active `#F47721` orange pill highlight on `#FFF7F0`. Filtered dynamically according to 5 operational roles (`developer`, `admin`, `staff`, `retail`, `printer`).
+  - `src/components/Header.tsx`: Content area top header featuring Cafeteria.cev identity, role badges (`DEVELOPER`, `ADMIN`, `RETAIL`, `STAFF`, `PRINTER`), user profile avatar, and sign out control.
   - `src/components/Footer.tsx`: Organic curved wave SVG vector grounding into the `#F47721` orange footer with mandatory institutional attribution: `Designed and Developed by IEDC CEV · CAFETERIA · College of Engineering Vadakara`.
   - `src/components/ApiHealthBadge.tsx`: Standalone pill badge monitoring `/health` status with primary orange accent.
-  - `src/app/page.tsx`: Operations Command Center with persistent `AdminSidebar` navigation rail, real kitchen order queue stream, pantry low-stock portion alerts, pending staff queue, financial velocity chart, real financial overview metrics from `GET /api/v1/admin/reports/stats`, dynamic Excel Export (`.xlsx`) button downloading from `GET /api/v1/admin/reports/export`, and mobile bottom clearance padding.
-  - `src/app/developer/page.tsx`: Developer Console with system diagnostics (payment mode, webhook health, runtime) and user role management table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`).
-  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard with status tab pills (`all`, `ORDER_PLACED`, `COLLECTED`), search pill, stage badges, Pay Later payment indicators, items checklist drawer, and direct links to scan/complete orders.
+  - `src/app/page.tsx`: Operations Command Center with persistent `AdminSidebar` navigation rail, role-based entry redirection (`staff` -> `/orders`, `retail` -> `/inventory`, `printer` -> `/printer`), real kitchen order queue stream, pantry low-stock alerts, pending teacher verification queue, financial velocity chart, and Excel export.
+  - `src/app/developer/page.tsx`: Developer Console restricted exclusively to `developer` with system diagnostics (payment mode, webhook health, runtime) and user role authority table (`GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`) supporting all 5 admin roles + Customer.
+  - `src/app/orders/page.tsx`: Kitchen dispatch and live order management dashboard for `developer`, `admin`, and `staff` with status tab pills (`all`, `ORDER_PLACED`, `COLLECTED`), search pill, stage badges, Pay Later payment indicators, items checklist drawer, and direct links to scan/complete orders.
   - `src/app/orders/receipt/page.tsx`: Cashier printable register bill layout (`@media print`) powered by `GET /api/v1/admin/orders/:id/receipt`.
   - `src/app/scan/page.tsx`: Camera scanner viewport with manual token fallback, order verification card with item checklist, and direct "Complete Order (Mark as Collected)" one-click action.
+  - `src/app/printer/page.tsx`: Dedicated hardware kiosk & thermal bill printer interface for `printer` role (and kitchen staff) with auto-focused scanner stroke capture, automated token submission via `/api/v1/admin/orders/collect-qr`, live ESC/POS thermal receipt preview, auto-print triggering, and hardware settings.
   - `src/app/wallets/page.tsx`: Customer testing wallet management, search pill, balance adjustment modal, and customer ledger dialog in clean white & orange design.
-  - `src/app/inventory/page.tsx`: Pantry inventory management table with low-stock alerts, stock quantity editing drawer, and 1-click toggles.
-  - `src/app/login/page.tsx`: Restricted admin sign-in with clean white & orange container card.
+  - `src/app/inventory/page.tsx`: Pantry inventory management table with low-stock alerts, stock quantity editing drawer, and 1-click toggles. Accessible to `developer`, `admin`, `staff`, and `retail` (retail is restricted strictly to stock quantity adjustments).
+  - `src/app/login/page.tsx`: Restricted admin sign-in with clean white & orange container card, directing users to their designated role dashboard upon authentication.
   - `src/app/forgot-password/page.tsx`: Administrator password recovery request card.
   - `src/app/reset-password/page.tsx`: Administrator password reset submission card.
-  - `src/app/staff-requests/page.tsx`: Operational review board for pending staff account approvals displaying applicant Teacher ID badge alongside email and registration date.
+  - `src/app/staff-requests/page.tsx`: Operational review board for pending Teacher & Faculty (`staff_t`) account approvals displaying applicant Teacher ID badge alongside email and registration date.
   - `src/app/categories/page.tsx`: Category management (list, add card, active toggle).
-  - `src/app/menu/page.tsx`: Menu item catalog management.
+  - `src/app/menu/page.tsx`: Menu item catalog management. Allows `developer`, `admin`, and `staff` (store workers) to add and manage dishes; restricted from `retail`.
   - `src/app/unauthorized/page.tsx`: Access denied screen for non-admin accounts.
   - `src/app/not-found.tsx`: Clean 404 administration error page.
-  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 4-tier roles (`developer`, `admin`, `retail`, `staff`) with permission flags (`isDeveloper`, `isAdmin`, `isRetail`, `isStaff`, `canManageUsers`, `canManageInventory`, `canManageOrders`, `canScanQr`, `canViewReports`).
+  - `src/context/AdminAuthContext.tsx`: Admin session provider verifying 5-tier roles (`developer`, `admin`, `staff`, `retail`, `printer`) with permission flags (`isDeveloper`, `isAdmin`, `isStaff`, `isRetail`, `isPrinter`, `canAccessDeveloper`, `canAccessDashboard`, `canManageUsers`, `canManageInventory`, `canUpdateStockOnly`, `canManageMenu`, `canManageOrders`, `canScanQr`, `canReviewStaff`, `canViewReports`).
   - `src/lib/supabase.ts`: Singleton browser client for Supabase Auth.
 
 ### 2.3 Backend API (`backend/`)

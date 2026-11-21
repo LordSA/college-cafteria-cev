@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -34,7 +33,7 @@ interface InventoryItem {
   updated_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminInventoryPage() {
   const router = useRouter();
@@ -166,13 +165,13 @@ export default function AdminInventoryPage() {
         prev.map((i) =>
           i.id === editingItem.id
             ? {
-                ...i,
-                stock_quantity: editStock,
-                low_stock_threshold: editThreshold,
-                track_inventory: editTrack,
-                is_available: editAvailable,
-                is_low_stock: editTrack && editStock <= editThreshold,
-              }
+              ...i,
+              stock_quantity: editStock,
+              low_stock_threshold: editThreshold,
+              track_inventory: editTrack,
+              is_available: editAvailable,
+              is_low_stock: editTrack && editStock <= editThreshold,
+            }
             : i
         )
       );
@@ -190,19 +189,14 @@ export default function AdminInventoryPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                  Cafeteria.cev • Kitchen Stock & Roster
-                </span>
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                  Real-Time Inventory & 86 Management
+                  Inventory Management
                 </h1>
                 <p className="mt-1 text-xs text-[#666666]">
-                  Live portion counters, atomic deductions, and instant menu item cut-off toggles
                 </p>
               </div>
 
@@ -211,7 +205,7 @@ export default function AdminInventoryPage() {
                 className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs self-start sm:self-auto"
               >
                 <RefreshCw className="h-3.5 w-3.5 text-[#F47721]" />
-                <span>Refresh Stock</span>
+                <span>Refresh</span>
               </button>
             </div>
 
@@ -226,24 +220,22 @@ export default function AdminInventoryPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setLowStockFilter(false)}
-                  className={`rounded-xl px-4 py-1.5 text-xs font-bold transition ${
-                    !lowStockFilter
-                      ? 'bg-[#F47721] text-white shadow-md shadow-[#F47721]/20'
-                      : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
-                  }`}
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${!lowStockFilter
+                    ? 'bg-[#F47721] text-white shadow-md shadow-[#F47721]/20'
+                    : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
+                    }`}
                 >
-                  All Menu Dishes
+                  All Menu
                 </button>
                 <button
                   onClick={() => setLowStockFilter(true)}
-                  className={`rounded-xl px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
-                    lowStockFilter
-                      ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
-                      : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
-                  }`}
+                  className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${lowStockFilter
+                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                    : 'bg-white text-[#666666] border border-[#EEEEEE] hover:bg-gray-50 hover:text-[#252525]'
+                    }`}
                 >
                   <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                  <span>Low Stock Warnings</span>
+                  <span>Low Stock</span>
                 </button>
               </div>
 
@@ -255,7 +247,7 @@ export default function AdminInventoryPage() {
                     placeholder="Search item name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white pl-9 pr-4 py-2 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                    className="w-full rounded-full border border-[#EEEEEE] hover:border-gray-300 bg-white pl-9 pr-4 py-2 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                   />
                 </div>
               </div>
@@ -264,12 +256,11 @@ export default function AdminInventoryPage() {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-24 text-[#666666] gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-                <p className="text-xs font-semibold">Loading canteen inventory...</p>
+                <p className="text-xs font-semibold">Loading...</p>
               </div>
             ) : items.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center space-y-3">
-                <ClipboardList className="mx-auto h-8 w-8 text-[#888888]" />
-                <h2 className="text-sm font-bold text-[#252525]">No items match filter</h2>
+                <h2 className="text-sm font-bold text-[#252525]">No items match</h2>
                 <p className="text-xs text-[#666666]">
                   {lowStockFilter
                     ? 'All inventory items are currently above their low-stock thresholds.'
@@ -282,7 +273,7 @@ export default function AdminInventoryPage() {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#FAFAFA] border-b border-[#EEEEEE] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
                       <tr>
-                        <th className="px-5 py-3.5">Dish / Item</th>
+                        <th className="px-5 py-3.5">Item</th>
                         <th className="px-4 py-3.5">Category</th>
                         <th className="px-4 py-3.5">Price</th>
                         <th className="px-4 py-3.5">Stock Quantity</th>
@@ -316,13 +307,12 @@ export default function AdminInventoryPage() {
                             {item.track_inventory ? (
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`font-mono text-sm font-extrabold tabular-nums ${
-                                    item.stock_quantity === 0
-                                      ? 'text-[#D94A43]'
-                                      : item.is_low_stock
+                                  className={`font-mono text-sm font-extrabold tabular-nums ${item.stock_quantity === 0
+                                    ? 'text-[#D94A43]'
+                                    : item.is_low_stock
                                       ? 'text-amber-700'
                                       : 'text-[#269B62]'
-                                  }`}
+                                    }`}
                                 >
                                   {item.stock_quantity}
                                 </span>
@@ -350,11 +340,10 @@ export default function AdminInventoryPage() {
                           <td className="px-4 py-3.5">
                             <button
                               onClick={() => toggleAvailability(item)}
-                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold transition shadow-xs ${
-                                item.is_available
-                                  ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
-                                  : 'bg-red-50 border border-red-200 text-[#D94A43] hover:bg-red-100'
-                              }`}
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-bold transition shadow-xs ${item.is_available
+                                ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
+                                : 'bg-red-50 border border-red-200 text-[#D94A43] hover:bg-red-100'
+                                }`}
                               title="Click to toggle availability"
                             >
                               {item.is_available ? (
@@ -365,7 +354,7 @@ export default function AdminInventoryPage() {
                               ) : (
                                 <>
                                   <XCircle className="h-3 w-3" />
-                                  <span>86&apos;d (Sold Out)</span>
+                                  <span>Sold Out</span>
                                 </>
                               )}
                             </button>
@@ -390,7 +379,7 @@ export default function AdminInventoryPage() {
 
             {editingItem && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-                <div className="w-full max-w-md rounded-3xl border border-[#EEEEEE] bg-white p-6 shadow-2xl space-y-5">
+                <div className="w-full max-w-md rounded-2xl border border-[#EEEEEE] bg-white p-6 shadow-2xl space-y-5">
                   <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
                     <h3 className="text-base font-bold text-[#252525]">
                       Adjust Inventory: {editingItem.name}
@@ -412,7 +401,7 @@ export default function AdminInventoryPage() {
                           onChange={(e) => setEditTrack(e.target.checked)}
                           className="rounded border-[#EEEEEE] text-[#F47721] focus:ring-0"
                         />
-                        <span>Track Individual Stock for this item</span>
+                        <span>Track Individual Stock</span>
                       </label>
                       <p className="text-[11px] text-[#666666] mt-1">
                         When enabled, orders deduct stock atomically. Item is automatically marked sold out when stock hits 0.
@@ -423,12 +412,12 @@ export default function AdminInventoryPage() {
                       <>
                         <div>
                           <label className="block text-[#666666] mb-1.5 font-medium">
-                            Current Stock Quantity
+                            Stock Quantity
                           </label>
                           <div className="flex items-center gap-3">
                             <button
                               onClick={() => setEditStock((s) => Math.max(0, s - 1))}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] text-[#252525] hover:bg-gray-100"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#EEEEEE] bg-[#FAFAFA] text-[#252525] hover:bg-gray-100"
                             >
                               <Minus className="h-3.5 w-3.5" />
                             </button>
@@ -437,11 +426,11 @@ export default function AdminInventoryPage() {
                               min="0"
                               value={editStock}
                               onChange={(e) => setEditStock(Math.max(0, parseInt(e.target.value || '0', 10)))}
-                              className="w-24 rounded-xl border border-[#EEEEEE] bg-white px-3 py-1.5 font-mono text-center text-sm font-bold text-[#252525] focus:outline-none focus:border-[#F47721]"
+                              className="w-24 rounded-full border border-[#EEEEEE] bg-white px-3 py-1.5 font-mono text-center text-sm font-bold text-[#252525] focus:outline-none focus:border-[#F47721]"
                             />
                             <button
                               onClick={() => setEditStock((s) => s + 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] text-[#252525] hover:bg-gray-100"
+                              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#EEEEEE] bg-[#FAFAFA] text-[#252525] hover:bg-gray-100"
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </button>
@@ -450,17 +439,17 @@ export default function AdminInventoryPage() {
 
                         <div>
                           <label className="block text-[#666666] mb-1.5 font-medium">
-                            Low-Stock Alert Threshold
+                            Alert Threshold
                           </label>
                           <input
                             type="number"
                             min="0"
                             value={editThreshold}
                             onChange={(e) => setEditThreshold(Math.max(0, parseInt(e.target.value || '0', 10)))}
-                            className="w-24 rounded-xl border border-[#EEEEEE] bg-white px-3 py-1.5 font-mono text-center text-sm font-bold text-[#252525] focus:outline-none focus:border-[#F47721]"
+                            className="w-24 rounded-full border border-[#EEEEEE] bg-white px-3 py-1.5 font-mono text-center text-sm font-bold text-[#252525] focus:outline-none focus:border-[#F47721]"
                           />
                           <p className="text-[11px] text-[#666666] mt-1">
-                            Kitchen dashboard highlights low stock when remaining quantity is less than or equal to this number.
+                            Shows Low Alert When it is below Threshold
                           </p>
                         </div>
                       </>
@@ -474,7 +463,7 @@ export default function AdminInventoryPage() {
                           onChange={(e) => setEditAvailable(e.target.checked)}
                           className="rounded border-[#EEEEEE] text-[#F47721] focus:ring-0"
                         />
-                        <span>Dish is Available for Ordering (Not 86&apos;d)</span>
+                        <span>Ready to Supply</span>
                       </label>
                     </div>
                   </div>
@@ -493,7 +482,7 @@ export default function AdminInventoryPage() {
                       className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50"
                     >
                       {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                      <span>Save Adjustments</span>
+                      <span>Save</span>
                     </button>
                   </div>
                 </div>

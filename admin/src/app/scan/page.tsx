@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -131,12 +130,12 @@ function AdminScanContent() {
       setResult((prev) =>
         prev
           ? {
-              ...prev,
-              order_stage: 'COLLECTED',
-              order_status: 'COLLECTED',
-              collected_at: new Date().toISOString(),
-              is_eligible_for_collection: false,
-            }
+            ...prev,
+            order_stage: 'COLLECTED',
+            order_status: 'COLLECTED',
+            collected_at: new Date().toISOString(),
+            is_eligible_for_collection: false,
+          }
           : null
       );
     } catch (err: unknown) {
@@ -192,29 +191,17 @@ function AdminScanContent() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
-
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl space-y-6">
             <div className="border-b border-[#EEEEEE] pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                  Cafeteria.cev • Counter Dispatch
-                </span>
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                  QR Order Verification & Collection
+                  QR Order Scanner
                 </h1>
                 <p className="mt-1 text-xs text-[#666666]">
-                  Scan customer pickup QR pass or input manual verification token to confirm meal collection
+                  Scan customer pickup QR pass or input manual input
                 </p>
               </div>
-
-              <Link
-                href="/orders"
-                className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs self-start sm:self-auto"
-              >
-                <span>View Orders Queue</span>
-              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -222,21 +209,21 @@ function AdminScanContent() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Camera className="h-4 w-4 text-[#F47721]" />
-                    <h2 className="text-sm font-bold text-[#252525]">Camera Scanner</h2>
+                    <h2 className="text-sm font-bold text-[#252525]">Scanner</h2>
                   </div>
                   {cameraActive ? (
                     <button
                       onClick={stopCamera}
                       className="rounded-xl bg-red-50 border border-red-200 px-3 py-1 text-xs font-bold text-[#D94A43] hover:bg-red-100 transition"
                     >
-                      Stop Camera
+                      Stop
                     </button>
                   ) : (
                     <button
                       onClick={startCamera}
                       className="rounded-xl bg-[#F47721] hover:bg-[#E06310] px-4 py-1.5 text-xs font-bold text-white shadow-md shadow-[#F47721]/20 transition"
                     >
-                      Start Scanner
+                      Scan
                     </button>
                   )}
                 </div>
@@ -269,7 +256,7 @@ function AdminScanContent() {
               <div className="rounded-3xl border border-[#EEEEEE] bg-white p-6 shadow-xs space-y-4">
                 <div className="flex items-center gap-2">
                   <QrCode className="h-4 w-4 text-[#F47721]" />
-                  <h2 className="text-sm font-bold text-[#252525]">Manual Token Fallback</h2>
+                  <h2 className="text-sm font-bold text-[#252525]">Manual Token Input</h2>
                 </div>
 
                 <p className="text-xs text-[#666666]">
@@ -289,14 +276,14 @@ function AdminScanContent() {
                       value={manualToken}
                       onChange={(e) => setManualToken(e.target.value)}
                       placeholder="CAF-QR-..."
-                      className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 font-mono text-xs text-[#252525] placeholder:text-[#888888] uppercase focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      className="w-full rounded-full border border-[#EEEEEE] hover:border-gray-300 bg-white px-4 py-2.5 font-mono text-xs text-[#252525] placeholder:text-[#888888] uppercase focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={verifying || !manualToken.trim()}
-                    className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] py-2.5 text-xs font-bold text-white shadow-md shadow-[#F47721]/20 transition disabled:opacity-50 active:scale-95"
+                    className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-[#F47721] hover:bg-[#E06310] py-2.5 text-xs font-bold text-white shadow-md shadow-[#F47721]/20 transition disabled:opacity-50 active:scale-95"
                   >
                     {verifying ? (
                       <>
@@ -306,7 +293,7 @@ function AdminScanContent() {
                     ) : (
                       <>
                         <QrCode className="h-3.5 w-3.5" />
-                        <span>Verify Order Pass</span>
+                        <span>Verify Order</span>
                       </>
                     )}
                   </button>
@@ -330,19 +317,17 @@ function AdminScanContent() {
                         {result.order_number}
                       </span>
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                          result.payment_status === 'paid'
-                            ? 'bg-green-50 text-[#269B62] border-green-200'
-                            : 'bg-amber-50 text-amber-700 border-amber-200'
-                        }`}
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${result.payment_status === 'paid'
+                          ? 'bg-green-50 text-[#269B62] border-green-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}
                       >
                         {result.payment_status}
                       </span>
-                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-                        stage === 'COLLECTED'
-                          ? 'bg-green-50 text-[#269B62] border-green-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
-                      }`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${stage === 'COLLECTED'
+                        ? 'bg-green-50 text-[#269B62] border-green-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}>
                         {stage}
                       </span>
                     </div>
@@ -444,7 +429,7 @@ function AdminScanContent() {
                     className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-5 py-3 text-xs font-bold text-[#252525] hover:text-[#F47721] transition active:scale-95"
                   >
                     <Printer className="h-4 w-4 text-[#F47721]" />
-                    <span>Print Receipt / Bill</span>
+                    <span>Print Receipt</span>
                   </Link>
                 </div>
               </div>

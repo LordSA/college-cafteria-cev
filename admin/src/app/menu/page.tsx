@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
@@ -42,7 +41,7 @@ interface MenuItem {
   created_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminMenuPage() {
   const router = useRouter();
@@ -306,11 +305,10 @@ export default function AdminMenuPage() {
   if (authLoading || !adminUser || isUnauthorized) {
     return (
       <>
-        <Header />
         <main className="flex-1 flex items-center justify-center py-20 bg-white">
           <div className="flex flex-col items-center gap-3 text-[#666666]">
             <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-            <p className="text-xs font-semibold">Verifying administrator authorization...</p>
+            <p className="text-xs font-semibold">Verifying...</p>
           </div>
         </main>
         <Footer />
@@ -322,26 +320,16 @@ export default function AdminMenuPage() {
     <div className="min-h-screen bg-white text-[#252525] flex flex-col md:flex-row select-none">
       <AdminSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div className="flex items-center gap-3">
-                <Link
-                  href="/"
-                  className="rounded-xl border border-[#EEEEEE] bg-white p-2 text-[#666666] hover:text-[#252525] hover:bg-gray-50 transition"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#F47721]">
-                    Cafeteria.cev • Catalog Roster
-                  </span>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Menu Item Management
+                    Menu Management
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
-                    Daily canteen dishes, instantaneous 86 availability toggles, and food catalog uploads
+                    Daily cafeteria food catalog uploads
                   </p>
                 </div>
               </div>
@@ -350,7 +338,7 @@ export default function AdminMenuPage() {
                 <button
                   onClick={loadData}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
@@ -358,10 +346,10 @@ export default function AdminMenuPage() {
 
                 <button
                   onClick={() => setShowAddForm(!showAddForm)}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-4 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-4 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition"
                 >
                   {showAddForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                  <span>{showAddForm ? 'Close Form' : 'New Menu Item'}</span>
+                  <span>{showAddForm ? 'Close Form' : 'New Item'}</span>
                 </button>
               </div>
             </div>
@@ -384,7 +372,7 @@ export default function AdminMenuPage() {
               <div className="rounded-3xl border border-[#EEEEEE] bg-white p-6 shadow-sm">
                 <h2 className="text-sm font-bold text-[#252525] flex items-center gap-2 mb-4">
                   <Utensils className="h-4 w-4 text-[#F47721]" />
-                  <span>Add Fresh Dish to Daily Menu</span>
+                  <span>Add Item</span>
                 </h2>
 
                 <form onSubmit={handleCreateItem} className="grid gap-6 md:grid-cols-2">
@@ -425,7 +413,7 @@ export default function AdminMenuPage() {
 
                     <div>
                       <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="itemPrice">
-                        Price in ₹ (Paise calculated automatically)
+                        Price(₹)
                       </label>
                       <input
                         id="itemPrice"
@@ -483,7 +471,7 @@ export default function AdminMenuPage() {
                             <span>{previewImageUrl ? 'Replace Image' : 'Select Food Image'}</span>
                           </button>
                           <p className="text-[11px] text-[#666666] leading-tight">
-                            JPEG, PNG, WebP or AVIF (Max 5MB). Storage upload authorized by backend.
+                            JPEG, PNG, WebP or AVIF (Max 5MB).
                           </p>
                           {uploadedImageKey && (
                             <p className="text-[10px] text-[#269B62] font-mono truncate max-w-[200px]">
@@ -527,7 +515,7 @@ export default function AdminMenuPage() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
                       >
                         {submitting ? (
                           <>
@@ -537,7 +525,7 @@ export default function AdminMenuPage() {
                         ) : (
                           <>
                             <Check className="h-3.5 w-3.5" />
-                            <span>Save Menu Item</span>
+                            <span>Save Item</span>
                           </>
                         )}
                       </button>
@@ -612,11 +600,10 @@ export default function AdminMenuPage() {
                             <button
                               onClick={() => handleToggleAvailability(item)}
                               disabled={actionInProgress === item.id || item.is_archived}
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition shadow-xs ${
-                                item.is_available
-                                  ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
-                                  : 'bg-red-50 border border-red-200 text-[#D94A43] hover:bg-red-100'
-                              }`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition shadow-xs ${item.is_available
+                                ? 'bg-green-50 border border-green-200 text-[#269B62] hover:bg-green-100'
+                                : 'bg-red-50 border border-red-200 text-[#D94A43] hover:bg-red-100'
+                                }`}
                             >
                               {item.is_available ? (
                                 <>

@@ -155,7 +155,7 @@ function AdminReceiptContent() {
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#666666] hover:text-[#252525] transition"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Orders Queue</span>
+          <span>Back to Orders</span>
         </Link>
 
         <button
@@ -169,9 +169,9 @@ function AdminReceiptContent() {
 
       <div className="rounded-3xl border border-[#EEEEEE] bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0 space-y-6 text-[#252525] font-sans">
         <div className="border-b border-[#EEEEEE] pb-6 text-center space-y-2">
-          <img src="/logo/logo_bl.svg" alt="icon" className="h-16 w-full object-contain drop-shadow-md" />
+          <img src="/logo/logo_bl.svg" alt="icon" className="h-16 w-full object-contain" />
           <h1 className="text-xl font-extrabold tracking-tight text-[#252525] uppercase">
-            {/* {receipt.canteen.name} */}Cafeteria CEV
+            Cafeteria CEV
           </h1>
           <div className="inline-block px-3 py-0.2 text-[10px] font-bold text-black uppercase tracking-wider">
             Receipt

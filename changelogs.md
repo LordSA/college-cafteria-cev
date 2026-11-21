@@ -10,6 +10,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Full Role Systems & Assigned Modes Reconfiguration Across Stack**:
+  - Reconfigured the role and authorization systems across customer frontend, admin frontend, backend API, and database to eliminate naming collision between campus teachers and canteen workers.
+  - **Customer 3-Tier Classification (`account_type`)**:
+    - `student`: Standard student diners with online pre-ordering via Razorpay.
+    - `staff_t`: College teachers and faculty members, registered with unique Teacher ID, subject to admin approval for Faculty Pay Later credit privileges. Designated explicitly as `staff_t` in database schema to resolve conflicts with store workers.
+    - `guest`: Visitors, guest lecturers, parents, or external campus diners. Registers without Teacher ID, bypasses staff approval queues, and places orders with standard Razorpay payment.
+  - **Admin 5-Tier Operational Role System (`app_role`)**:
+    - `developer`: Full access plus developer debug tools, system diagnostics, and user role authority (`/developer`).
+    - `admin`: Full operations authority over orders queue, menu items, categories, inventory, teacher verification review board, and financial reports without developer tools.
+    - `staff` (Store Worker): Canteen floor and kitchen workers who can view the live orders queue, scan QR tokens to accept checkout, update portion stocks, and add new dish stocks.
+    - `retail`: Stock/inventory manager ONLY. Restricted strictly to viewing pantry stock quantities and updating portion levels (cannot view orders queue, scan QR codes, or add new items).
+    - `printer`: Hardware kiosk/terminal role equipped with barcode/QR scanner and thermal receipt bill printer (`/printer`). Scans customer pickup tokens to accept checkouts and generates thermal bills via `/collect-qr` and `/:id/receipt`.
+  - **Hardware Kiosk & Thermal Printer Interface (`admin/src/app/printer/page.tsx`)**:
+    - Created future-ready hardware terminal interface with auto-focused scanner stroke capture, automated token submission via `POST /api/v1/admin/orders/collect-qr`, live ESC/POS thermal receipt preview, auto-print triggering, and hardware settings.
+  - **Database Migration (`supabase/migrations/20261121000000_reconfigure_roles_and_account_types.sql` & `backend/migrations/0010_reconfigure_roles_and_account_types.sql`)**:
+    - Added check constraints: `account_type IN ('student', 'staff_t', 'guest')` and `app_role IN ('customer', 'developer', 'admin', 'retail', 'staff', 'printer')`.
+    - Migrated legacy `staff` account types to `staff_t`.
+    - Updated `handle_new_user()`, `review_staff_request()`, and `set_user_role()` database triggers and functions.
+  - **Backend API Endpoints & Route Guards**:
+    - Updated `verifySupabaseToken()` to map all 6 `app_role` and 3 `account_type` values without lossy fallback.
+    - Updated route guards in `adminRouter`, `adminOrdersRouter`, `adminInventoryRouter`, `adminMenuRouter`, `staffRequestsRouter`, and `ordersRouter`.
+    - Added comprehensive unit test suite in `backend/tests/reconfigured_roles.test.ts`. 100% test pass rate (88/88 tests passing).
+  - **Zero Comments Enforcement**:
+    - Scanned and verified zero comments across all modified source code files (`.ts`, `.tsx`, `.js`, `.css`) in customer, admin, and backend.
 - **Admin Dashboard Visual Balance & Warmth Enhancement (`admin/src/app/page.tsx`)**:
   - Enhanced Admin homepage color balance by infusing warm culinary orange (`#F47721`), peach (`#FFF7F0`), and amber accents across stat cards, financial stream, and quick dispatch grid without changing layout or element positions.
   - Prominently styled the hero "Scan QR Pass" button in Counter Fast Dispatch with a high-contrast orange gradient (`from-[#F68536] via-[#F47721] to-[#E06310]`), elevation shadow, and focus ring to make it the most prominent action on the screen.

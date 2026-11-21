@@ -5,14 +5,15 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Timer,
-  Trophy,
-  Calendar,
-  Bookmark,
+  ListTodo,
+  ListCollapse,
   Layers,
   Settings,
   Terminal,
   Printer,
   LogOut,
+  QrCode,
+  FileCheck,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -34,11 +35,11 @@ export function AdminSidebar() {
   const navLinks = [
     { label: 'Dashboard', shortLabel: 'Dashboard', href: '/', icon: Home, show: canAccessDashboard },
     { label: 'Orders Queue', shortLabel: 'Orders', href: '/orders', icon: Timer, show: canManageOrders },
-    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: Calendar, show: canScanQr && !isPrinter },
-    { label: 'Pantry Inventory', shortLabel: 'Inventory', href: '/inventory', icon: Trophy, show: canManageInventory || canUpdateStockOnly },
-    { label: 'Menu Dishes', shortLabel: 'Menu', href: '/menu', icon: Bookmark, show: canManageMenu },
+    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: QrCode, show: canScanQr && !isPrinter },
+    { label: 'Inventory', shortLabel: 'Inventory', href: '/inventory', icon: ListTodo, show: canManageInventory || canUpdateStockOnly },
+    { label: 'Menu', shortLabel: 'Menu', href: '/menu', icon: ListCollapse, show: canManageMenu },
     { label: 'Categories', shortLabel: 'Categories', href: '/categories', icon: Layers, show: canReviewStaff },
-    { label: 'Teacher Requests', shortLabel: 'Teachers', href: '/staff-requests', icon: Settings, show: canReviewStaff },
+    { label: 'Teacher Requests', shortLabel: 'Teachers', href: '/staff-requests', icon: FileCheck, show: canReviewStaff },
     { label: 'Printer Kiosk', shortLabel: 'Printer', href: '/printer', icon: Printer, show: isPrinter },
     { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: canAccessDeveloper },
   ];
