@@ -10,6 +10,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Inventory Stock Ceiling Enforcement on Order Increments**:
+  - Disabled `+` increment button and `+ Add` button across Menu (`/menu`), Home (`/`), and Cart (`/cart`) when an item's available inventory reaches zero or when cart quantity matches available stock portions.
+  - Added warning banner feedback in the Cart modal if a user attempts to increment quantity beyond available portions.
+- **Direct Faculty Teacher Management (`admin/src/app/staff-requests/page.tsx`)**:
+  - Overhauled Staff Requests into a dedicated "Teachers Management" administrative module.
+  - Administrators can directly register new faculty teachers with email, initial password, full name, and Teacher ID via `POST /api/v1/admin/staff-requests/teachers/create`.
+  - Administrators can promote any existing registered user account to Faculty Teacher (`staff_t`) with a designated Teacher ID via `POST /api/v1/admin/staff-requests/teachers/assign`.
+  - Added faculty teacher revocation via `POST /api/v1/admin/staff-requests/teachers/revoke`.
+- **Integrated Category Management in Menu Management (`admin/src/app/menu/page.tsx`)**:
+  - Merged category creation, editing, active status toggling, and deletion into the Menu Management page via a dual-tab switcher (`Menu Dishes` vs `Categories`).
+  - Added category edit modal, display sort order controls, and direct category deletion.
+- **Admin Dashboard Real Financial Velocity & Today's Live Payments (`admin/src/app/page.tsx`)**:
+  - Replaced static SVG mock graphs with a mathematically computed, dynamic SVG velocity curve mapped directly to real database orders by timeframe (`daily`, `weekly`, `monthly`).
+  - Added dynamic Y-axis and X-axis scaling based on live revenue totals.
+  - Converted top staff request card to "Teachers Registered" metric linking to `/staff-requests`.
+  - Replaced staff request queue on the right sidebar with "Today's Live Payments" listing today's customer names, order numbers, times, amounts, and payment method badges.
+- **Financial Ledger & Payment Audit Logs Page (`admin/src/app/financial/page.tsx`)**:
+  - Created dedicated `/financial` audit ledger displaying all historical transactions, customer details, payment gateway references (`razorpay_payment_id`), and payment statuses.
+  - Added real-time text search filtering across Order #, customer name, email, and transaction ID.
+  - Integrated 3-column simplified Excel export (`Order No`, `Payment Date`, `Total Payment Money`).
+- **Customer Orders Filter (Today vs Past Orders)**:
+  - In `customer/src/app/orders/page.tsx`, orders are partitioned by date: today's orders are shown by default, with an expandable "Show Past Orders" section.
+
+### Changed
+- **Admin Navigation Role-Gating & Mobile Sign Out**:
+  - For `admin` role: Sidebar displays strictly Dashboard (`/`), QR Scanner (`/scan`), Menu Management (`/menu`), and Teachers (`/staff-requests`).
+  - For `staff` role: Sidebar displays strictly QR Scanner (`/scan`) and Inventory (`/inventory`).
+  - Added persistent mobile Sign Out button to the admin bottom navigation bar.
+- **Cart Expiry Notification Duration**:
+  - Updated cart reservation expiration notice timer to disappear automatically after exactly 4 seconds.
+- **Floating Cart Bottom Nav Clearance**:
+  - Adjusted `.floating-cart-bottom` clearance in `customer/src/app/globals.css` to `calc(7rem + max(0.75rem, env(safe-area-inset-bottom, 0px)))`, ensuring generous clearance above `MobileBottomNav` across all screen densities.
+
+### Removed
+- **Teacher Request Workflow & Signup Role Selector Removed**:
+  - Removed self-service teacher role requests and role selection tabs from `customer/src/app/signup/page.tsx`. New registrations default to `student`.
+- **Guest Role Eliminated**:
+  - Removed `guest` account type across all customer and admin typing, badges, settings, and profile views.
+
+
+### Added
 - **Optical QR Code Scanner Engine & Modern Scanner UI Overhaul (`admin/src/app/scan/page.tsx`)**:
   - Implemented dual-engine continuous video frame analysis using native hardware-accelerated `BarcodeDetector` with pure JavaScript canvas fallback via `jsqr`.
   - Added modern animated viewfinder with target corner brackets, glowing glassmorphic overlay, and sweeping orange laser line animation (`animate-scanner-laser`).
