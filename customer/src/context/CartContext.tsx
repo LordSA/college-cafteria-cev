@@ -11,6 +11,8 @@ export interface CartItem {
   category_name?: string;
   quantity: number;
   expires_at?: number;
+  track_inventory?: boolean;
+  stock_quantity?: number;
 }
 
 export interface CartContextType {

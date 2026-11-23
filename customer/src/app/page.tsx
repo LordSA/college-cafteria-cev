@@ -571,7 +571,7 @@ export default function CustomerHomePage() {
                                   updateQuantity(product.id, inCartQty + 1);
                                 }
                               }}
-                              className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs active:scale-95 transition ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                              className={`flex h-7 w-7 items-center justify-center rounded-lg active:scale-95 transition ${cannotIncrement ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60' : 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs hover:opacity-90'}`}
                               title={cannotIncrement ? 'Max stock reached' : 'Increase'}
                             >
                               <Plus className="h-3.5 w-3.5" />
@@ -789,7 +789,7 @@ export default function CustomerHomePage() {
                                               updateQuantity(product.id, inCartQty + 1);
                                             }
                                           }}
-                                          className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs active:scale-95 transition ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                                          className={`flex h-6 w-6 items-center justify-center rounded-lg active:scale-95 transition ${cannotIncrement ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60' : 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs hover:opacity-90'}`}
                                           title={cannotIncrement ? 'Max stock reached' : 'Increase'}
                                         >
                                           <Plus className="h-3 w-3" />

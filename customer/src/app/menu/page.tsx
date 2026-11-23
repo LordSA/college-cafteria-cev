@@ -438,7 +438,7 @@ export default function MenuPage() {
                                   handleUpdateQty(item.id, inCartQuantity + 1);
                                 }
                               }}
-                              className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white transition shadow-xs ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-95'}`}
+                              className={`flex h-6 w-6 items-center justify-center rounded-lg transition shadow-xs ${cannotIncrement ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60' : 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white hover:opacity-95'}`}
                               title={cannotIncrement ? 'Max stock reached' : 'Increase'}
                             >
                               <Plus className="h-3 w-3" />

@@ -24,7 +24,6 @@ interface Teacher {
   id: string;
   display_name: string | null;
   email: string | null;
-  teacher_id: string | null;
   account_type: string;
   approved_account_type?: string;
   staff_approval_status?: string;
@@ -55,12 +54,10 @@ export default function TeacherManagementPage() {
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
-  const [newTeacherId, setNewTeacherId] = useState('');
   const [creating, setCreating] = useState(false);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState('');
-  const [assignTeacherId, setAssignTeacherId] = useState('');
   const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
@@ -119,8 +116,8 @@ export default function TeacherManagementPage() {
     e.preventDefault();
     if (!session?.access_token) return;
 
-    if (!newEmail.trim() || !newPassword.trim() || !newTeacherId.trim()) {
-      setError('Email, temporary password, and Teacher ID are required.');
+    if (!newEmail.trim() || !newPassword.trim()) {
+      setError('Email and temporary password are required.');
       return;
     }
 
@@ -137,7 +134,6 @@ export default function TeacherManagementPage() {
           email: newEmail.trim(),
           password: newPassword,
           display_name: newName.trim() || undefined,
-          teacher_id: newTeacherId.trim(),
         }),
       });
 
@@ -151,7 +147,6 @@ export default function TeacherManagementPage() {
       setNewEmail('');
       setNewPassword('');
       setNewName('');
-      setNewTeacherId('');
       setTimeout(() => setSuccessMessage(null), 4000);
       await loadData();
     } catch (err: any) {
@@ -165,8 +160,8 @@ export default function TeacherManagementPage() {
     e.preventDefault();
     if (!session?.access_token) return;
 
-    if (!selectedCandidateId || !assignTeacherId.trim()) {
-      setError('Please select an account and provide a valid Teacher ID.');
+    if (!selectedCandidateId) {
+      setError('Please select an account to promote.');
       return;
     }
 
@@ -181,7 +176,6 @@ export default function TeacherManagementPage() {
         },
         body: JSON.stringify({
           user_id: selectedCandidateId,
-          teacher_id: assignTeacherId.trim(),
         }),
       });
 
@@ -192,7 +186,6 @@ export default function TeacherManagementPage() {
 
       setSuccessMessage('Account promoted to Faculty Teacher successfully.');
       setShowAssignModal(false);
-      setAssignTeacherId('');
       setTimeout(() => setSuccessMessage(null), 4000);
       await loadData();
     } catch (err: any) {
@@ -332,7 +325,6 @@ export default function TeacherManagementPage() {
                     <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
                       <tr>
                         <th className="px-6 py-3.5 font-bold">Faculty Name</th>
-                        <th className="px-6 py-3.5 font-bold">Teacher ID</th>
                         <th className="px-6 py-3.5 font-bold">Email</th>
                         <th className="px-6 py-3.5 font-bold">Post-Pay Status</th>
                         <th className="px-6 py-3.5 font-bold text-right">Actions</th>
@@ -350,11 +342,6 @@ export default function TeacherManagementPage() {
                                 {teacher.display_name || 'Faculty Member'}
                               </span>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="font-mono font-bold text-[#252525] bg-[#FAFAFA] px-2.5 py-1 rounded-lg border border-[#EEEEEE]">
-                              {teacher.teacher_id || 'Not Assigned'}
-                            </span>
                           </td>
                           <td className="px-6 py-4 text-[#666666]">
                             <div className="flex items-center gap-1.5">
@@ -415,21 +402,6 @@ export default function TeacherManagementPage() {
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         placeholder="Dr. Rajesh Kumar"
-                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="newTeacherId">
-                        Teacher / Faculty ID <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="newTeacherId"
-                        type="text"
-                        required
-                        value={newTeacherId}
-                        onChange={(e) => setNewTeacherId(e.target.value)}
-                        placeholder="CEV-FAC-104"
                         className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                       />
                     </div>
@@ -535,21 +507,6 @@ export default function TeacherManagementPage() {
                           ))}
                         </select>
                       )}
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="assignTeacherId">
-                        Teacher / Faculty ID <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        id="assignTeacherId"
-                        type="text"
-                        required
-                        value={assignTeacherId}
-                        onChange={(e) => setAssignTeacherId(e.target.value)}
-                        placeholder="CEV-FAC-082"
-                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
-                      />
                     </div>
 
                     <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">

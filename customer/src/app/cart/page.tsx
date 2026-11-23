@@ -22,11 +22,36 @@ import {
   X,
 } from 'lucide-react';
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+
 export default function CartPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount, remainingSeconds, isExpired } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
+  const [stockMap, setStockMap] = useState<Record<string, { stock_quantity?: number; track_inventory?: boolean; is_available: boolean }>>({});
+
+  useEffect(() => {
+    async function fetchMenuStock() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/menu?t=${Date.now()}`, { cache: 'no-store' });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          const list = Array.isArray(json.data) ? json.data : (json.data?.items || []);
+          const map: Record<string, { stock_quantity?: number; track_inventory?: boolean; is_available: boolean }> = {};
+          for (const it of list) {
+            map[it.id] = {
+              stock_quantity: it.stock_quantity,
+              track_inventory: it.track_inventory,
+              is_available: it.is_available,
+            };
+          }
+          setStockMap(map);
+        }
+      } catch {}
+    }
+    fetchMenuStock();
+  }, [items]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -199,71 +224,94 @@ export default function CartPage() {
           ) : (
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-3.5">
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-4 shadow-xs"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 dark:bg-white/5 flex items-center justify-center border border-stone-100 dark:border-white/5">
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <Utensils className="h-6 w-6 text-stone-300 dark:text-stone-600" />
-                        )}
+                {items.map((item) => {
+                  const itemStockInfo = stockMap[item.id];
+                  const maxStock = itemStockInfo?.track_inventory ? (itemStockInfo.stock_quantity ?? 999) : (item.track_inventory ? (item.stock_quantity ?? 999) : 999);
+                  const isAtMaxStock = itemStockInfo ? (!itemStockInfo.is_available || (itemStockInfo.track_inventory && (maxStock <= 0 || item.quantity >= maxStock))) : false;
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-4 shadow-xs"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-stone-100 dark:bg-white/5 flex items-center justify-center border border-stone-100 dark:border-white/5">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Utensils className="h-6 w-6 text-stone-300 dark:text-stone-600" />
+                          )}
+                        </div>
+                        <div>
+                          {item.category_name && (
+                            <span className="text-[10px] font-bold text-[#ff5e3a] uppercase tracking-wider">
+                              {item.category_name}
+                            </span>
+                          )}
+                          <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 line-clamp-1">{item.name}</h3>
+                          <p className="font-mono text-xs font-semibold text-stone-500 dark:text-stone-400 mt-0.5 tabular-nums">
+                            ₹{(item.price / 100).toFixed(2)} each
+                          </p>
+                          {isAtMaxStock && (
+                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">
+                              Max stock reached
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        {item.category_name && (
-                          <span className="text-[10px] font-bold text-[#ff5e3a] uppercase tracking-wider">
-                            {item.category_name}
+
+                      <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/10">
+                        <div className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs">
+                          <button
+                            type="button"
+                            onClick={() => handleDecrease(item.id, item.quantity - 1)}
+                            className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 transition shadow-xs"
+                            title="Decrease"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
+                            {item.quantity}
                           </span>
-                        )}
-                        <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 line-clamp-1">{item.name}</h3>
-                        <p className="font-mono text-xs font-semibold text-stone-500 dark:text-stone-400 mt-0.5 tabular-nums">
-                          ₹{(item.price / 100).toFixed(2)} each
-                        </p>
+                          <button
+                            type="button"
+                            disabled={isAtMaxStock}
+                            onClick={() => {
+                              if (!isAtMaxStock) {
+                                handleIncrease(item.id, item.quantity + 1);
+                              }
+                            }}
+                            className={`flex h-6 w-6 items-center justify-center rounded-lg transition shadow-xs ${
+                              isAtMaxStock
+                                ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60'
+                                : 'bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white hover:opacity-95'
+                            }`}
+                            title={isAtMaxStock ? 'Max available stock reached' : 'Increase'}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <div className="font-mono text-sm font-bold text-stone-900 dark:text-white min-w-[70px] text-right tabular-nums">
+                          ₹{((item.price * item.quantity) / 100).toFixed(2)}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 transition"
+                          title="Remove item"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/10">
-                      <div className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs">
-                        <button
-                          onClick={() => handleDecrease(item.id, item.quantity - 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 transition shadow-xs"
-                          title="Decrease"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <span className="min-w-[18px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => handleIncrease(item.id, item.quantity + 1)}
-                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white hover:opacity-95 transition shadow-xs"
-                          title="Increase"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
-                      </div>
-
-                      <div className="font-mono text-sm font-bold text-stone-900 dark:text-white min-w-[70px] text-right tabular-nums">
-                        ₹{((item.price * item.quantity) / 100).toFixed(2)}
-                      </div>
-
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-rose-600 dark:hover:text-rose-400 transition"
-                        title="Remove item"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <div className="pt-2">
                   <Link

@@ -430,6 +430,13 @@ customerOrdersRouter.post(
       }
     }
 
+    try {
+      await adminClient
+        .from('cart_item_locks')
+        .delete()
+        .eq('user_id', user.id);
+    } catch {}
+
     if (isWalletPaid && walletRecord) {
       const newBalance = walletRecord.balance - calculatedTotal;
       await adminClient
