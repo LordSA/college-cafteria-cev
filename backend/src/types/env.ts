@@ -19,7 +19,7 @@ export interface Env {
 }
 
 export type StorageProviderType = 'supabase' | 'r2';
-export type AccountType = 'student' | 'staff_t' | 'guest';
+export type AccountType = 'student' | 'staff_t';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
 export type AppRole = 'customer' | 'developer' | 'admin' | 'retail' | 'staff' | 'printer';
 export type AdminRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer';
@@ -32,7 +32,6 @@ export interface UserProfile {
   requested_account_type: AccountType;
   approved_account_type: AccountType;
   staff_approval_status: StaffApprovalStatus;
-  teacher_id?: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
   app_role: AppRole;

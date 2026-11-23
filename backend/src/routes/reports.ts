@@ -354,7 +354,7 @@ adminReportsRouter.get('/export', async (c) => {
   if (customerIds.length > 0) {
     const { data: profiles } = await adminClient
       .from('profiles')
-      .select('id, display_name, account_type, teacher_id')
+      .select('id, display_name, account_type')
       .in('id', customerIds);
 
     const emailMap = new Map<string, string>();

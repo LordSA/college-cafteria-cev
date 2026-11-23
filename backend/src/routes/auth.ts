@@ -8,12 +8,6 @@ import { getSupabaseAdminClient } from '../lib/supabase';
 const ProfileUpdateSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),
   avatar_key: z.string().max(300).optional().nullable(),
-  teacher_id: z
-    .string()
-    .trim()
-    .regex(/^[A-Za-z0-9\-_]{3,20}$/, 'Teacher ID must be 3-20 characters consisting of letters, numbers, hyphens, or underscores')
-    .optional()
-    .nullable(),
 });
 
 export const authRouter = new Hono<{
@@ -61,38 +55,6 @@ authRouter.patch('/me/profile', zValidator('json', ProfileUpdateSchema), async (
 
   if (payload.avatar_key !== undefined) {
     updateFields.avatar_key = payload.avatar_key ? payload.avatar_key.trim() : null;
-  }
-
-  if (payload.teacher_id !== undefined) {
-    const formattedId = payload.teacher_id ? payload.teacher_id.trim().toUpperCase() : null;
-
-    if (formattedId) {
-      const { data: existingTeacher } = await adminClient
-        .from('profiles')
-        .select('id')
-        .eq('teacher_id', formattedId)
-        .neq('id', user.id)
-        .maybeSingle();
-
-      if (existingTeacher) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'DUPLICATE_TEACHER_ID',
-              message: `Teacher ID "${formattedId}" is already registered to another faculty account.`,
-            },
-          },
-          409
-        );
-      }
-
-      updateFields.teacher_id = formattedId;
-      updateFields.requested_account_type = 'staff_t';
-      updateFields.staff_approval_status = 'pending';
-    } else {
-      updateFields.teacher_id = null;
-    }
   }
 
   const { data: updatedProfile, error: updateErr } = await adminClient

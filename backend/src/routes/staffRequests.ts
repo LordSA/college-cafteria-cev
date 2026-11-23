@@ -30,7 +30,7 @@ staffRequestsRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('profiles')
-    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (statusFilter !== 'all') {
@@ -130,7 +130,7 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select('id, display_name, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .single();
 
   if (error) {
@@ -199,7 +199,7 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select('id, display_name, account_type, requested_account_type, approved_account_type, teacher_id, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
     .single();
 
   if (error) {
@@ -236,7 +236,7 @@ staffRequestsRouter.get('/teachers/list', async (c) => {
 
   const { data, error } = await adminClient
     .from('profiles')
-    .select('id, display_name, email, teacher_id, account_type, approved_account_type, staff_approval_status, created_at, updated_at')
+    .select('id, display_name, email, account_type, approved_account_type, staff_approval_status, created_at, updated_at')
     .or('account_type.eq.staff_t,approved_account_type.eq.staff_t')
     .order('created_at', { ascending: false });
 
@@ -286,7 +286,7 @@ staffRequestsRouter.get('/teachers/candidates', async (c) => {
 
   const { data, error } = await adminClient
     .from('profiles')
-    .select('id, display_name, email, teacher_id, account_type, approved_account_type, created_at')
+    .select('id, display_name, email, account_type, approved_account_type, created_at')
     .neq('account_type', 'staff_t')
     .order('created_at', { ascending: false });
 
@@ -335,13 +335,13 @@ staffRequestsRouter.post('/teachers/create', async (c) => {
   }
 
   const body = await c.req.json();
-  const { email, password, display_name, teacher_id } = body;
+  const { email, password, display_name } = body;
 
-  if (!email || !password || !teacher_id) {
+  if (!email || !password) {
     return c.json(
       {
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'Email, password, and Teacher ID are required' },
+        error: { code: 'VALIDATION_ERROR', message: 'Email and password are required' },
       },
       400
     );
@@ -354,7 +354,6 @@ staffRequestsRouter.post('/teachers/create', async (c) => {
     user_metadata: {
       display_name: display_name || email.split('@')[0],
       account_type: 'staff_t',
-      teacher_id: teacher_id.trim().toUpperCase(),
     },
   });
 
@@ -375,7 +374,6 @@ staffRequestsRouter.post('/teachers/create', async (c) => {
     display_name: display_name || email.split('@')[0],
     account_type: 'staff_t',
     approved_account_type: 'staff_t',
-    teacher_id: teacher_id.trim().toUpperCase(),
     staff_approval_status: 'approved',
     updated_at: new Date().toISOString(),
   });
@@ -386,7 +384,6 @@ staffRequestsRouter.post('/teachers/create', async (c) => {
       id: userId,
       email,
       display_name,
-      teacher_id: teacher_id.trim().toUpperCase(),
     },
     message: 'Teacher created successfully',
   });
@@ -405,13 +402,13 @@ staffRequestsRouter.post('/teachers/assign', async (c) => {
   }
 
   const body = await c.req.json();
-  const { user_id, teacher_id } = body;
+  const { user_id } = body;
 
-  if (!user_id || !teacher_id) {
+  if (!user_id) {
     return c.json(
       {
         success: false,
-        error: { code: 'VALIDATION_ERROR', message: 'User ID and Teacher ID are required' },
+        error: { code: 'VALIDATION_ERROR', message: 'User ID is required' },
       },
       400
     );
@@ -422,12 +419,11 @@ staffRequestsRouter.post('/teachers/assign', async (c) => {
     .update({
       account_type: 'staff_t',
       approved_account_type: 'staff_t',
-      teacher_id: teacher_id.trim().toUpperCase(),
       staff_approval_status: 'approved',
       updated_at: new Date().toISOString(),
     })
     .eq('id', user_id)
-    .select('id, display_name, email, teacher_id, account_type, approved_account_type, staff_approval_status')
+    .select('id, display_name, email, account_type, approved_account_type, staff_approval_status')
     .single();
 
   if (error) {

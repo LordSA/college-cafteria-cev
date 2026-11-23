@@ -74,12 +74,12 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'staff']), async (
     new Set((orders || []).map((o: any) => o.customer_id).filter(Boolean))
   );
 
-  const profilesMap = new Map<string, { display_name?: string; account_type?: string; teacher_id?: string }>();
+  const profilesMap = new Map<string, { display_name?: string; account_type?: string }>();
   if (customerIds.length > 0) {
     try {
       const { data: profiles } = await adminClient
         .from('profiles')
-        .select('id, display_name, account_type, teacher_id')
+        .select('id, display_name, account_type')
         .in('id', customerIds);
 
       (profiles || []).forEach((p: any) => {
@@ -98,7 +98,6 @@ adminOrdersRouter.get('/', requireRole(['developer', 'admin', 'staff']), async (
       items: o.order_items || [],
       customer_name: profile?.display_name || 'Customer',
       customer_account_type: profile?.account_type || 'student',
-      teacher_id: profile?.teacher_id || null,
     };
   });
 
@@ -228,12 +227,12 @@ adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'staff']), asyn
     );
   }
 
-  let customerProfile: { display_name?: string; account_type?: string; teacher_id?: string } | null = null;
+  let customerProfile: { display_name?: string; account_type?: string } | null = null;
   if (order.customer_id) {
     try {
       const { data: profile } = await adminClient
         .from('profiles')
-        .select('display_name, account_type, teacher_id')
+        .select('display_name, account_type')
         .eq('id', order.customer_id)
         .maybeSingle();
       customerProfile = profile;
@@ -251,7 +250,6 @@ adminOrdersRouter.get('/:id', requireRole(['developer', 'admin', 'staff']), asyn
       items: order.order_items || [],
       customer_name: customerProfile?.display_name || 'Customer',
       customer_account_type: customerProfile?.account_type || 'student',
-      teacher_id: customerProfile?.teacher_id || null,
     },
   });
 });
@@ -560,12 +558,12 @@ adminOrdersRouter.post(
       );
     }
 
-    let customerProfile: { display_name?: string; account_type?: string; teacher_id?: string } | null = null;
+    let customerProfile: { display_name?: string; account_type?: string } | null = null;
     if (order.customer_id) {
       try {
         const { data: profile } = await adminClient
           .from('profiles')
-          .select('display_name, account_type, teacher_id')
+          .select('display_name, account_type')
           .eq('id', order.customer_id)
           .maybeSingle();
         customerProfile = profile;
@@ -613,7 +611,6 @@ adminOrdersRouter.post(
           id: order.customer_id,
           display_name: customerProfile?.display_name || 'Customer',
           account_type: customerProfile?.account_type || 'student',
-          teacher_id: customerProfile?.teacher_id || null,
         },
         items: order.order_items || [],
         is_eligible_for_collection: isEligible,

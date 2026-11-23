@@ -45,7 +45,7 @@ adminRouter.get('/users', requireDeveloper, async (c) => {
 
   const { data: users, error } = await adminClient
     .from('profiles')
-    .select('id, display_name, app_role, account_type, approved_account_type, teacher_id, created_at, updated_at')
+    .select('id, display_name, app_role, account_type, approved_account_type, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (error) {

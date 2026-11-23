@@ -14,7 +14,6 @@ export interface UserProfile {
   phone?: string | null;
   avatar_key: string | null;
   avatar_url?: string | null;
-  teacher_id?: string | null;
   account_type: AccountType;
   requested_account_type: AccountType;
   approved_account_type: AccountType;
@@ -31,7 +30,6 @@ interface SignUpParams {
   password: string;
   displayName: string;
   accountType?: AccountType;
-  teacherId?: string;
 }
 
 interface SignInParams {
@@ -87,7 +85,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           display_name: data.display_name,
           phone: data.phone || userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: data.avatar_key,
-          teacher_id: data.teacher_id || userMeta?.teacher_id || null,
           account_type: normalizeAccountType(data.account_type),
           requested_account_type: normalizeAccountType(data.requested_account_type),
           approved_account_type: normalizeAccountType(data.approved_account_type),
@@ -106,7 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
           phone: userMeta?.phone || userMeta?.phone_number || null,
           avatar_key: null,
-          teacher_id: userMeta?.teacher_id || null,
           account_type: appType,
           requested_account_type: reqType,
           approved_account_type: appType,
@@ -125,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
         phone: userMeta?.phone || userMeta?.phone_number || null,
         avatar_key: null,
-        teacher_id: userMeta?.teacher_id || null,
         account_type: appType,
         requested_account_type: reqType,
         approved_account_type: appType,
@@ -198,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [fetchProfile]);
 
-  const signUp = async ({ email, password, displayName, accountType, teacherId }: SignUpParams) => {
+  const signUp = async ({ email, password, displayName, accountType }: SignUpParams) => {
     setError(null);
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -207,8 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           data: {
             display_name: displayName,
-            account_type: accountType,
-            teacher_id: accountType === 'staff_t' ? teacherId : undefined,
+            account_type: accountType || 'student',
           },
         },
       });
@@ -221,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.user) {
         setUser(data.user);
         setSession(data.session);
-        await fetchProfile(data.user.id, { display_name: displayName, account_type: accountType, teacher_id: teacherId }, email);
+        await fetchProfile(data.user.id, { display_name: displayName, account_type: accountType || 'student' }, email);
       }
 
       return { success: true };
