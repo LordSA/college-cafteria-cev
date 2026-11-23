@@ -5,45 +5,63 @@ import { useRouter } from 'next/navigation';
 import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { supabase } from '../../lib/supabase';
 import {
   Users,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Loader2,
-  Mail,
-  Calendar,
+  Plus,
+  UserPlus,
   RefreshCw,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Mail,
+  ShieldCheck,
+  Trash2,
+  Check,
 } from 'lucide-react';
 
-interface StaffRequest {
+interface Teacher {
   id: string;
   display_name: string | null;
-  teacher_id?: string | null;
-  email?: string | null;
+  email: string | null;
+  teacher_id: string | null;
   account_type: string;
-  requested_account_type: string;
-  approved_account_type: string;
-  staff_approval_status: 'pending' | 'approved' | 'rejected' | 'not_requested';
+  approved_account_type?: string;
+  staff_approval_status?: string;
   created_at: string;
-  users?: {
-    email?: string;
-  };
+}
+
+interface Candidate {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  account_type: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function StaffRequestsPage() {
+export default function TeacherManagementPage() {
   const router = useRouter();
   const { adminUser, isUnauthorized, loading: authLoading, session, canReviewStaff } = useAdminAuth();
 
-  const [requests, setRequests] = useState<StaffRequest[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionInProgress, setActionInProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newName, setNewName] = useState('');
+  const [newTeacherId, setNewTeacherId] = useState('');
+  const [creating, setCreating] = useState(false);
+
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedCandidateId, setSelectedCandidateId] = useState('');
+  const [assignTeacherId, setAssignTeacherId] = useState('');
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -55,41 +73,37 @@ export default function StaffRequestsPage() {
     }
   }, [adminUser, isUnauthorized, canReviewStaff, authLoading, router]);
 
-  const loadRequests = async () => {
+  const loadData = async () => {
     if (!session?.access_token) return;
 
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const [teachersRes, candidatesRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/list?t=${Date.now()}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        }),
+        fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/candidates?t=${Date.now()}`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        }),
+      ]);
 
-      const body = await res.json();
-      if (!res.ok || !body.success) {
-        throw new Error(body.error?.message || 'Failed to fetch staff requests');
+      const teachersBody = await teachersRes.json();
+      const candidatesBody = await candidatesRes.json();
+
+      if (!teachersRes.ok || !teachersBody.success) {
+        throw new Error(teachersBody.error?.message || 'Failed to fetch teachers');
       }
 
-      setRequests(body.data || []);
+      setTeachers(teachersBody.data || []);
+      setCandidates(candidatesBody.data || []);
+      if (candidatesBody.data?.length > 0 && !selectedCandidateId) {
+        setSelectedCandidateId(candidatesBody.data[0].id);
+      }
     } catch (err: any) {
-      try {
-        const { data: directProfiles, error: directErr } = await supabase
-          .from('profiles')
-          .select('id, display_name, teacher_id, account_type, requested_account_type, approved_account_type, staff_approval_status, created_at')
-          .in('staff_approval_status', ['pending', 'approved', 'rejected'])
-          .order('created_at', { ascending: false });
-
-        if (!directErr && directProfiles) {
-          setRequests(directProfiles as any[]);
-          setError(null);
-        } else {
-          setError(err.message || 'Error loading staff requests');
-        }
-      } catch {
-        setError(err.message || 'Error loading staff requests');
-      }
+      setError(err.message || 'Error loading teachers data');
     } finally {
       setLoading(false);
     }
@@ -97,37 +111,128 @@ export default function StaffRequestsPage() {
 
   useEffect(() => {
     if (adminUser && !isUnauthorized) {
-      loadRequests();
+      loadData();
     }
   }, [adminUser, isUnauthorized, session?.access_token]);
 
-  const handleDecision = async (id: string, decision: 'approve' | 'reject') => {
+  const handleCreateTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!session?.access_token) return;
 
-    setActionInProgress(id);
-    setError(null);
-    setSuccessMessage(null);
+    if (!newEmail.trim() || !newPassword.trim() || !newTeacherId.trim()) {
+      setError('Email, temporary password, and Teacher ID are required.');
+      return;
+    }
 
+    setCreating(true);
+    setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/${id}`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/create`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ action: decision }),
+        body: JSON.stringify({
+          email: newEmail.trim(),
+          password: newPassword,
+          display_name: newName.trim() || undefined,
+          teacher_id: newTeacherId.trim(),
+        }),
       });
 
       const body = await res.json();
       if (!res.ok || !body.success) {
-        throw new Error(body.error?.message || `Failed to ${decision} request`);
+        throw new Error(body.error?.message || 'Failed to create teacher account');
       }
 
-      setSuccessMessage(`Successfully ${decision}d staff request.`);
-      setTimeout(() => setSuccessMessage(null), 3000);
-      await loadRequests();
+      setSuccessMessage(`Teacher account created for ${newEmail}`);
+      setShowCreateModal(false);
+      setNewEmail('');
+      setNewPassword('');
+      setNewName('');
+      setNewTeacherId('');
+      setTimeout(() => setSuccessMessage(null), 4000);
+      await loadData();
     } catch (err: any) {
-      setError(err.message || `Error processing staff ${decision}`);
+      setError(err.message || 'Error creating teacher account');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleAssignCandidate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.access_token) return;
+
+    if (!selectedCandidateId || !assignTeacherId.trim()) {
+      setError('Please select an account and provide a valid Teacher ID.');
+      return;
+    }
+
+    setAssigning(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: selectedCandidateId,
+          teacher_id: assignTeacherId.trim(),
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to assign teacher status');
+      }
+
+      setSuccessMessage('Account promoted to Faculty Teacher successfully.');
+      setShowAssignModal(false);
+      setAssignTeacherId('');
+      setTimeout(() => setSuccessMessage(null), 4000);
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Error assigning teacher status');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleRevokeTeacher = async (teacher: Teacher) => {
+    if (!session?.access_token) return;
+
+    if (!confirm(`Are you sure you want to revoke teacher status for "${teacher.display_name || teacher.email}"? Their account will revert to student status.`)) {
+      return;
+    }
+
+    setActionInProgress(teacher.id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/revoke`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          user_id: teacher.id,
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to revoke teacher status');
+      }
+
+      setSuccessMessage('Teacher status revoked successfully.');
+      setTimeout(() => setSuccessMessage(null), 4000);
+      await loadData();
+    } catch (err: any) {
+      setError(err.message || 'Error revoking teacher status');
     } finally {
       setActionInProgress(null);
     }
@@ -139,7 +244,7 @@ export default function StaffRequestsPage() {
         <main className="flex-1 flex items-center justify-center py-20 bg-white">
           <div className="flex flex-col items-center gap-3 text-[#666666]">
             <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-            <p className="text-xs font-semibold">Verifying...</p>
+            <p className="text-xs font-semibold">Verifying permissions...</p>
           </div>
         </main>
         <Footer />
@@ -157,22 +262,40 @@ export default function StaffRequestsPage() {
               <div className="flex items-center gap-3">
                 <div>
                   <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Faculty Requests
+                    Teachers Management
                   </h1>
                   <p className="mt-1 text-xs text-[#666666]">
-                    Review and approve faculty/teacher
+                    Directly register faculty teachers or assign existing accounts to teacher post-pay status
                   </p>
                 </div>
               </div>
 
-              <button
-                onClick={loadRequests}
-                disabled={loading}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={loadData}
+                  disabled={loading}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  onClick={() => setShowAssignModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs"
+                >
+                  <UserPlus className="h-3.5 w-3.5 text-[#F47721]" />
+                  <span>Assign Existing User</span>
+                </button>
+
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-4 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Add Teacher</span>
+                </button>
+              </div>
             </div>
 
             {successMessage && (
@@ -185,28 +308,21 @@ export default function StaffRequestsPage() {
             {error && (
               <div className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-[#D94A43]">
                 <AlertCircle className="h-4 w-4 flex-shrink-0 text-[#D94A43] mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <span>{error}</span>
-                  {error.includes('profiles.email') && (
-                    <span className="text-[11px] text-[#666666]">
-                      The backend or database schema is missing the profile email column. Run the migration in Supabase SQL editor: <code className="bg-[#FAFAFA] px-1 py-0.5 rounded text-[#252525]">ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email text;</code> and redeploy the backend.
-                    </span>
-                  )}
-                </div>
+                <span>{error}</span>
               </div>
             )}
 
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#666666]">
                 <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-                <p className="text-xs font-semibold">Fetching requests...</p>
+                <p className="text-xs font-semibold">Loading teachers directory...</p>
               </div>
-            ) : requests.length === 0 ? (
+            ) : teachers.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center">
                 <Users className="mx-auto h-8 w-8 text-[#888888]" />
-                <h3 className="mt-3 text-sm font-bold text-[#252525]">No Pending Requests</h3>
+                <h3 className="mt-3 text-sm font-bold text-[#252525]">No Teachers Registered</h3>
                 <p className="mt-1 text-xs text-[#666666]">
-                  All staff registration requests have been reviewed and processed.
+                  Click &quot;Add Teacher&quot; to register a faculty member with email and password or promote an existing account.
                 </p>
               </div>
             ) : (
@@ -215,75 +331,254 @@ export default function StaffRequestsPage() {
                   <table className="w-full text-left text-xs text-[#252525]">
                     <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
                       <tr>
-                        <th className="px-6 py-3.5 font-bold">Applicant</th>
-                        <th className="px-6 py-3.5 font-bold">Requested Classification</th>
-                        <th className="px-6 py-3.5 font-bold">Submitted Date</th>
-                        <th className="px-6 py-3.5 font-bold">Current Status</th>
+                        <th className="px-6 py-3.5 font-bold">Faculty Name</th>
+                        <th className="px-6 py-3.5 font-bold">Teacher ID</th>
+                        <th className="px-6 py-3.5 font-bold">Email</th>
+                        <th className="px-6 py-3.5 font-bold">Post-Pay Status</th>
                         <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#EEEEEE] font-medium">
-                      {requests.map((req) => (
-                        <tr key={req.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
+                      {teachers.map((teacher) => (
+                        <tr key={teacher.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-bold text-[#252525] flex items-center gap-2">
-                              <span>{req.display_name || 'Unnamed Diner'}</span>
-                              {req.teacher_id && (
-                                <span className="rounded-md bg-[#FAFAFA] border border-[#EEEEEE] px-1.5 py-0.5 text-[10px] font-mono text-[#F47721]">
-                                  ID: {req.teacher_id}
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-[#666666] flex items-center gap-1 mt-0.5">
-                              <Mail className="h-3 w-3 text-[#888888]" />
-                              <span>{req.email || req.users?.email || req.id}</span>
+                            <div className="flex items-center gap-2.5">
+                              <div className="h-8 w-8 rounded-full bg-[#FFF7F0] border border-[#F47721]/20 flex items-center justify-center text-[#F47721] font-bold text-xs">
+                                {((teacher.display_name || teacher.email || 'T')[0] || 'T').toUpperCase()}
+                              </div>
+                              <span className="font-bold text-[#252525]">
+                                {teacher.display_name || 'Faculty Member'}
+                              </span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF7F0] border border-[#F47721]/30 px-2.5 py-0.5 text-[10px] font-bold text-[#F47721]">
-                              Faculty / Staff
+                            <span className="font-mono font-bold text-[#252525] bg-[#FAFAFA] px-2.5 py-1 rounded-lg border border-[#EEEEEE]">
+                              {teacher.teacher_id || 'Not Assigned'}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-[#666666]">
                             <div className="flex items-center gap-1.5">
-                              <Calendar className="h-3.5 w-3.5 text-[#888888]" />
-                              <span>{new Date(req.created_at).toLocaleDateString()}</span>
+                              <Mail className="h-3.5 w-3.5 text-[#888888]" />
+                              <span>{teacher.email || 'No email on record'}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-700">
-                              <Clock className="h-3 w-3" />
-                              <span>Pending Review</span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
+                              <ShieldCheck className="h-3 w-3" />
+                              <span>Faculty Post-Pay</span>
                             </span>
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleDecision(req.id, 'approve')}
-                                disabled={actionInProgress === req.id}
-                                className="inline-flex items-center gap-1 rounded-full bg-green-50 border border-green-200 px-3 py-1 text-xs font-bold text-[#269B62] hover:bg-green-100 disabled:opacity-50 transition"
-                              >
-                                {actionInProgress === req.id ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                )}
-                                <span>Approve</span>
-                              </button>
-                              <button
-                                onClick={() => handleDecision(req.id, 'reject')}
-                                disabled={actionInProgress === req.id}
-                                className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-50 transition"
-                              >
-                                <XCircle className="h-3.5 w-3.5" />
-                                <span>Reject</span>
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => handleRevokeTeacher(teacher)}
+                              disabled={actionInProgress === teacher.id}
+                              title="Revoke faculty teacher privileges"
+                              className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Revoke</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {showCreateModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-[#EEEEEE] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
+                    <h3 className="text-sm font-bold text-[#252525] flex items-center gap-2">
+                      <Plus className="h-4 w-4 text-[#F47721]" />
+                      <span>Register New Teacher</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateModal(false)}
+                      className="rounded-full p-1 text-[#666666] hover:bg-gray-100 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateTeacher} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="newName">
+                        Faculty Full Name
+                      </label>
+                      <input
+                        id="newName"
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="Dr. Rajesh Kumar"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="newTeacherId">
+                        Teacher / Faculty ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="newTeacherId"
+                        type="text"
+                        required
+                        value={newTeacherId}
+                        onChange={(e) => setNewTeacherId(e.target.value)}
+                        placeholder="CEV-FAC-104"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="newEmail">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="newEmail"
+                        type="email"
+                        required
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="teacher@cev.ac.in"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="newPassword">
+                        Initial Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="newPassword"
+                        type="password"
+                        required
+                        minLength={6}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Minimum 6 characters"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">
+                      <button
+                        type="button"
+                        onClick={() => setShowCreateModal(false)}
+                        className="rounded-xl border border-[#EEEEEE] bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={creating}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                      >
+                        {creating ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Creating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Create Teacher</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {showAssignModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-[#EEEEEE] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
+                    <h3 className="text-sm font-bold text-[#252525] flex items-center gap-2">
+                      <UserPlus className="h-4 w-4 text-[#F47721]" />
+                      <span>Assign Existing Account to Teacher</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowAssignModal(false)}
+                      className="rounded-full p-1 text-[#666666] hover:bg-gray-100 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleAssignCandidate} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="candidateSelect">
+                        Select Existing User
+                      </label>
+                      {candidates.length === 0 ? (
+                        <p className="text-xs text-[#666666] py-2">No student accounts available to promote.</p>
+                      ) : (
+                        <select
+                          id="candidateSelect"
+                          required
+                          value={selectedCandidateId}
+                          onChange={(e) => setSelectedCandidateId(e.target.value)}
+                          className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                        >
+                          {candidates.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.display_name || 'Unnamed'} ({c.email || c.id.slice(0, 8)})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="assignTeacherId">
+                        Teacher / Faculty ID <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        id="assignTeacherId"
+                        type="text"
+                        required
+                        value={assignTeacherId}
+                        onChange={(e) => setAssignTeacherId(e.target.value)}
+                        placeholder="CEV-FAC-082"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">
+                      <button
+                        type="button"
+                        onClick={() => setShowAssignModal(false)}
+                        className="rounded-xl border border-[#EEEEEE] bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={assigning || candidates.length === 0}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                      >
+                        {assigning ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Assigning...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Promote to Teacher</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}

@@ -7,7 +7,6 @@ import {
   Timer,
   ListTodo,
   ListCollapse,
-  Layers,
   Terminal,
   Printer,
   LogOut,
@@ -24,10 +23,6 @@ export function AdminSidebar() {
     canAccessDashboard,
     canManageOrders,
     canScanQr,
-    canManageInventory,
-    canUpdateStockOnly,
-    canManageMenu,
-    canReviewStaff,
     canAccessDeveloper,
     isPrinter,
   } = useAdminAuth();

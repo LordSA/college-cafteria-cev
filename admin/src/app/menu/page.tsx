@@ -21,8 +21,6 @@ import {
   RotateCcw,
   Archive,
   Layers,
-  ToggleLeft,
-  ToggleRight,
 } from 'lucide-react';
 
 interface Category {
@@ -54,7 +52,6 @@ export default function AdminMenuPage() {
   const router = useRouter();
   const { adminUser, isUnauthorized, loading: authLoading, session, canManageMenu, role } = useAdminAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<'dishes' | 'categories'>('dishes');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);

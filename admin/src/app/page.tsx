@@ -7,20 +7,18 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import { AdminSidebar } from '../components/AdminSidebar';
 import {
   ShieldAlert,
-  Lock,
   Loader2,
   Search,
-  ExternalLink,
   Download,
   CheckCircle2,
   ArrowRight,
+  CreditCard,
 } from 'lucide-react';
 
 interface OperationalStats {
   totalMenu: number;
   availableMenu: number;
   totalCategories: number;
-  pendingStaff: number;
   activeOrders: number;
   lowStockCount: number;
 }
@@ -30,8 +28,6 @@ interface FinancialStats {
   totalOrders: number;
   activeOrders: number;
   completedOrders: number;
-  lowStockCount: number;
-  pendingStaffCount: number;
   paymentBreakdown: {
     razorpayPaise: number;
     walletPaise: number;
@@ -39,18 +35,24 @@ interface FinancialStats {
   };
 }
 
-interface DashboardOrder {
+interface ChartPoint {
+  label: string;
+  date: string;
+  totalRevenue: number;
+  razorpayRevenue: number;
+  orderCount: number;
+}
+
+interface TodayPayment {
   id: string;
   order_number: string;
-  order_stage?: 'ORDER_PLACED' | 'COLLECTED';
-  order_status: string;
+  customer_name: string;
+  customer_email?: string | null;
+  amount: number;
+  payment_method: string;
   payment_status: string;
-  total: number;
   created_at: string;
-  customer_name?: string;
-  customer_account_type?: string;
-  qr_verification_token?: string | null;
-  items?: Array<{ id: string; item_name: string; quantity: number }>;
+  paid_at?: string;
 }
 
 interface DashboardInventoryItem {
@@ -61,20 +63,11 @@ interface DashboardInventoryItem {
   is_available: boolean;
 }
 
-interface DashboardStaffRequest {
-  id: string;
-  display_name: string;
-  email: string;
-  teacher_id?: string | null;
-  created_at: string;
-}
-
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
-const CUSTOMER_URL = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3000';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { adminUser, isUnauthorized, loading, session, signOut, role, canAccessDashboard } = useAdminAuth();
+  const { adminUser, isUnauthorized, loading, session, role, canAccessDashboard } = useAdminAuth();
 
   useEffect(() => {
     if (!loading && adminUser) {
@@ -92,13 +85,14 @@ export default function AdminDashboardPage() {
     totalMenu: 0,
     availableMenu: 0,
     totalCategories: 0,
-    pendingStaff: 0,
     activeOrders: 0,
     lowStockCount: 0,
   });
   const [financialStats, setFinancialStats] = useState<FinancialStats | null>(null);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [todayPayments, setTodayPayments] = useState<TodayPayment[]>([]);
+  const [teachersCount, setTeachersCount] = useState<number>(0);
   const [lowStockItems, setLowStockItems] = useState<DashboardInventoryItem[]>([]);
-  const [pendingStaffList, setPendingStaffList] = useState<DashboardStaffRequest[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
@@ -116,14 +110,14 @@ export default function AdminDashboardPage() {
         const [
           menuRes,
           catsRes,
-          staffRes,
+          teachersRes,
           ordersRes,
           inventoryRes,
           financialRes,
         ] = await Promise.allSettled([
           fetch(`${API_BASE_URL}/api/v1/admin/menu?t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/categories?t=${Date.now()}`, { headers, cache: 'no-store' }),
-          fetch(`${API_BASE_URL}/api/v1/admin/staff-requests?t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/list?t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/orders?limit=6&t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/inventory?t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/reports/stats?range=${timeframe}&t=${Date.now()}`, { headers, cache: 'no-store' }),
@@ -147,31 +141,26 @@ export default function AdminDashboardPage() {
           totalCategories = cats.length;
         }
 
-        let pendingStaff = 0;
-        let staffRequests: DashboardStaffRequest[] = [];
-        if (staffRes.status === 'fulfilled' && staffRes.value.ok) {
-          const json = await staffRes.value.json();
-          staffRequests = Array.isArray(json.data) ? json.data : (json.data?.requests || []);
-          pendingStaff = staffRequests.length;
-          setPendingStaffList(staffRequests.slice(0, 3));
+        if (teachersRes.status === 'fulfilled' && teachersRes.value.ok) {
+          const json = await teachersRes.value.json();
+          const list = Array.isArray(json.data) ? json.data : [];
+          setTeachersCount(list.length);
         }
 
         let activeOrdersCount = 0;
-        let fetchedOrders: DashboardOrder[] = [];
         if (ordersRes.status === 'fulfilled' && ordersRes.value.ok) {
           const json = await ordersRes.value.json();
-          fetchedOrders = Array.isArray(json.data) ? json.data : (json.data?.orders || []);
+          const fetchedOrders = Array.isArray(json.data) ? json.data : (json.data?.orders || []);
           activeOrdersCount = fetchedOrders.filter(
-            (o) => (o.order_stage || o.order_status) === 'ORDER_PLACED'
+            (o: any) => (o.order_stage || o.order_status) === 'ORDER_PLACED'
           ).length;
         }
 
         let lowStockCount = 0;
-        let lowPortions: DashboardInventoryItem[] = [];
         if (inventoryRes.status === 'fulfilled' && inventoryRes.value.ok) {
           const json = await inventoryRes.value.json();
           const items: DashboardInventoryItem[] = Array.isArray(json.data) ? json.data : (json.data?.inventory || []);
-          lowPortions = items.filter(
+          const lowPortions = items.filter(
             (i) => i.stock_quantity <= i.low_stock_threshold
           );
           lowStockCount = lowPortions.length;
@@ -180,18 +169,34 @@ export default function AdminDashboardPage() {
 
         if (financialRes.status === 'fulfilled' && financialRes.value.ok) {
           const json = await financialRes.value.json();
-          setFinancialStats(json.data?.stats || null);
+          if (json.data) {
+            setFinancialStats({
+              totalRevenuePaise: json.data.total_revenue_paise || 0,
+              totalOrders: json.data.total_orders || 0,
+              activeOrders: json.data.placed_orders || 0,
+              completedOrders: json.data.collected_orders || 0,
+              paymentBreakdown: {
+                razorpayPaise: json.data.payment_breakdown?.razorpayPaise || 0,
+                walletPaise: json.data.payment_breakdown?.walletPaise || 0,
+                payLaterPaise: json.data.payment_breakdown?.payLaterPaise || 0,
+              },
+            });
+            setChartData(json.data.chart_data || []);
+            setTodayPayments(json.data.today_payments || []);
+            if (json.data.teachers_count !== undefined) {
+              setTeachersCount(json.data.teachers_count);
+            }
+          }
         }
 
         setStats({
           totalMenu,
           availableMenu,
           totalCategories,
-          pendingStaff,
           activeOrders: activeOrdersCount,
           lowStockCount,
         });
-      } catch (err) {
+      } catch {
       } finally {
         if (isMounted) {
           setStatsLoading(false);
@@ -204,7 +209,7 @@ export default function AdminDashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [session?.access_token, adminUser, isUnauthorized, timeframe]);
+  }, [session?.access_token, adminUser, isUnauthorized, timeframe, canAccessDashboard]);
 
   const handleExportExcel = async () => {
     if (!session?.access_token) return;
@@ -232,69 +237,51 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const maxVal = Math.max(...chartData.map((d) => d.totalRevenue), 50);
+  const maxTick = Math.ceil(maxVal / 50) * 50;
+  const numPoints = chartData.length;
+
+  const points = chartData.map((d, i) => {
+    const x = numPoints > 1 ? (i / (numPoints - 1)) * 960 + 20 : 500;
+    const y = 175 - (d.totalRevenue / maxTick) * 155;
+    return { x, y, ...d };
+  });
+
+  const pathD = points.length === 0
+    ? 'M 20 175 L 980 175'
+    : points.reduce((acc, p, i) => `${acc} ${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`, '');
+
+  const areaD = points.length === 0
+    ? 'M 20 175 L 980 175 L 980 175 L 20 175 Z'
+    : `${pathD} L ${points[points.length - 1]!.x.toFixed(1)} 175 L ${points[0]!.x.toFixed(1)} 175 Z`;
+
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-white text-[#252525]">
         <div className="flex flex-col items-center gap-3 text-[#666666]">
           <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
           <p className="text-xs font-semibold tracking-wider text-[#666666]">
-            Loading Dashboard...
+            Verifying administrative access...
           </p>
         </div>
       </main>
     );
   }
 
-  if (adminUser && isUnauthorized) {
+  if (isUnauthorized || !adminUser) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4 bg-white text-[#252525]">
-        <div className="w-full max-w-lg space-y-6 bg-white p-8 rounded-3xl border border-red-200 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-[#D94A43] border border-red-200">
-            <ShieldAlert className="h-8 w-8" />
+      <main className="min-h-screen flex items-center justify-center bg-white p-4">
+        <div className="w-full max-w-sm rounded-3xl border border-[#EEEEEE] bg-white p-7 shadow-xl space-y-4 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-[#D94A43]">
+            <ShieldAlert className="h-7 w-7" />
           </div>
-
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-[#252525]">403 — Unauthorized Access</h1>
-            <p className="mt-2 text-xs leading-relaxed text-[#666666]">
-              Your account (<span className="text-[#252525] font-medium">{adminUser.email}</span>) does not possess administrator privileges.
+            <h2 className="text-lg font-bold text-[#252525]">Access Restricted</h2>
+            <p className="text-xs text-[#666666] mt-1.5 leading-relaxed">
+              Your profile does not hold administrative access credentials.
             </p>
           </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <a
-              href={CUSTOMER_URL}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2.5 text-xs font-semibold text-[#252525] hover:text-[#F47721] transition"
-            >
-              <span>Return to Customer Site</span>
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-
-            <button
-              onClick={signOut}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-4 py-2.5 text-xs font-bold text-white transition shadow-md shadow-[#F47721]/20"
-            >
-              <Lock className="h-3.5 w-3.5" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!adminUser) {
-    return (
-      <main className="min-h-screen bg-white text-[#252525] flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-3xl bg-white p-8 border border-[#EEEEEE] shadow-sm text-center space-y-6">
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-stone-900 leading-[1.1]">
-            <img
-              src="/lg_title_blk.svg"
-              alt="Cafeteria CEV title"
-              className="h-12 w-full object-contain drop-shadow-md"
-            />
-          </h1>
-
-          <div className="flex flex-col gap-3 pt-2">
+          <div className="pt-2">
             <Link
               href="/login"
               className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-[#F47721] hover:bg-[#E06310] px-5 py-3 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition active:scale-95"
@@ -386,16 +373,16 @@ export default function AdminDashboardPage() {
               <div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff Requests</h3>
+                    <h3 className="text-xs font-bold text-[#252525] tracking-wide">Teachers</h3>
                   </div>
                   <span className="rounded-full bg-[#FFF7F0] text-[#F47721] text-[10px] font-bold px-2 py-0.5 border border-[#F47721]/30">
-                    {stats.pendingStaff} Pending
+                    {teachersCount} Registered
                   </span>
                 </div>
               </div>
 
               <div className="mt-4 pt-3 border-t border-[#EEEEEE] flex items-center justify-between text-[11px] text-[#F47721] font-bold">
-                <span>Review Staff Requests</span>
+                <span>Manage Teachers</span>
                 <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition" />
               </div>
             </Link>
@@ -404,16 +391,16 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEEEEE] pb-4">
               <div>
-                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Financial Overview</h2>
-                <div className="flex items-center gap-2.5 mt-2 text-[11px]">
+                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Real-time Financial Velocity</h2>
+                <div className="flex items-center gap-2.5 mt-2 text-[11px] flex-wrap">
                   <span className="rounded-lg bg-[#FAFAFA] border border-[#EEEEEE] px-2.5 py-1 text-[#666666]">
-                    Gross: <strong className="text-[#252525] font-black">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN')}</strong>
+                    Gross: <strong className="text-[#252525] font-black">₹{((financialStats?.totalRevenuePaise || 0) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
                   </span>
                   <span className="rounded-lg bg-[#FFF7F0] border border-[#F47721]/30 px-2.5 py-1 text-[#F47721]">
-                    UPI: <strong className="text-[#F47721] font-black">₹{((financialStats?.paymentBreakdown?.razorpayPaise || 0) / 100).toLocaleString('en-IN')}</strong>
+                    UPI: <strong className="text-[#F47721] font-black">₹{((financialStats?.paymentBreakdown?.razorpayPaise || 0) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
                   </span>
                   <span className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-amber-800">
-                    Pay Later: <strong className="text-amber-900 font-black">₹{((financialStats?.paymentBreakdown?.payLaterPaise || 0) / 100).toLocaleString('en-IN')}</strong>
+                    Faculty Post-Pay: <strong className="text-amber-900 font-black">₹{((financialStats?.paymentBreakdown?.payLaterPaise || 0) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
                   </span>
                 </div>
               </div>
@@ -464,68 +451,49 @@ export default function AdminDashboardPage() {
 
             <div className="mt-6 relative h-56 w-full">
               <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[11px] font-mono text-[#888888]">
-                <span>₹25k</span>
-                <span>₹18k</span>
-                <span>₹12k</span>
-                <span>₹6k</span>
+                <span>₹{maxTick >= 1000 ? `${(maxTick / 1000).toFixed(1)}k` : maxTick}</span>
+                <span>₹{Math.round(maxTick * 0.75) >= 1000 ? `${(Math.round(maxTick * 0.75) / 1000).toFixed(1)}k` : Math.round(maxTick * 0.75)}</span>
+                <span>₹{Math.round(maxTick * 0.5) >= 1000 ? `${(Math.round(maxTick * 0.5) / 1000).toFixed(1)}k` : Math.round(maxTick * 0.5)}</span>
+                <span>₹{Math.round(maxTick * 0.25) >= 1000 ? `${(Math.round(maxTick * 0.25) / 1000).toFixed(1)}k` : Math.round(maxTick * 0.25)}</span>
                 <span>₹0</span>
               </div>
 
-              <div className="ml-10 h-full">
+              <div className="ml-12 h-full">
                 <svg viewBox="0 0 1000 200" className="h-44 w-full overflow-visible" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="primaryGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#F47721" stopOpacity="0.35" />
                       <stop offset="100%" stopColor="#F47721" stopOpacity="0.02" />
                     </linearGradient>
-                    <linearGradient id="amberGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#FB923C" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#FB923C" stopOpacity="0.01" />
-                    </linearGradient>
                   </defs>
 
-                  <line x1="0" y1="10" x2="1000" y2="10" stroke="#EEEEEE" strokeDasharray="2 2" />
-                  <line x1="0" y1="55" x2="1000" y2="55" stroke="#EEEEEE" strokeDasharray="2 2" />
+                  <line x1="0" y1="20" x2="1000" y2="20" stroke="#EEEEEE" strokeDasharray="2 2" />
+                  <line x1="0" y1="60" x2="1000" y2="60" stroke="#EEEEEE" strokeDasharray="2 2" />
                   <line x1="0" y1="100" x2="1000" y2="100" stroke="#EEEEEE" strokeDasharray="2 2" />
-                  <line x1="0" y1="145" x2="1000" y2="145" stroke="#EEEEEE" strokeDasharray="2 2" />
+                  <line x1="0" y1="140" x2="1000" y2="140" stroke="#EEEEEE" strokeDasharray="2 2" />
+                  <line x1="0" y1="175" x2="1000" y2="175" stroke="#EEEEEE" />
 
-                  <path
-                    d="M 0 140 C 130 180, 180 70, 240 80 C 300 90, 340 170, 410 160 C 480 150, 500 180, 580 135 C 650 95, 700 110, 770 130 C 840 150, 870 70, 930 35 L 1000 60 L 1000 200 L 0 200 Z"
-                    fill="url(#primaryGradient)"
-                  />
-                  <path
-                    d="M 0 140 C 130 180, 180 70, 240 80 C 300 90, 340 170, 410 160 C 480 150, 500 180, 580 135 C 650 95, 700 110, 770 130 C 840 150, 870 70, 930 35 L 1000 60"
-                    fill="none"
-                    stroke="#F47721"
-                    strokeWidth="3"
-                  />
+                  <path d={areaD} fill="url(#primaryGradient)" />
+                  <path d={pathD} fill="none" stroke="#F47721" strokeWidth="3" />
 
-                  <path
-                    d="M 0 170 C 120 150, 170 125, 240 90 C 300 60, 340 110, 410 120 C 480 130, 510 75, 580 95 C 650 115, 680 170, 760 175 C 840 180, 880 160, 940 135 L 1000 145 L 1000 200 L 0 200 Z"
-                    fill="url(#amberGradient)"
-                  />
-                  <path
-                    d="M 0 170 C 120 150, 170 125, 240 90 C 300 60, 340 110, 410 120 C 480 130, 510 75, 580 95 C 650 115, 680 170, 760 175 C 840 180, 880 160, 940 135 L 1000 145"
-                    fill="none"
-                    stroke="#FB923C"
-                    strokeWidth="2.5"
-                  />
-
-                  <circle cx="240" cy="80" r="4.5" fill="#F47721" stroke="#FFFFFF" strokeWidth="2" />
-                  <circle cx="410" cy="160" r="4" fill="#FB923C" stroke="#FFFFFF" strokeWidth="2" />
-                  <circle cx="580" cy="95" r="4.5" fill="#F47721" stroke="#FFFFFF" strokeWidth="2" />
-                  <circle cx="760" cy="175" r="4" fill="#FB923C" stroke="#FFFFFF" strokeWidth="2" />
-                  <circle cx="930" cy="35" r="5" fill="#F47721" stroke="#FFFFFF" strokeWidth="2" />
+                  {points.map((p, idx) => (
+                    <g key={idx}>
+                      <circle
+                        cx={p.x}
+                        cy={p.y}
+                        r="4.5"
+                        fill="#F47721"
+                        stroke="#FFFFFF"
+                        strokeWidth="2"
+                      />
+                    </g>
+                  ))}
                 </svg>
 
                 <div className="flex justify-between text-[11px] font-mono text-[#888888] pt-2">
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
-                  <span>Sun</span>
+                  {chartData.map((pt, idx) => (
+                    <span key={idx}>{pt.label}</span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -573,36 +541,66 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Staff Request Queue</h3>
+                <CreditCard className="h-4 w-4 text-[#F47721]" />
+                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Today&apos;s Live Payments</h3>
               </div>
-              <Link href="/staff-requests" className="text-[11px] font-bold text-[#F47721] hover:underline">
-                Review All
+              <Link href="/financial" className="text-[11px] font-bold text-[#F47721] hover:underline flex items-center gap-1">
+                <span>View More</span>
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
 
-            {pendingStaffList.length === 0 ? (
-              <div className="p-4 text-center">
-                <CheckCircle2 className="h-6 w-6 text-[#269B62] mx-auto mb-1" />
-                <p className="text-xs text-[#666666]">No pending staff requests</p>
+            {todayPayments.length === 0 ? (
+              <div className="p-5 text-center">
+                <CreditCard className="h-6 w-6 text-[#888888] mx-auto mb-1" />
+                <p className="text-xs text-[#666666]">No payment transactions recorded today yet.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
-                {pendingStaffList.map((req) => (
-                  <div key={req.id} className="rounded-xl bg-[#FFF7F0]/40 p-3 border border-[#F47721]/20 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-semibold text-[#252525]">{req.display_name || req.email}</p>
-                      <p className="text-[10px] text-[#666666]">
-                        Teacher ID: <span className="font-mono text-[#252525]">{req.teacher_id || 'Not specified'}</span>
-                      </p>
+                {todayPayments.slice(0, 6).map((pay) => {
+                  const payDate = new Date(pay.paid_at || pay.created_at);
+                  const timeStr = payDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                  return (
+                    <div key={pay.id} className="rounded-xl bg-[#FAFAFA] p-3 border border-[#EEEEEE] hover:border-orange-200 flex items-center justify-between text-xs transition">
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-[#252525] truncate max-w-[130px]">
+                            {pay.customer_name}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#888888]">
+                            #{pay.order_number}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-[#666666] mt-0.5">
+                          <span>{timeStr}</span>
+                          <span>•</span>
+                          <span className="uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-orange-50 text-[#F47721] border border-orange-200">
+                            {pay.payment_method === 'razorpay' ? 'UPI' : pay.payment_method === 'testing_wallet' ? 'Wallet' : pay.payment_method}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="font-mono font-extrabold text-[#269B62] text-xs">
+                          ₹{(pay.amount / 100).toFixed(2)}
+                        </span>
+                        <div className="text-[9px] font-bold text-green-700 capitalize">
+                          {pay.payment_status}
+                        </div>
+                      </div>
                     </div>
-                    <Link
-                      href="/staff-requests"
-                      className="rounded-xl bg-[#F47721] hover:bg-[#E06310] px-2.5 py-1 text-[10px] font-bold text-white shadow-xs transition"
-                    >
-                      Verify
-                    </Link>
-                  </div>
-                ))}
+                  );
+                })}
+
+                <div className="pt-2 text-center">
+                  <Link
+                    href="/financial"
+                    className="inline-flex items-center justify-center gap-1 text-xs font-bold text-[#F47721] hover:underline"
+                  >
+                    <span>View All Transactions in Financial Ledger</span>
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
               </div>
             )}
           </div>
