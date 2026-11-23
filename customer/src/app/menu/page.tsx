@@ -140,6 +140,8 @@ export default function MenuPage() {
       price: item.price,
       image_url: item.image_url,
       category_name: item.category_name,
+      track_inventory: item.track_inventory,
+      stock_quantity: item.stock_quantity,
     });
 
     if (!res.success) {

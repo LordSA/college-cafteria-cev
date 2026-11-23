@@ -230,6 +230,8 @@ export default function CustomerHomePage() {
     price: number;
     imageUrl: string | null;
     categoryName?: string;
+    trackInventory?: boolean;
+    stockQuantity?: number;
   }) => {
     recordItemClick(item.id);
     if (!user) {
@@ -243,6 +245,8 @@ export default function CustomerHomePage() {
       price: item.price,
       image_url: item.imageUrl,
       category_name: item.categoryName,
+      track_inventory: item.trackInventory,
+      stock_quantity: item.stockQuantity,
     });
   };
 
@@ -592,6 +596,8 @@ export default function CustomerHomePage() {
                                 price: product.price,
                                 imageUrl: product.image_url,
                                 categoryName: product.category_name,
+                                trackInventory: product.track_inventory,
+                                stockQuantity: product.stock_quantity,
                               });
                             }}
                             className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] px-4 py-2 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
@@ -817,6 +823,8 @@ export default function CustomerHomePage() {
                                           price: product.price,
                                           imageUrl: product.image_url,
                                           categoryName: product.category_name,
+                                          trackInventory: product.track_inventory,
+                                          stockQuantity: product.stock_quantity,
                                         });
                                       }}
                                       className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
@@ -932,6 +940,8 @@ export default function CustomerHomePage() {
                                         price: product.price,
                                         imageUrl: product.image_url,
                                         categoryName: product.category_name,
+                                        trackInventory: product.track_inventory,
+                                        stockQuantity: product.stock_quantity,
                                       });
                                     }}
                                     className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"

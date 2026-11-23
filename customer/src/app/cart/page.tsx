@@ -226,8 +226,12 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-3.5">
                 {items.map((item) => {
                   const itemStockInfo = stockMap[item.id];
-                  const maxStock = itemStockInfo?.track_inventory ? (itemStockInfo.stock_quantity ?? 999) : (item.track_inventory ? (item.stock_quantity ?? 999) : 999);
-                  const isAtMaxStock = itemStockInfo ? (!itemStockInfo.is_available || (itemStockInfo.track_inventory && (maxStock <= 0 || item.quantity >= maxStock))) : false;
+                  const trackInventory = itemStockInfo?.track_inventory ?? item.track_inventory ?? false;
+                  const isAvailable = itemStockInfo ? itemStockInfo.is_available : true;
+                  const maxStock = itemStockInfo?.track_inventory
+                    ? (itemStockInfo.stock_quantity ?? 0)
+                    : (item.track_inventory ? (item.stock_quantity ?? 0) : 999);
+                  const isAtMaxStock = !isAvailable || (trackInventory && (maxStock <= 0 || item.quantity >= maxStock));
 
                   return (
                     <div

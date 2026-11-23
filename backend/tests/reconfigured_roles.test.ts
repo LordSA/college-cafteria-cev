@@ -22,7 +22,6 @@ const createMockProfile = (
   requested_account_type: accountType,
   approved_account_type: accountType,
   staff_approval_status: approvalStatus,
-  teacher_id: accountType === 'staff_t' ? 'TCH-100' : null,
   reviewed_by: null,
   reviewed_at: null,
   app_role: role,

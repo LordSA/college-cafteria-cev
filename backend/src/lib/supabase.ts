@@ -105,7 +105,6 @@ export async function verifySupabaseToken(
 
   const mapAccountType = (type?: string | null): AccountType => {
     if (type === 'staff' || type === 'staff_t') return 'staff_t';
-    if (type === 'guest') return 'guest';
     return 'student';
   };
 

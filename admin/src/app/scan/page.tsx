@@ -56,7 +56,6 @@ interface VerificationResult {
     id: string;
     display_name: string;
     account_type: string;
-    teacher_id?: string;
   };
   items: OrderItem[];
   is_eligible_for_collection: boolean;
@@ -780,7 +779,7 @@ function AdminScanContent() {
                       </span>
                       <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-bold uppercase text-stone-600">
                         {result.customer.account_type === 'staff_t'
-                          ? `Teacher ${result.customer.teacher_id ? `(${result.customer.teacher_id})` : ''}`
+                          ? 'Teacher'
                           : result.customer.account_type}
                       </span>
                       <span className="flex items-center gap-1 text-[11px] text-stone-400">

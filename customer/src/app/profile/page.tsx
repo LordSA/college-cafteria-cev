@@ -359,11 +359,6 @@ export default function ProfilePage() {
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-[#ff5e3a] shadow-xs">
                       {roleLabel}
                     </span>
-                    {profile?.teacher_id && (
-                      <span className="font-mono text-xs font-bold text-orange-100">
-                        ID: {profile.teacher_id}
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
