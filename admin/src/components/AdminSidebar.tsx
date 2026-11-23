@@ -20,6 +20,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const {
     signOut,
+    role,
     canAccessDashboard,
     canManageOrders,
     canScanQr,
@@ -31,19 +32,18 @@ export function AdminSidebar() {
     isPrinter,
   } = useAdminAuth();
 
-  const navLinks = [
-    { label: 'Dashboard', shortLabel: 'Dashboard', href: '/', icon: Home, show: canAccessDashboard },
-    { label: 'Orders Queue', shortLabel: 'Orders', href: '/orders', icon: Timer, show: canManageOrders },
-    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: QrCode, show: canScanQr && !isPrinter },
-    { label: 'Inventory', shortLabel: 'Inventory', href: '/inventory', icon: ListTodo, show: canManageInventory || canUpdateStockOnly },
-    { label: 'Menu', shortLabel: 'Menu', href: '/menu', icon: ListCollapse, show: canManageMenu },
-    { label: 'Categories', shortLabel: 'Categories', href: '/categories', icon: Layers, show: canReviewStaff },
-    { label: 'Teacher Requests', shortLabel: 'Teachers', href: '/staff-requests', icon: FileCheck, show: canReviewStaff },
-    { label: 'Printer Kiosk', shortLabel: 'Printer', href: '/printer', icon: Printer, show: isPrinter },
-    { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: canAccessDeveloper },
+  const allLinks = [
+    { label: 'Dashboard', shortLabel: 'Dashboard', href: '/', icon: Home, show: role === 'admin' || (role === 'developer' && canAccessDashboard) },
+    { label: 'Orders Queue', shortLabel: 'Orders', href: '/orders', icon: Timer, show: role === 'developer' && canManageOrders },
+    { label: 'QR Scanner', shortLabel: 'Scanner', href: '/scan', icon: QrCode, show: role === 'admin' || role === 'staff' || (canScanQr && !isPrinter) },
+    { label: 'Inventory', shortLabel: 'Inventory', href: '/inventory', icon: ListTodo, show: role === 'staff' || role === 'retail' || role === 'developer' },
+    { label: 'Menu Management', shortLabel: 'Menu', href: '/menu', icon: ListCollapse, show: role === 'admin' || role === 'developer' },
+    { label: 'Teacher Management', shortLabel: 'Teachers', href: '/staff-requests', icon: FileCheck, show: role === 'admin' || role === 'developer' },
+    { label: 'Printer Kiosk', shortLabel: 'Printer', href: '/printer', icon: Printer, show: role === 'printer' || (isPrinter && role !== 'admin' && role !== 'staff') },
+    { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: role === 'developer' && canAccessDeveloper },
   ];
 
-  const visibleLinks = navLinks.filter((l) => l.show);
+  const visibleLinks = allLinks.filter((l) => l.show);
 
   return (
     <>
@@ -116,6 +116,20 @@ export function AdminSidebar() {
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={signOut}
+            title="Sign Out"
+            className="flex flex-col items-center justify-center flex-1 min-w-[56px] py-1 px-1 rounded-xl text-[#666666] hover:text-[#D94A43] transition active:scale-95"
+          >
+            <div className="flex items-center justify-center h-8 w-8 rounded-xl">
+              <LogOut className="h-5 w-5 stroke-2" />
+            </div>
+            <span className="text-[9px] font-medium tracking-tight mt-0.5 truncate max-w-[62px]">
+              Sign Out
+            </span>
+          </button>
         </div>
       </nav>
     </>
