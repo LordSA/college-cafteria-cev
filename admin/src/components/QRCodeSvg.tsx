@@ -16,9 +16,10 @@ export function QRCodeSvg({ value, size = 180, className = '' }: QRCodeSvgProps)
     if (!value) return;
     QRCode.toString(value, {
       type: 'svg',
-      margin: 1,
+      margin: 2,
+      errorCorrectionLevel: 'M',
       color: {
-        dark: '#0f172a',
+        dark: '#000000',
         light: '#ffffff',
       },
     })

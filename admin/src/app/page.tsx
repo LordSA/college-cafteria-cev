@@ -97,7 +97,6 @@ export default function AdminDashboardPage() {
     lowStockCount: 0,
   });
   const [financialStats, setFinancialStats] = useState<FinancialStats | null>(null);
-  const [recentOrders, setRecentOrders] = useState<DashboardOrder[]>([]);
   const [lowStockItems, setLowStockItems] = useState<DashboardInventoryItem[]>([]);
   const [pendingStaffList, setPendingStaffList] = useState<DashboardStaffRequest[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -165,7 +164,6 @@ export default function AdminDashboardPage() {
           activeOrdersCount = fetchedOrders.filter(
             (o) => (o.order_stage || o.order_status) === 'ORDER_PLACED'
           ).length;
-          setRecentOrders(fetchedOrders.slice(0, 6));
         }
 
         let lowStockCount = 0;
@@ -531,81 +529,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Live Orders</h2>
-              </div>
-              <Link
-                href="/orders"
-                className="text-xs font-bold text-[#F47721] hover:underline"
-              >
-                View all orders &rarr;
-              </Link>
-            </div>
-
-            {recentOrders.length === 0 ? (
-              <p className="text-xs text-[#888888] py-4 text-center">No canteen orders placed yet today.</p>
-            ) : (
-              <div className="space-y-2">
-                {recentOrders.map((order) => {
-                  const stage = order.order_stage || (order.order_status === 'COLLECTED' || order.order_status === 'completed' ? 'COLLECTED' : 'ORDER_PLACED');
-                  const isPlaced = stage === 'ORDER_PLACED';
-                  return (
-                    <div
-                      key={order.id}
-                      className={`p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs rounded-xl transition-all ${isPlaced
-                        ? 'bg-[#FFF7F0]/50 border border-[#F47721]/30 hover:bg-[#FFF7F0]'
-                        : 'bg-[#FAFAFA] border border-[#EEEEEE] hover:bg-white'
-                        }`}
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-black text-[#F47721]">{order.order_number}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border ${isPlaced
-                            ? 'bg-[#F47721] text-white border-[#F47721] shadow-xs'
-                            : 'bg-green-50 text-[#269B62] border-green-200'
-                            }`}>
-                            {stage}
-                          </span>
-                          <span className="text-[10px] text-[#666666]">
-                            {order.customer_name} ({order.customer_account_type || 'student'})
-                          </span>
-                        </div>
-                        {order.items && order.items.length > 0 && (
-                          <p className="text-[11px] text-[#666666]">
-                            {order.items.map((i) => `${i.quantity}× ${i.item_name}`).join(', ')}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3 self-end sm:self-auto">
-                        <span className="font-mono font-bold text-[#252525] tabular-nums">
-                          ₹{(order.total / 100).toFixed(2)}
-                        </span>
-                        {isPlaced ? (
-                          <Link
-                            href={`/scan?token=${encodeURIComponent(order.qr_verification_token || '')}`}
-                            className="rounded-xl bg-[#F47721] hover:bg-[#E06310] px-3.5 py-1.5 text-[11px] font-bold text-white shadow-md shadow-[#F47721]/20 transition"
-                          >
-                            Scan / Collect
-                          </Link>
-                        ) : (
-                          <Link
-                            href={`/orders/receipt/?id=${order.id}`}
-                            className="rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-3 py-1 text-[11px] font-bold text-[#252525] hover:text-[#F47721] transition"
-                          >
-                            Receipt
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </main>
 

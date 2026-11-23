@@ -17,7 +17,6 @@ import {
   Loader2,
   LogOut,
   User,
-  Building2,
   Link as LinkIcon,
   X,
   Smartphone,
@@ -38,11 +37,6 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const [teacherId, setTeacherId] = useState('');
-  const [teacherIdLoading, setTeacherIdLoading] = useState(false);
-  const [teacherIdSuccess, setTeacherIdSuccess] = useState<string | null>(null);
-  const [teacherIdError, setTeacherIdError] = useState<string | null>(null);
-
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
   const [googleSuccess, setGoogleSuccess] = useState<string | null>(null);
@@ -52,12 +46,6 @@ export default function SettingsPage() {
       router.push('/login');
     }
   }, [user, loading, router]);
-
-  useEffect(() => {
-    if (profile?.teacher_id) {
-      setTeacherId(profile.teacher_id);
-    }
-  }, [profile]);
 
   const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
@@ -95,42 +83,6 @@ export default function SettingsPage() {
       setPasswordError(err.message || 'Failed to update password');
     } finally {
       setPasswordLoading(false);
-    }
-  };
-
-  const handleSaveTeacherId = async (e: FormEvent) => {
-    e.preventDefault();
-    setTeacherIdError(null);
-    setTeacherIdSuccess(null);
-
-    const trimmed = teacherId.trim();
-    if (!trimmed) {
-      setTeacherIdError('Teacher ID cannot be empty');
-      return;
-    }
-
-    if (trimmed.length < 3 || trimmed.length > 20) {
-      setTeacherIdError('Teacher ID must be between 3 and 20 characters');
-      return;
-    }
-
-    setTeacherIdLoading(true);
-    try {
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          teacher_id: trimmed,
-          requested_account_type: 'staff_t',
-          staff_approval_status: 'pending',
-        })
-        .eq('id', user?.id);
-
-      if (updateError) throw updateError;
-      setTeacherIdSuccess('Teacher ID saved. Approval pending administrative review.');
-    } catch (err: any) {
-      setTeacherIdError(err.message || 'Failed to save Teacher ID');
-    } finally {
-      setTeacherIdLoading(false);
     }
   };
 
@@ -175,10 +127,6 @@ export default function SettingsPage() {
   const isGoogleLinked =
     (user as any)?.identities?.some((id: any) => id.provider === 'google') ||
     (user as any)?.app_metadata?.providers?.includes('google');
-
-  const approvalStatus = profile?.staff_approval_status || 'not_requested';
-  const isApprovedFaculty = approvalStatus === 'approved';
-  const isPendingFaculty = approvalStatus === 'pending';
 
   return (
     <>
@@ -266,63 +214,6 @@ export default function SettingsPage() {
                   </span>
                 </div>
               </div>
-            </div>
-
-            <div className="border-t border-stone-100 dark:border-white/10 pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-[#ff5e3a]" />
-                    <span>Teacher ID</span>
-                  </h3>
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                    Faculty identifier
-                  </p>
-                </div>
-
-                {isApprovedFaculty ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Verified Faculty
-                  </span>
-                ) : isPendingFaculty ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-950/40 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
-                    Pending Verification
-                  </span>
-                ) : null}
-              </div>
-
-              {teacherIdSuccess && (
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-3 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                  <span>{teacherIdSuccess}</span>
-                </div>
-              )}
-
-              {teacherIdError && (
-                <div className="rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 p-3 text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
-                  <span>{teacherIdError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSaveTeacherId} className="flex gap-2">
-                <input
-                  type="text"
-                  value={teacherId}
-                  onChange={(e) => setTeacherId(e.target.value)}
-                  placeholder="e.g. CEV-T-1042"
-                  maxLength={20}
-                  className="flex-1 rounded-full border border-stone-300 dark:border-white/10 bg-white dark:bg-white/[0.04] px-3.5 py-2.5 text-xs font-mono font-bold uppercase text-stone-900 dark:text-white focus:border-[#ff5e3a] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a]"
-                />
-                <button
-                  type="submit"
-                  disabled={teacherIdLoading}
-                  className="rounded-full bg-stone-900 dark:bg-white dark:text-stone-900 px-4 py-2 text-xs font-bold text-white hover:bg-stone-800 dark:hover:bg-stone-100 transition disabled:opacity-50"
-                >
-                  {teacherIdLoading ? 'Saving...' : 'Save'}
-                </button>
-              </form>
             </div>
           </div>
 

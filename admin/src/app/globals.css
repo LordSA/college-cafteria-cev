@@ -52,3 +52,22 @@ body {
   outline: none;
   box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px #F47721;
 }
+
+@keyframes scanner-laser {
+  0% {
+    top: 5%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 92%;
+    opacity: 1;
+  }
+  100% {
+    top: 5%;
+    opacity: 0.8;
+  }
+}
+
+.animate-scanner-laser {
+  animation: scanner-laser 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Optical QR Code Scanner Engine & Modern Scanner UI Overhaul (`admin/src/app/scan/page.tsx`)**:
+  - Implemented dual-engine continuous video frame analysis using native hardware-accelerated `BarcodeDetector` with pure JavaScript canvas fallback via `jsqr`.
+  - Added modern animated viewfinder with target corner brackets, glowing glassmorphic overlay, and sweeping orange laser line animation (`animate-scanner-laser`).
+  - Added camera controls: Front/Rear camera switcher (`SwitchCamera`), flashlight/torch toggle (`Flashlight`), and image/screenshot upload decoder (`ImageIcon`).
+  - Integrated synthesized Web Audio API chime (two-tone 880Hz to 1760Hz beep) and haptic vibration (`navigator.vibrate`) upon successful scan detection.
+  - Enhanced order verification card: Interactive item packing checklist with individual item checkboxes and "Check All" toggle, bold order number, role badge, instant "Dispatch Meal (Mark as Collected)" button, and "Scan Next Order" quick reset.
+  - Improved QR code generation contrast and quiet zone margin (`margin: 2`, `errorCorrectionLevel: 'M'`) across customer tracking and receipts.
+
+### Added
 - **Faculty & Staff Pay Later Online Dues Settlement via Razorpay**:
   - Implemented custom dues settlement modal in `customer/src/app/profile/page.tsx` allowing faculty members to enter custom partial or full payment amounts.
   - Added quick-preset chips (Pay Full, ₹500, ₹200, ₹100, ₹50) and live calculation of remaining debt after payment.

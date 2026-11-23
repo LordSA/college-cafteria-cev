@@ -236,7 +236,7 @@ function OrderTrackerContent() {
           ) : (
             <>
               <div className="flex justify-center py-2">
-                <div className="p-3.5 bg-stone-50 dark:bg-white rounded-2xl border border-stone-100 dark:border-white/10 shadow-sm">
+                <div className="p-4 bg-white dark:bg-white rounded-3xl border border-stone-200 shadow-md">
                   <QRCodeSvg value={order.qr_verification_token} size={210} />
                 </div>
               </div>
