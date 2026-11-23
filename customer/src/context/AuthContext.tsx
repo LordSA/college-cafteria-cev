@@ -78,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const normalizeAccountType = (val: any): AccountType => {
         if (val === 'staff' || val === 'staff_t') return 'staff_t';
-        if (val === 'guest') return 'guest';
         return 'student';
       };
 
@@ -101,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } else {
         const reqType = normalizeAccountType(userMeta?.account_type);
-        const appType = reqType === 'guest' ? 'guest' : 'student';
+        const appType = reqType === 'staff_t' ? 'staff_t' : 'student';
         setProfile({
           id: userId,
           display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),
@@ -119,8 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       const rawType = userMeta?.account_type;
-      const reqType = rawType === 'staff' || rawType === 'staff_t' ? 'staff_t' : rawType === 'guest' ? 'guest' : 'student';
-      const appType = reqType === 'guest' ? 'guest' : 'student';
+      const reqType = rawType === 'staff' || rawType === 'staff_t' ? 'staff_t' : 'student';
+      const appType = reqType === 'staff_t' ? 'staff_t' : 'student';
       setProfile({
         id: userId,
         display_name: userMeta?.display_name || (userEmail ? userEmail.split('@')[0] : 'User'),

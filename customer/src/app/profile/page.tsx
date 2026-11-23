@@ -312,9 +312,7 @@ export default function ProfilePage() {
       ? 'Administrator'
       : profile?.account_type === 'staff_t'
         ? 'Teacher (Faculty)'
-        : profile?.account_type === 'guest'
-          ? 'Guest Diner'
-          : 'Student';
+        : 'Student';
 
   const avatarDisplayUrl = profile?.avatar_key?.startsWith('/')
     ? profile.avatar_key

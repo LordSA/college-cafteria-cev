@@ -32,7 +32,7 @@ const CART_EXPIRY_KEY = 'cafteria_cart_expires_at';
 const CART_EXPIRED_AT_KEY = 'cafteria_cart_expired_at';
 const CART_SESSION_KEY = 'cafteria_cart_session_id';
 const LOCK_DURATION_SECONDS = 300;
-const EXPIRED_NOTICE_DURATION_MS = 60 * 1000;
+const EXPIRED_NOTICE_DURATION_MS = 4000;
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -51,6 +51,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(CART_EXPIRED_AT_KEY, Date.now().toString());
     } catch {}
+    setTimeout(() => {
+      setIsExpired(false);
+      try {
+        localStorage.removeItem(CART_EXPIRED_AT_KEY);
+      } catch {}
+    }, 4000);
   }, []);
 
   useEffect(() => {
@@ -96,8 +102,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const storedExpiredAt = localStorage.getItem(CART_EXPIRED_AT_KEY);
       if (storedExpiredAt) {
         const expTime = parseInt(storedExpiredAt, 10);
-        if (!isNaN(expTime) && Date.now() - expTime < EXPIRED_NOTICE_DURATION_MS) {
+        const elapsed = Date.now() - expTime;
+        if (!isNaN(expTime) && elapsed < EXPIRED_NOTICE_DURATION_MS) {
           setIsExpired(true);
+          setTimeout(() => {
+            setIsExpired(false);
+            try {
+              localStorage.removeItem(CART_EXPIRED_AT_KEY);
+            } catch {}
+          }, EXPIRED_NOTICE_DURATION_MS - elapsed);
         } else {
           localStorage.removeItem(CART_EXPIRED_AT_KEY);
           setIsExpired(false);

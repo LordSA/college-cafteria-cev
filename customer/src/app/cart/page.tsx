@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header } from '../../components/Header';
@@ -19,18 +19,33 @@ import {
   Clock,
   AlertCircle,
   ReceiptText,
+  X,
 } from 'lucide-react';
 
 export default function CartPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount, remainingSeconds, isExpired } = useCart();
+  const [cartError, setCartError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
       router.push('/login?redirect=/cart');
     }
   }, [user, authLoading, router]);
+
+  const handleIncrease = async (id: string, qty: number) => {
+    setCartError(null);
+    const res = await updateQuantity(id, qty);
+    if (!res.success) {
+      setCartError(res.error || 'Cannot add more. No additional stock available.');
+    }
+  };
+
+  const handleDecrease = async (id: string, qty: number) => {
+    setCartError(null);
+    await updateQuantity(id, qty);
+  };
 
   const formatTimer = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -130,6 +145,22 @@ export default function CartPage() {
             </div>
           )}
 
+          {cartError && (
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-900/40 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-800 dark:text-rose-300 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 text-rose-600 dark:text-rose-400" />
+                <span>{cartError}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCartError(null)}
+                className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-300"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
           {isExpired && (
             <div className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-950/20 p-4 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
@@ -201,7 +232,7 @@ export default function CartPage() {
                     <div className="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-stone-100 dark:border-white/10">
                       <div className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => handleDecrease(item.id, item.quantity - 1)}
                           className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 transition shadow-xs"
                           title="Decrease"
                         >
@@ -211,7 +242,7 @@ export default function CartPage() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => handleIncrease(item.id, item.quantity + 1)}
                           className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white hover:opacity-95 transition shadow-xs"
                           title="Increase"
                         >

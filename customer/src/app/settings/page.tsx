@@ -227,7 +227,6 @@ export default function SettingsPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h3 className="text-xs font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
-                    {/* <KeyRound className="h-3.5 w-3.5 text-[#ff5e3a]" /> */}
                     <span>Change Password</span>
                   </h3>
                   <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">

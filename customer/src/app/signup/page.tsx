@@ -3,9 +3,9 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth, AccountType } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
-import { AlertCircle, Loader2, GraduationCap, Briefcase, Globe, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Loader2, CheckSquare, Square, Eye, EyeOff } from 'lucide-react';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -16,8 +16,6 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [accountType, setAccountType] = useState<AccountType>('student');
-  const [teacherId, setTeacherId] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -49,18 +47,6 @@ export default function SignUpPage() {
       return;
     }
 
-    if (accountType === 'staff_t') {
-      const trimmedTid = teacherId.trim();
-      if (!trimmedTid) {
-        setFormError('Teacher ID is required for faculty/teacher registration');
-        return;
-      }
-      if (trimmedTid.length < 3 || trimmedTid.length > 20) {
-        setFormError('Teacher ID must be between 3 and 20 characters');
-        return;
-      }
-    }
-
     if (password.length < 6) {
       setFormError('Password must be at least 6 characters in length');
       return;
@@ -81,8 +67,7 @@ export default function SignUpPage() {
       displayName: displayName.trim(),
       email,
       password,
-      accountType,
-      teacherId: accountType === 'staff_t' ? teacherId.trim().toUpperCase() : undefined,
+      accountType: 'student',
     });
     setSubmitting(false);
 
@@ -210,64 +195,6 @@ export default function SignUpPage() {
                 className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
               />
             </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1">
-                Campus Classification
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAccountType('student')}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'student'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
-                    }`}
-                >
-                  <GraduationCap className="h-3.5 w-3.5" />
-                  <span>Student</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType('staff_t')}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'staff_t'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
-                    }`}
-                >
-                  <Briefcase className="h-3.5 w-3.5" />
-                  <span>Teacher</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAccountType('guest')}
-                  className={`flex items-center justify-center gap-1.5 rounded-xl border py-1.5 px-2 text-xs font-bold transition active:scale-95 ${accountType === 'guest'
-                    ? 'border-[#ff5e3a] bg-[#ff5e3a]/10 dark:bg-[#ff5e3a]/15 text-[#ff5e3a] shadow-xs'
-                    : 'border-stone-200 dark:border-white/10 bg-stone-50/50 dark:bg-white/[0.03] text-stone-600 dark:text-stone-300'
-                    }`}
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  <span>Guest</span>
-                </button>
-              </div>
-            </div>
-
-            {accountType === 'staff_t' && (
-              <div>
-                <label className="block text-[11px] font-semibold text-stone-500 dark:text-stone-400 mb-1" htmlFor="teacherId">
-                  Teacher ID
-                </label>
-                <input
-                  id="teacherId"
-                  type="text"
-                  required
-                  value={teacherId}
-                  onChange={(e) => setTeacherId(e.target.value.toUpperCase())}
-                  placeholder="e.g. CEV-FAC-102"
-                  className="w-full rounded-xl border border-stone-200 dark:border-white/10 bg-stone-50/60 dark:bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-stone-900 dark:text-white placeholder:text-stone-400 focus:border-[#ff5e3a] focus:bg-white dark:focus:bg-[#161820] focus:outline-none focus:ring-1 focus:ring-[#ff5e3a] transition"
-                />
-              </div>
-            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
