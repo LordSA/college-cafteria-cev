@@ -132,11 +132,11 @@ college-canteen-cev/
   - `src/lib/storage/`: Provider-independent storage service (`types.ts`, `supabaseProvider.ts`, `r2Provider.ts`, `index.ts`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
   - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.
-  - `src/routes/auth.ts`: `GET /api/v1/auth/me` and `PATCH /api/v1/auth/me/profile` for updating display name, avatar key, and Teacher ID.
+  - `src/routes/auth.ts`: `GET /api/v1/auth/me` and `PATCH /api/v1/auth/me/profile` for updating display name and avatar key.
   - `src/routes/admin.ts`: `GET /api/v1/admin/me`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`, and `GET /api/v1/admin/diagnostics`.
   - `src/routes/reports.ts`: Financial metrics `GET /api/v1/admin/reports/stats` (with dynamic time-series buckets, today's payments, and teachers count), payments ledger `GET /api/v1/admin/reports/payments`, fund flow `GET /api/v1/admin/reports/funds`, and 3-column simplified Excel workbook export `GET /api/v1/admin/reports/export` (`Order No`, `Payment Date`, `Total Payment Money`).
   - `src/routes/webhooks.ts`: Razorpay webhook listener `POST /api/v1/webhooks/razorpay` with raw payload HMAC SHA-256 signature verification and event deduplication via `payment_webhook_events`.
-  - `src/routes/staffRequests.ts`: Admin endpoints for reviewing staff requests as well as direct teacher administration: `GET /teachers/list`, `GET /teachers/candidates`, `POST /teachers/create`, `POST /teachers/assign`, and `POST /teachers/revoke`.
+  - `src/routes/staffRequests.ts`: Admin endpoints for reviewing staff requests as well as direct teacher administration without Teacher ID: `GET /teachers/list`, `GET /teachers/candidates`, `POST /teachers/create`, `POST /teachers/assign`, and `POST /teachers/revoke`.
   - `backend/migrations/0009_add_profile_email.sql`: Migration script adding `email text` to `public.profiles` with backfill from `auth.users` and sync via `handle_new_user()`.
   - `src/routes/categories.ts`: Public `GET /api/v1/categories` (with strict `Cache-Control: no-store` revalidation headers), Admin `GET`, `POST`, `PATCH /api/v1/admin/categories`.
   - `src/routes/menu.ts`: Public `GET /api/v1/menu` (with strict `Cache-Control: no-store` revalidation headers), Admin `GET`, `POST`, `PATCH`, `DELETE /api/v1/admin/menu`.
@@ -148,8 +148,8 @@ college-canteen-cev/
   - `src/routes/adminInventory.ts`: Admin endpoints `GET /api/v1/admin/inventory`, `PATCH /:menuItemId` and `PUT /:menuItemId` (protected with `requireRole(['developer', 'admin', 'retail'])`).
   - `src/routes/wallet.ts`: Customer endpoints `GET /api/v1/wallet/me`, `GET /api/v1/wallet/transactions`.
   - `src/routes/adminWallet.ts`: Admin endpoints `GET /api/v1/admin/wallets`, `GET /:customerId`, `POST /:customerId/adjust`.
-  - `src/types/env.ts`: AppRole enum (`developer`, `admin`, `retail`, `staff`, `customer`), Payment interface, PaymentWebhookEvent interface, Teacher ID field.
-  - `supabase/migrations/20261107000001_phase_5_security_and_roles.sql`: Phase 5 schema updates adding `teacher_id`, `payments` table, `payment_webhook_events` table, `app_role` check constraint, and `set_user_role` stored procedure.
+  - `src/types/env.ts`: AppRole enum (`developer`, `admin`, `retail`, `staff`, `customer`), Payment interface, PaymentWebhookEvent interface.
+  - `supabase/migrations/20261124000000_remove_teacher_id_and_fix_stock_locks.sql`: Migration script dropping `teacher_id`, updating `handle_new_user()`, and decoupling `lock_cart_item` from physical inventory decrements.
 
 ---
 

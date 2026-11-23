@@ -10,6 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Non-Mutating Stock Reservation Architecture (`supabase/migrations/20261124000000_remove_teacher_id_and_fix_stock_locks.sql`)**:
+  - Decoupled `cart_item_locks` from physical `menu_items.stock_quantity`: `lock_cart_item` computes available stock against active locks held by other sessions and records the reservation without pre-decrementing `menu_items.stock_quantity`.
+  - Resolved double-deduction stock bug where items with limited portions (e.g. 2 portions) were decremented to 0 during cart addition and subsequently rejected at checkout with "insufficient stock (available: 0)".
+  - Updated `orders.ts` and `place_order` to perform single on-placement stock decrement and automatically purge user cart locks upon order confirmation.
+  - In Customer Cart (`/cart`), Home (`/`), and Menu (`/menu`), items at or exceeding available stock disable the `+` increment button, render it in a disabled grey state, and display a "Max stock reached" badge.
+
+### Removed
+- **Teacher ID (`teacher_id`) Total Removal Across Database & Applications**:
+  - Dropped `teacher_id` column, unique constraint `uq_profiles_teacher_id`, and index `idx_profiles_teacher_id` from `public.profiles`.
+  - Removed `teacher_id` from backend schemas, API responses, admin QR scanner, customer profile, staff-requests management, and auth triggers.
+  - Removed Teacher ID badge from customer profile header and simplified teacher display in admin scanner.
+
+### Added
 - **Inventory Stock Ceiling Enforcement on Order Increments**:
   - Disabled `+` increment button and `+ Add` button across Menu (`/menu`), Home (`/`), and Cart (`/cart`) when an item's available inventory reaches zero or when cart quantity matches available stock portions.
   - Added warning banner feedback in the Cart modal if a user attempts to increment quantity beyond available portions.
