@@ -32,7 +32,7 @@ body {
 }
 
 .floating-cart-bottom {
-  bottom: calc(6rem + max(0.75rem, env(safe-area-inset-bottom, 0px)));
+  bottom: calc(6.75rem + max(0.75rem, env(safe-area-inset-bottom, 0px)));
 }
 
 @media (min-width: 768px) {

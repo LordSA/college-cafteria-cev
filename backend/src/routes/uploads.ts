@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Env, AuthContextVariables } from '../types/env';
 import { requireAuth } from '../middleware/auth';
-import { generatePresignedUploadUrl, getStorageProvider } from '../lib/storage';
+import { generatePresignedUploadUrl, getStorageProvider, getPublicImageUrl } from '../lib/storage';
 
 const PresignRequestSchema = z.object({
   file_type: z.enum(['food_image', 'profile_image']).optional(),
@@ -142,7 +142,7 @@ uploadsRouter.post(
           verified: true,
           object_key: metadata.key,
           key: metadata.key,
-          url: metadata.publicUrl,
+          url: getPublicImageUrl(metadata.key, c.env),
         },
       });
     } catch {

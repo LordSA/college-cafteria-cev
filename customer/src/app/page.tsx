@@ -504,6 +504,8 @@ export default function CustomerHomePage() {
               <div className="mt-4 divide-y divide-stone-100 dark:divide-white/10 rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] shadow-sm overflow-hidden">
                 {searchResults.map((product) => {
                   const inCartQty = cartQuantityMap.get(product.id) || 0;
+                  const maxStock = product.track_inventory ? (product.stock_quantity ?? 0) : 999;
+                  const cannotIncrement = !product.is_available || (product.track_inventory && (maxStock <= 0 || inCartQty >= maxStock));
 
                   return (
                     <div
@@ -563,12 +565,22 @@ export default function CustomerHomePage() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => updateQuantity(product.id, inCartQty + 1)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:opacity-90 shadow-xs active:scale-95 transition"
+                              disabled={cannotIncrement}
+                              onClick={() => {
+                                if (!cannotIncrement) {
+                                  updateQuantity(product.id, inCartQty + 1);
+                                }
+                              }}
+                              className={`flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs active:scale-95 transition ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                              title={cannotIncrement ? 'Max stock reached' : 'Increase'}
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </button>
                           </div>
+                        ) : maxStock <= 0 ? (
+                          <span className="rounded-xl bg-stone-100 dark:bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-stone-400 dark:text-stone-500">
+                            Sold Out
+                          </span>
                         ) : (
                           <button
                             type="button"
@@ -749,48 +761,71 @@ export default function CustomerHomePage() {
                                   ₹{(product.price / 100).toFixed(0)}
                                 </span>
 
-                                {inCartQty > 0 ? (
-                                  <div
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs"
-                                  >
+                                {(() => {
+                                  const maxStock = product.track_inventory ? (product.stock_quantity ?? 0) : 999;
+                                  const cannotIncrement = !product.is_available || (product.track_inventory && (maxStock <= 0 || inCartQty >= maxStock));
+
+                                  if (inCartQty > 0) {
+                                    return (
+                                      <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex items-center gap-2 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 shadow-xs"
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() => updateQuantity(product.id, inCartQty - 1)}
+                                          className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 shadow-xs active:scale-95 transition"
+                                        >
+                                          <Minus className="h-3 w-3" />
+                                        </button>
+                                        <span className="min-w-[16px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
+                                          {inCartQty}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          disabled={cannotIncrement}
+                                          onClick={() => {
+                                            if (!cannotIncrement) {
+                                              updateQuantity(product.id, inCartQty + 1);
+                                            }
+                                          }}
+                                          className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs active:scale-95 transition ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`}
+                                          title={cannotIncrement ? 'Max stock reached' : 'Increase'}
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    );
+                                  }
+
+                                  if (maxStock <= 0) {
+                                    return (
+                                      <span className="rounded-xl bg-stone-100 dark:bg-white/10 px-3 py-1.5 text-xs font-semibold text-stone-400 dark:text-stone-500">
+                                        Sold Out
+                                      </span>
+                                    );
+                                  }
+
+                                  return (
                                     <button
                                       type="button"
-                                      onClick={() => updateQuantity(product.id, inCartQty - 1)}
-                                      className="flex h-6 w-6 items-center justify-center rounded-lg bg-white dark:bg-[#202230] text-stone-700 dark:text-white hover:bg-stone-100 dark:hover:bg-white/10 shadow-xs active:scale-95 transition"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddToCart({
+                                          id: product.id,
+                                          name: product.name,
+                                          price: product.price,
+                                          imageUrl: product.image_url,
+                                          categoryName: product.category_name,
+                                        });
+                                      }}
+                                      className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
                                     >
-                                      <Minus className="h-3 w-3" />
+                                      <Plus className="h-3.5 w-3.5" />
+                                      <span>Add</span>
                                     </button>
-                                    <span className="min-w-[16px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
-                                      {inCartQty}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateQuantity(product.id, inCartQty + 1)}
-                                      className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:opacity-90 shadow-xs active:scale-95 transition"
-                                    >
-                                      <Plus className="h-3 w-3" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleAddToCart({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        imageUrl: product.image_url,
-                                        categoryName: product.category_name,
-                                      });
-                                    }}
-                                    className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-3.5 py-1.5 text-xs font-bold text-white shadow-md shadow-orange-500/20 hover:opacity-95 transition active:scale-95"
-                                  >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    <span>Add</span>
-                                  </button>
-                                )}
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
@@ -989,7 +1024,7 @@ export default function CustomerHomePage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed floating-cart-bottom left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed floating-cart-bottom left-3 right-3 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">

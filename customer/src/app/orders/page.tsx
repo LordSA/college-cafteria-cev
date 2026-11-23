@@ -45,6 +45,7 @@ export default function CustomerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPastOrders, setShowPastOrders] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -191,8 +192,12 @@ export default function CustomerOrdersPage() {
               </Link>
             </div>
           ) : (
-            <div className="space-y-4">
-              {orders.map((order) => {
+            (() => {
+              const todayStr = new Date().toDateString();
+              const todayOrders = orders.filter((o) => new Date(o.created_at).toDateString() === todayStr);
+              const pastOrders = orders.filter((o) => new Date(o.created_at).toDateString() !== todayStr);
+
+              const renderOrderCard = (order: Order) => {
                 const formattedDate = new Date(order.created_at).toLocaleString('en-IN', {
                   day: 'numeric',
                   month: 'short',
@@ -244,8 +249,45 @@ export default function CustomerOrdersPage() {
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              };
+
+              return (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-3">
+                      Today&apos;s Orders
+                    </h2>
+                    {todayOrders.length === 0 ? (
+                      <div className="rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-5 text-center text-xs text-stone-500 dark:text-stone-400">
+                        No orders placed today.
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {todayOrders.map((order) => renderOrderCard(order))}
+                      </div>
+                    )}
+                  </div>
+
+                  {pastOrders.length > 0 && (
+                    <div className="pt-2 border-t border-stone-200 dark:border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setShowPastOrders(!showPastOrders)}
+                        className="w-full flex items-center justify-center gap-2 rounded-2xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] py-3 px-4 text-xs font-bold text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-white/5 transition shadow-xs"
+                      >
+                        <span>{showPastOrders ? 'Hide Past Orders' : `Show Past Orders (${pastOrders.length})`}</span>
+                      </button>
+
+                      {showPastOrders && (
+                        <div className="mt-4 space-y-4">
+                          {pastOrders.map((order) => renderOrderCard(order))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()
           )}
         </div>
       </main>

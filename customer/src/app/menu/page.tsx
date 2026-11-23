@@ -343,7 +343,9 @@ export default function MenuPage() {
             <div className="flex flex-col gap-3.5">
               {filteredItems.map((item) => {
                 const inCartQuantity = cartQuantityMap.get(item.id) || 0;
-                const isAvailable = item.is_available && (!item.track_inventory || (item.stock_quantity ?? 0) > 0 || inCartQuantity > 0);
+                const maxStock = item.track_inventory ? (item.stock_quantity ?? 0) : 999;
+                const isAvailable = item.is_available && (!item.track_inventory || maxStock > 0 || inCartQuantity > 0);
+                const cannotIncrement = !item.is_available || (item.track_inventory && (maxStock <= 0 || inCartQuantity >= maxStock));
 
                 return (
                   <div
@@ -402,7 +404,7 @@ export default function MenuPage() {
 
                           {item.track_inventory && isAvailable && item.stock_quantity !== undefined && (
                             <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
-                              ({item.stock_quantity} left)
+                              ({Math.max(0, item.stock_quantity - inCartQuantity)} left)
                             </span>
                           )}
                         </div>
@@ -430,13 +432,22 @@ export default function MenuPage() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => handleUpdateQty(item.id, inCartQuantity + 1)}
-                              className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white transition shadow-xs"
-                              title="Increase"
+                              disabled={cannotIncrement}
+                              onClick={() => {
+                                if (!cannotIncrement) {
+                                  handleUpdateQty(item.id, inCartQuantity + 1);
+                                }
+                              }}
+                              className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white transition shadow-xs ${cannotIncrement ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-95'}`}
+                              title={cannotIncrement ? 'Max stock reached' : 'Increase'}
                             >
                               <Plus className="h-3 w-3" />
                             </button>
                           </div>
+                        ) : maxStock <= 0 ? (
+                          <span className="rounded-lg bg-stone-100 dark:bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-stone-400 dark:text-stone-500">
+                            Sold Out
+                          </span>
                         ) : (
                           <button
                             type="button"
@@ -521,7 +532,7 @@ export default function MenuPage() {
       )}
 
       {itemCount > 0 && (
-        <div className="fixed floating-cart-bottom left-4 right-4 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
+        <div className="fixed floating-cart-bottom left-3 right-3 z-40 max-w-md mx-auto rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-white/95 dark:bg-[#161822]/95 p-3.5 shadow-2xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#ff4b4b] to-[#ff7844] text-white shadow-sm flex-shrink-0">

@@ -128,10 +128,10 @@ adminReportsRouter.get('/stats', async (c) => {
   const chartData: Array<{ label: string; date: string; totalRevenue: number; razorpayRevenue: number; orderCount: number }> = [];
 
   if (range === 'daily') {
-    const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+    const hours: number[] = [8, 10, 12, 14, 16, 18, 20, 22];
     for (let i = 0; i < hours.length; i++) {
-      const h = hours[i];
-      const nextH = i < hours.length - 1 ? hours[i + 1] : 24;
+      const h = hours[i]!;
+      const nextH = (i < hours.length - 1 ? hours[i + 1] : 24)!;
       const bOrders = paidOrders.filter((o: any) => {
         const d = new Date(o.created_at);
         const kolkataHour = (d.getUTCHours() + 5 + Math.floor((d.getUTCMinutes() + 30) / 60)) % 24;
@@ -156,7 +156,7 @@ adminReportsRouter.get('/stats', async (c) => {
       const bTotal = bOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
       const bRazor = bOrders.filter((o: any) => o.payment_method === 'razorpay').reduce((sum, o: any) => sum + (o.total || 0), 0);
       chartData.push({
-        label: dayNames[d.getDay()],
+        label: dayNames[d.getDay()] || 'Day',
         date: d.toISOString().slice(5, 10),
         totalRevenue: Math.round(bTotal / 100),
         razorpayRevenue: Math.round(bRazor / 100),
