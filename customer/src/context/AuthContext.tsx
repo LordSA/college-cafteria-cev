@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export type AccountType = 'student' | 'staff_t' | 'guest';
+export type AccountType = 'student' | 'staff_t';
 export type StaffApprovalStatus = 'not_requested' | 'pending' | 'approved' | 'rejected';
 export type AppRole = 'developer' | 'admin' | 'retail' | 'staff' | 'printer' | 'customer';
 
@@ -30,7 +30,7 @@ interface SignUpParams {
   email: string;
   password: string;
   displayName: string;
-  accountType: AccountType;
+  accountType?: AccountType;
   teacherId?: string;
 }
 

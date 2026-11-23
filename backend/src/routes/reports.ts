@@ -67,37 +67,136 @@ adminReportsRouter.get('/stats', async (c) => {
   const to = c.req.query('to');
   const { startDate, endDate } = getDateRangeBounds(range, from, to);
 
-  const { data: orders, error: ordersErr } = await adminClient
-    .from('orders')
-    .select('id, total, payment_status, payment_method, order_stage, order_status, created_at, customer_id')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString())
-    .neq('order_status', 'cancelled');
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
 
-  if (ordersErr) {
+  const [ordersRes, todayOrdersRes, teachersRes] = await Promise.all([
+    adminClient
+      .from('orders')
+      .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, customer_id')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .neq('order_status', 'cancelled'),
+    adminClient
+      .from('orders')
+      .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, customer_id, profiles(display_name, email)')
+      .gte('created_at', todayStart.toISOString())
+      .order('created_at', { ascending: false }),
+    adminClient
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .or('account_type.eq.staff_t,approved_account_type.eq.staff_t'),
+  ]);
+
+  if (ordersRes.error) {
     return c.json(
-      { success: false, error: { code: 'QUERY_FAILED', message: ordersErr.message } },
+      { success: false, error: { code: 'QUERY_FAILED', message: ordersRes.error.message } },
       500
     );
   }
 
-  const orderList = orders || [];
+  const orderList = ordersRes.data || [];
   const paidOrders = orderList.filter((o: any) => o.payment_status === 'paid');
   const totalRevenuePaise = paidOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
   const totalOrders = orderList.length;
   const collectedOrders = orderList.filter((o: any) => o.order_stage === 'COLLECTED' || o.order_status === 'completed').length;
-  const readyOrders = 0;
   const placedOrders = orderList.filter((o: any) => o.order_stage !== 'COLLECTED' && o.order_status !== 'completed').length;
 
   const uniqueCustomers = new Set(orderList.map((o: any) => o.customer_id).filter(Boolean)).size;
   const avgOrderValuePaise = paidOrders.length > 0 ? Math.round(totalRevenuePaise / paidOrders.length) : 0;
+
+  const razorpayPaise = paidOrders
+    .filter((o: any) => o.payment_method === 'razorpay')
+    .reduce((sum, o: any) => sum + (o.total || 0), 0);
+  const walletPaise = paidOrders
+    .filter((o: any) => o.payment_method === 'testing_wallet')
+    .reduce((sum, o: any) => sum + (o.total || 0), 0);
+  const payLaterPaise = orderList
+    .filter((o: any) => o.payment_method === 'pay_later')
+    .reduce((sum, o: any) => sum + (o.total || 0), 0);
 
   const paymentBreakdown = {
     razorpay: orderList.filter((o: any) => o.payment_method === 'razorpay').length,
     wallet: orderList.filter((o: any) => o.payment_method === 'testing_wallet').length,
     pay_later: orderList.filter((o: any) => o.payment_method === 'pay_later').length,
     counter_cash: orderList.filter((o: any) => o.payment_method === 'counter_cash').length,
+    razorpayPaise,
+    walletPaise,
+    payLaterPaise,
   };
+
+  const chartData: Array<{ label: string; date: string; totalRevenue: number; razorpayRevenue: number; orderCount: number }> = [];
+
+  if (range === 'daily') {
+    const hours = [8, 10, 12, 14, 16, 18, 20, 22];
+    for (let i = 0; i < hours.length; i++) {
+      const h = hours[i];
+      const nextH = i < hours.length - 1 ? hours[i + 1] : 24;
+      const bOrders = paidOrders.filter((o: any) => {
+        const d = new Date(o.created_at);
+        const kolkataHour = (d.getUTCHours() + 5 + Math.floor((d.getUTCMinutes() + 30) / 60)) % 24;
+        return kolkataHour >= h && kolkataHour < nextH;
+      });
+      const bTotal = bOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
+      const bRazor = bOrders.filter((o: any) => o.payment_method === 'razorpay').reduce((sum, o: any) => sum + (o.total || 0), 0);
+      chartData.push({
+        label: `${h > 12 ? h - 12 : h}${h >= 12 ? 'pm' : 'am'}`,
+        date: `${h}:00`,
+        totalRevenue: Math.round(bTotal / 100),
+        razorpayRevenue: Math.round(bRazor / 100),
+        orderCount: bOrders.length,
+      });
+    }
+  } else if (range === 'weekly') {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dStr = d.toDateString();
+      const bOrders = paidOrders.filter((o: any) => new Date(o.created_at).toDateString() === dStr);
+      const bTotal = bOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
+      const bRazor = bOrders.filter((o: any) => o.payment_method === 'razorpay').reduce((sum, o: any) => sum + (o.total || 0), 0);
+      chartData.push({
+        label: dayNames[d.getDay()],
+        date: d.toISOString().slice(5, 10),
+        totalRevenue: Math.round(bTotal / 100),
+        razorpayRevenue: Math.round(bRazor / 100),
+        orderCount: bOrders.length,
+      });
+    }
+  } else {
+    for (let w = 4; w >= 1; w--) {
+      const wEnd = new Date(now.getTime() - (w - 1) * 7 * 24 * 60 * 60 * 1000);
+      const wStart = new Date(wEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const bOrders = paidOrders.filter((o: any) => {
+        const t = new Date(o.created_at).getTime();
+        return t >= wStart.getTime() && t <= wEnd.getTime();
+      });
+      const bTotal = bOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
+      const bRazor = bOrders.filter((o: any) => o.payment_method === 'razorpay').reduce((sum, o: any) => sum + (o.total || 0), 0);
+      chartData.push({
+        label: `Wk ${5 - w}`,
+        date: wStart.toISOString().slice(5, 10),
+        totalRevenue: Math.round(bTotal / 100),
+        razorpayRevenue: Math.round(bRazor / 100),
+        orderCount: bOrders.length,
+      });
+    }
+  }
+
+  const todayOrders = (todayOrdersRes.data || []).map((o: any) => {
+    const prof = Array.isArray(o.profiles) ? o.profiles[0] : o.profiles;
+    return {
+      id: o.id,
+      order_number: o.order_number,
+      customer_name: prof?.display_name || prof?.email || 'Customer',
+      customer_email: prof?.email || null,
+      amount: o.total,
+      payment_method: o.payment_method,
+      payment_status: o.payment_status,
+      created_at: o.created_at,
+      paid_at: o.paid_at,
+    };
+  });
 
   return c.json({
     success: true,
@@ -110,12 +209,68 @@ adminReportsRouter.get('/stats', async (c) => {
       total_orders: totalOrders,
       paid_orders: paidOrders.length,
       collected_orders: collectedOrders,
-      ready_orders: readyOrders,
       placed_orders: placedOrders,
       unique_customers: uniqueCustomers,
       average_order_value_inr: (avgOrderValuePaise / 100).toFixed(2),
       payment_breakdown: paymentBreakdown,
+      chart_data: chartData,
+      today_payments: todayOrders,
+      teachers_count: teachersRes.count || 0,
     },
+  });
+});
+
+adminReportsRouter.get('/payments', async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const limit = Math.min(parseInt(c.req.query('limit') || '100', 10), 500);
+  const search = c.req.query('search')?.trim();
+
+  let query = adminClient
+    .from('orders')
+    .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, razorpay_payment_id, razorpay_order_id, profiles(display_name, email)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (search) {
+    query = query.or(`order_number.ilike.%${search}%,razorpay_payment_id.ilike.%${search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    return c.json(
+      { success: false, error: { code: 'QUERY_FAILED', message: error.message } },
+      500
+    );
+  }
+
+  const payments = (data || []).map((o: any) => {
+    const prof = Array.isArray(o.profiles) ? o.profiles[0] : o.profiles;
+    return {
+      id: o.id,
+      order_number: o.order_number,
+      customer_name: prof?.display_name || 'Customer',
+      customer_email: prof?.email || '—',
+      amount_paise: o.total,
+      amount_inr: (o.total / 100).toFixed(2),
+      payment_method: o.payment_method,
+      payment_status: o.payment_status,
+      order_stage: o.order_stage || o.order_status,
+      razorpay_payment_id: o.razorpay_payment_id || null,
+      created_at: o.created_at,
+      paid_at: o.paid_at,
+    };
+  });
+
+  return c.json({
+    success: true,
+    data: payments,
   });
 });
 
@@ -224,116 +379,22 @@ adminReportsRouter.get('/export', async (c) => {
     });
   }
 
-  const summarySheetData = orderList.map((o: any) => {
-    const customer = customerMap.get(o.customer_id);
-    return {
-      'Order ID': o.id,
-      'Order Number': o.order_number,
-      'Customer Name': customer?.display_name || 'Customer',
-      'Customer Email': customer?.email || '—',
-      'Account Type': customer?.account_type || 'student',
-      'Teacher ID': customer?.teacher_id || '—',
-      'Order Stage': o.order_stage || o.order_status,
-      'Payment Status': o.payment_status,
-      'Payment Method': o.payment_method,
-      'Total (INR)': (o.total / 100).toFixed(2),
-      'Created At (IST)': formatKolkataDate(o.created_at),
-      'Paid At (IST)': formatKolkataDate(o.paid_at),
-      'Collected At (IST)': formatKolkataDate(o.collected_at),
-      'Razorpay Order ID': o.razorpay_order_id || '—',
-      'Razorpay Payment ID': o.razorpay_payment_id || '—',
-    };
-  });
-
-  const itemsSheetData: any[] = [];
-  orderList.forEach((o: any) => {
-    const items = o.order_items || [];
-    items.forEach((item: any) => {
-      itemsSheetData.push({
-        'Order Number': o.order_number,
-        'Item Name': item.item_name,
-        'Quantity': item.quantity,
-        'Unit Price (INR)': (item.unit_price / 100).toFixed(2),
-        'Line Total (INR)': (item.line_total / 100).toFixed(2),
-        'Order Stage': o.order_stage || o.order_status,
-        'Order Date (IST)': formatKolkataDate(o.created_at),
-      });
-    });
-  });
-
-  const { data: payments } = await adminClient
-    .from('payments')
-    .select('*')
-    .gte('created_at', startDate.toISOString())
-    .lte('created_at', endDate.toISOString())
-    .order('created_at', { ascending: false });
-
-  const paymentsSheetData = (payments || []).map((p: any) => ({
-    'Payment ID': p.id,
-    'Order ID': p.order_id,
-    'Provider': p.provider,
-    'Amount (INR)': (p.amount / 100).toFixed(2),
-    'Currency': p.currency,
-    'Status': p.status,
-    'Razorpay Order ID': p.razorpay_order_id || '—',
-    'Razorpay Payment ID': p.razorpay_payment_id || '—',
-    'Created At (IST)': formatKolkataDate(p.created_at),
-    'Updated At (IST)': formatKolkataDate(p.updated_at),
+  const exportData = (orderList || []).map((o: any) => ({
+    'Order No': o.order_number || o.id,
+    'Payment Date': formatKolkataDate(o.paid_at || o.created_at),
+    'Total Payment Money': `₹${((o.total || 0) / 100).toFixed(2)}`,
   }));
-
-  const { data: menuItems } = await adminClient
-    .from('menu_items')
-    .select('*, categories(name)')
-    .eq('is_archived', false)
-    .order('name', { ascending: true });
-
-  const inventorySheetData = (menuItems || []).map((m: any) => ({
-    'Item ID': m.id,
-    'Item Name': m.name,
-    'Category': m.categories?.name || 'Uncategorized',
-    'Price (INR)': (m.price / 100).toFixed(2),
-    'Available': m.is_available ? 'Yes' : 'No',
-    'Track Inventory': m.track_inventory ? 'Yes' : 'No',
-    'Current Stock': m.stock_quantity,
-    'Low Stock Alert': m.stock_quantity <= m.low_stock_threshold ? 'LOW' : 'OK',
-    'Threshold': m.low_stock_threshold,
-  }));
-
-  const paidOrders = orderList.filter((o: any) => o.payment_status === 'paid');
-  const totalRevenuePaise = paidOrders.reduce((sum, o: any) => sum + (o.total || 0), 0);
-  const financialSummaryData = [
-    { 'Metric': 'Report Range', 'Value': range.toUpperCase() },
-    { 'Metric': 'Period Start (IST)', 'Value': formatKolkataDate(startDate) },
-    { 'Metric': 'Period End (IST)', 'Value': formatKolkataDate(endDate) },
-    { 'Metric': 'Total Orders Placed', 'Value': orderList.length },
-    { 'Metric': 'Total Paid Orders', 'Value': paidOrders.length },
-    { 'Metric': 'Total Collected Orders', 'Value': orderList.filter((o: any) => o.order_stage === 'COLLECTED').length },
-    { 'Metric': 'Total Revenue (INR)', 'Value': `₹${(totalRevenuePaise / 100).toFixed(2)}` },
-    { 'Metric': 'Razorpay Online Orders', 'Value': orderList.filter((o: any) => o.payment_method === 'razorpay').length },
-    { 'Metric': 'Testing Wallet Orders', 'Value': orderList.filter((o: any) => o.payment_method === 'testing_wallet').length },
-    { 'Metric': 'Pay Later Orders', 'Value': orderList.filter((o: any) => o.payment_method === 'pay_later').length },
-    { 'Metric': 'Counter Cash Orders', 'Value': orderList.filter((o: any) => o.payment_method === 'counter_cash').length },
-  ];
 
   const workbook = XLSX.utils.book_new();
-
-  const wsSummary = XLSX.utils.json_to_sheet(summarySheetData.length > 0 ? summarySheetData : [{ 'Notice': 'No orders in range' }]);
-  XLSX.utils.book_append_sheet(workbook, wsSummary, 'Order Summary');
-
-  const wsItems = XLSX.utils.json_to_sheet(itemsSheetData.length > 0 ? itemsSheetData : [{ 'Notice': 'No items in range' }]);
-  XLSX.utils.book_append_sheet(workbook, wsItems, 'Order Items');
-
-  const wsPayments = XLSX.utils.json_to_sheet(paymentsSheetData.length > 0 ? paymentsSheetData : [{ 'Notice': 'No payments in range' }]);
-  XLSX.utils.book_append_sheet(workbook, wsPayments, 'Payments');
-
-  const wsInventory = XLSX.utils.json_to_sheet(inventorySheetData.length > 0 ? inventorySheetData : [{ 'Notice': 'No menu items found' }]);
-  XLSX.utils.book_append_sheet(workbook, wsInventory, 'Inventory');
-
-  const wsFinancial = XLSX.utils.json_to_sheet(financialSummaryData);
-  XLSX.utils.book_append_sheet(workbook, wsFinancial, 'Financial Summary');
+  const ws = XLSX.utils.json_to_sheet(
+    exportData.length > 0
+      ? exportData
+      : [{ 'Order No': 'No orders in range', 'Payment Date': '—', 'Total Payment Money': '₹0.00' }]
+  );
+  XLSX.utils.book_append_sheet(workbook, ws, 'Orders');
 
   const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
-  const filename = `cafteria-financial-report-${range}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const filename = `cafteria-orders-export-${range}-${new Date().toISOString().slice(0, 10)}.xlsx`;
 
   return new Response(excelBuffer, {
     status: 200,

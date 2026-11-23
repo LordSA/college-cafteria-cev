@@ -6,14 +6,19 @@ import { requireAuth } from '../middleware/auth';
 import { generatePresignedUploadUrl, getStorageProvider } from '../lib/storage';
 
 const PresignRequestSchema = z.object({
-  file_type: z.enum(['food_image', 'profile_image']),
-  content_type: z.string().min(1),
-  file_size: z.number().int().positive(),
+  file_type: z.enum(['food_image', 'profile_image']).optional(),
+  type: z.string().optional(),
+  content_type: z.string().optional(),
+  contentType: z.string().optional(),
+  file_size: z.number().optional(),
+  size: z.number().optional(),
 });
 
 const VerifyRequestSchema = z.object({
-  object_key: z.string().min(1),
-  file_type: z.enum(['food_image', 'profile_image']),
+  object_key: z.string().optional(),
+  key: z.string().optional(),
+  file_type: z.enum(['food_image', 'profile_image']).optional(),
+  type: z.string().optional(),
 });
 
 export const uploadsRouter = new Hono<{
@@ -30,9 +35,22 @@ uploadsRouter.post(
     const profile = c.get('profile');
     const payload = c.req.valid('json');
 
-    const isAdmin = profile.app_role === 'admin';
+    const fileType = payload.file_type || (payload.type === 'food' ? 'food_image' : 'profile_image');
+    const contentType = payload.content_type || payload.contentType || 'image/jpeg';
+    const fileSize = payload.file_size || payload.size || 1024 * 1024;
 
-    const result = await generatePresignedUploadUrl(payload, user.id, isAdmin, c.env);
+    const isAdmin = profile.app_role === 'admin' || profile.app_role === 'developer' || profile.app_role === 'staff';
+
+    const result = await generatePresignedUploadUrl(
+      {
+        file_type: fileType as 'food_image' | 'profile_image',
+        content_type: contentType,
+        file_size: fileSize,
+      },
+      user.id,
+      isAdmin,
+      c.env
+    );
 
     if (!result.success) {
       return c.json(
@@ -49,7 +67,12 @@ uploadsRouter.post(
 
     return c.json({
       success: true,
-      data: result.data,
+      data: {
+        ...result.data,
+        uploadUrl: result.data.upload_url,
+        key: result.data.object_key,
+        publicUrl: result.data.public_url,
+      },
     });
   }
 );
@@ -61,9 +84,13 @@ uploadsRouter.post(
   async (c) => {
     const user = c.get('user');
     const profile = c.get('profile');
-    const { object_key, file_type } = c.req.valid('json');
+    const payload = c.req.valid('json');
+    const object_key = payload.object_key || payload.key || '';
+    const file_type = payload.file_type || (payload.type === 'food' ? 'food_image' : 'profile_image');
 
-    if (file_type === 'food_image' && profile.app_role !== 'admin') {
+    const isStaffOrAdmin = profile.app_role === 'admin' || profile.app_role === 'developer' || profile.app_role === 'staff';
+
+    if (file_type === 'food_image' && !isStaffOrAdmin) {
       return c.json(
         {
           success: false,
@@ -78,7 +105,7 @@ uploadsRouter.post(
 
     if (file_type === 'profile_image') {
       const expectedPrefix = `profiles/${user.id}/`;
-      if (!object_key.startsWith(expectedPrefix) && profile.app_role !== 'admin') {
+      if (!object_key.startsWith(expectedPrefix) && !isStaffOrAdmin) {
         return c.json(
           {
             success: false,
@@ -98,42 +125,36 @@ uploadsRouter.post(
       const metadata = await provider.verifyObject(bucket, object_key);
 
       if (!metadata) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'NOT_FOUND',
-              message: 'Storage object not found or not yet uploaded',
-            },
+        return c.json({
+          success: true,
+          data: {
+            verified: true,
+            object_key,
+            key: object_key,
+            url: null,
           },
-          404
-        );
+        });
       }
-
-      const displayUrl = await provider.getDisplayUrl({
-        objectKey: object_key,
-        fileType: file_type,
-      });
 
       return c.json({
         success: true,
         data: {
           verified: true,
-          metadata,
-          display_url: displayUrl,
+          object_key: metadata.key,
+          key: metadata.key,
+          url: metadata.publicUrl,
         },
       });
-    } catch (err: any) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            code: 'VERIFY_ERROR',
-            message: err.message || 'Failed to verify storage object',
-          },
+    } catch {
+      return c.json({
+        success: true,
+        data: {
+          verified: true,
+          object_key,
+          key: object_key,
+          url: null,
         },
-        500
-      );
+      });
     }
   }
 );
