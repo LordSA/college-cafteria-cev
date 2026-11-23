@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   ArrowRight,
   CreditCard,
+  RefreshCw,
 } from 'lucide-react';
 
 interface OperationalStats {
@@ -48,11 +49,14 @@ interface TodayPayment {
   order_number: string;
   customer_name: string;
   customer_email?: string | null;
+  customer_contact?: string | null;
   amount: number;
   payment_method: string;
+  method_detail?: string | null;
   payment_status: string;
   created_at: string;
   paid_at?: string;
+  source?: string;
 }
 
 interface DashboardInventoryItem {
@@ -91,11 +95,51 @@ export default function AdminDashboardPage() {
   const [financialStats, setFinancialStats] = useState<FinancialStats | null>(null);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [todayPayments, setTodayPayments] = useState<TodayPayment[]>([]);
+  const [todayRazorpayTotalPaise, setTodayRazorpayTotalPaise] = useState<number>(0);
+  const [razorpayConfigured, setRazorpayConfigured] = useState<boolean>(true);
+  const [refreshingPayments, setRefreshingPayments] = useState(false);
   const [teachersCount, setTeachersCount] = useState<number>(0);
   const [lowStockItems, setLowStockItems] = useState<DashboardInventoryItem[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+
+  const refreshRazorpayLogs = async () => {
+    if (!session?.access_token) return;
+    setRefreshingPayments(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/reports/razorpay-payments?range=today&count=50&t=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setRazorpayConfigured(json.data.configured ?? true);
+          setTodayRazorpayTotalPaise(json.data.total_captured_paise || 0);
+          setTodayPayments(
+            (json.data.items || []).map((p: any) => ({
+              id: p.id,
+              order_number: p.order_number || (p.order_id ? p.order_id.replace(/^order_/, '') : p.id),
+              customer_name: p.customer_name || p.contact || 'Customer',
+              customer_email: p.email,
+              customer_contact: p.contact,
+              amount: p.amount,
+              payment_method: 'razorpay',
+              method_detail: p.vpa ? `UPI (${p.vpa})` : (p.method || 'Razorpay').toUpperCase(),
+              payment_status: p.status,
+              created_at: p.created_at,
+              paid_at: p.status === 'captured' ? p.created_at : undefined,
+              source: 'razorpay_gateway',
+            }))
+          );
+        }
+      }
+    } catch {
+    } finally {
+      setRefreshingPayments(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -183,6 +227,8 @@ export default function AdminDashboardPage() {
             });
             setChartData(json.data.chart_data || []);
             setTodayPayments(json.data.today_payments || []);
+            setTodayRazorpayTotalPaise(json.data.today_razorpay_total_paise || 0);
+            setRazorpayConfigured(json.data.razorpay_configured ?? true);
             if (json.data.teachers_count !== undefined) {
               setTeachersCount(json.data.teachers_count);
             }
@@ -541,19 +587,63 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
               <div className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-[#F47721]" />
-                <h3 className="text-xs font-bold text-[#252525] tracking-wide">Today&apos;s Live Payments</h3>
+
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-[#252525] tracking-wide">Today&apos;s Live Payments</h3>
+                  </div>
+                  <p className="text-[10px] text-[#888888]">Razorpay gateway</p>
+                </div>
               </div>
-              <Link href="/financial" className="text-[11px] font-bold text-[#F47721] hover:underline flex items-center gap-1">
-                <span>View More</span>
-                <ArrowRight className="h-3 w-3" />
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={refreshRazorpayLogs}
+                  disabled={refreshingPayments}
+                  title="Refresh Razorpay Logs"
+                  className="p-1.5 rounded-lg hover:bg-stone-100 text-stone-500 hover:text-stone-900 transition disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${refreshingPayments ? 'animate-spin text-[#F47721]' : ''}`} />
+                </button>
+                <Link href="/financial?tab=razorpay" className="text-[11px] font-bold text-[#F47721] hover:underline flex items-center gap-0.5">
+                  <span>View More</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
+
+            {todayPayments.length > 0 && (
+              <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 p-3 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
+                    Razorpay Recieved Today
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-medium">
+                    {todayPayments.filter((p) => p.payment_status === 'captured').length} captured payments
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono text-base font-black text-emerald-700 tabular-nums">
+                    ₹{(todayRazorpayTotalPaise / 100).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {!razorpayConfigured && (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 space-y-1">
+                <p className="font-bold">Razorpay Keys Not Configured</p>
+                <p className="text-[11px] text-amber-700">
+                  Add <code className="font-mono font-bold">RAZORPAY_KEY_ID</code> and <code className="font-mono font-bold">RAZORPAY_KEY_SECRET</code> to your backend environment to stream live gateway transactions.
+                </p>
+              </div>
+            )}
 
             {todayPayments.length === 0 ? (
               <div className="p-5 text-center">
                 <CreditCard className="h-6 w-6 text-[#888888] mx-auto mb-1" />
-                <p className="text-xs text-[#666666]">No payment transactions recorded today yet.</p>
+                <p className="text-xs text-[#666666]">No Razorpay payments recorded today yet.</p>
+                <p className="text-[10px] text-[#888888] mt-1">Logs stream directly from Razorpay once payments are completed.</p>
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -568,23 +658,29 @@ export default function AdminDashboardPage() {
                           <span className="font-bold text-[#252525] truncate max-w-[130px]">
                             {pay.customer_name}
                           </span>
-                          <span className="text-[10px] font-mono text-[#888888]">
-                            #{pay.order_number}
+                          <span className="text-[9px] font-mono text-[#888888] truncate max-w-[100px]" title={pay.id}>
+                            {pay.id}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] text-[#666666] mt-0.5">
                           <span>{timeStr}</span>
                           <span>•</span>
-                          <span className="uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-orange-50 text-[#F47721] border border-orange-200">
-                            {pay.payment_method === 'razorpay' ? 'UPI' : pay.payment_method === 'testing_wallet' ? 'Wallet' : pay.payment_method}
+                          <span className="uppercase text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            {pay.method_detail || 'RAZORPAY'}
                           </span>
+                          {pay.order_number && (
+                            <>
+                              <span>•</span>
+                              <span className="font-mono text-[9px] text-[#888888]">#{pay.order_number}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="font-mono font-extrabold text-[#269B62] text-xs">
+                        <span className="font-mono font-extrabold text-[#269B62] text-xs tabular-nums">
                           ₹{(pay.amount / 100).toFixed(2)}
                         </span>
-                        <div className="text-[9px] font-bold text-green-700 capitalize">
+                        <div className={`text-[9px] font-bold capitalize ${pay.payment_status === 'captured' ? 'text-green-700' : 'text-amber-700'}`}>
                           {pay.payment_status}
                         </div>
                       </div>
@@ -594,10 +690,10 @@ export default function AdminDashboardPage() {
 
                 <div className="pt-2 text-center">
                   <Link
-                    href="/financial"
+                    href="/financial?tab=razorpay"
                     className="inline-flex items-center justify-center gap-1 text-xs font-bold text-[#F47721] hover:underline"
                   >
-                    <span>View All Transactions in Financial Ledger</span>
+                    <span>View All Live Gateway Logs</span>
                     <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>

@@ -127,14 +127,14 @@ college-canteen-cev/
   - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding with localhost and 127.0.0.1 port allowances and Idempotency-Key header support.
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
-  - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, and webhook signature verification using Web Crypto HMAC SHA-256 and constant-time comparison.
+  - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, webhook signature verification, and live payments listing (`fetchRazorpayPayments`) using Web Crypto HMAC SHA-256 and constant-time comparison.
   - `src/lib/supabase.ts`: Token verification and database profile retrieval via Supabase Admin/User clients.
   - `src/lib/storage/`: Provider-independent storage service (`types.ts`, `supabaseProvider.ts`, `r2Provider.ts`, `index.ts`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
   - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.
   - `src/routes/auth.ts`: `GET /api/v1/auth/me` and `PATCH /api/v1/auth/me/profile` for updating display name and avatar key.
   - `src/routes/admin.ts`: `GET /api/v1/admin/me`, `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/:id/role`, and `GET /api/v1/admin/diagnostics`.
-  - `src/routes/reports.ts`: Financial metrics `GET /api/v1/admin/reports/stats` (with dynamic time-series buckets, today's payments, and teachers count), payments ledger `GET /api/v1/admin/reports/payments`, fund flow `GET /api/v1/admin/reports/funds`, and 3-column simplified Excel workbook export `GET /api/v1/admin/reports/export` (`Order No`, `Payment Date`, `Total Payment Money`).
+  - `src/routes/reports.ts`: Financial metrics `GET /api/v1/admin/reports/stats` (with dynamic time-series buckets, live Razorpay today payments, and teachers count), live Razorpay payments `GET /api/v1/admin/reports/razorpay-payments`, payments ledger `GET /api/v1/admin/reports/payments`, fund flow `GET /api/v1/admin/reports/funds`, and 3-column simplified Excel workbook export `GET /api/v1/admin/reports/export` (`Order No`, `Payment Date`, `Total Payment Money`).
   - `src/routes/webhooks.ts`: Razorpay webhook listener `POST /api/v1/webhooks/razorpay` with raw payload HMAC SHA-256 signature verification and event deduplication via `payment_webhook_events`.
   - `src/routes/staffRequests.ts`: Admin endpoints for reviewing staff requests as well as direct teacher administration without Teacher ID: `GET /teachers/list`, `GET /teachers/candidates`, `POST /teachers/create`, `POST /teachers/assign`, and `POST /teachers/revoke`.
   - `backend/migrations/0009_add_profile_email.sql`: Migration script adding `email text` to `public.profiles` with backfill from `auth.users` and sync via `handle_new_user()`.

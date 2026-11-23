@@ -136,6 +136,80 @@ export async function verifyRazorpayCheckoutSignature(
   return constantTimeCompare(expectedHex.toLowerCase(), providedSignature.trim().toLowerCase());
 }
 
+export interface RazorpayPaymentItem {
+  id: string;
+  entity: string;
+  amount: number;
+  currency: string;
+  status: 'created' | 'authorized' | 'captured' | 'refunded' | 'failed';
+  order_id?: string | null;
+  invoice_id?: string | null;
+  international?: boolean;
+  method: string;
+  amount_refunded?: number;
+  refund_status?: string | null;
+  captured?: boolean;
+  description?: string | null;
+  card_id?: string | null;
+  bank?: string | null;
+  wallet?: string | null;
+  vpa?: string | null;
+  email?: string;
+  contact?: string;
+  notes?: Record<string, string>;
+  fee?: number;
+  tax?: number;
+  error_code?: string | null;
+  error_description?: string | null;
+  created_at: number;
+}
+
+export interface RazorpayPaymentListResponse {
+  entity: string;
+  count: number;
+  items: RazorpayPaymentItem[];
+}
+
+export async function fetchRazorpayPayments(
+  env: Env,
+  options?: {
+    from?: number;
+    to?: number;
+    count?: number;
+    skip?: number;
+  }
+): Promise<RazorpayPaymentListResponse> {
+  const keyId = env.RAZORPAY_KEY_ID;
+  const keySecret = env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret) {
+    throw new Error('Razorpay credentials not configured');
+  }
+
+  const queryParams = new URLSearchParams();
+  if (options?.from !== undefined) queryParams.set('from', options.from.toString());
+  if (options?.to !== undefined) queryParams.set('to', options.to.toString());
+  if (options?.count !== undefined) queryParams.set('count', Math.min(100, options.count).toString());
+  if (options?.skip !== undefined) queryParams.set('skip', options.skip.toString());
+
+  const qs = queryParams.toString();
+  const url = `https://api.razorpay.com/v1/payments${qs ? `?${qs}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: getBasicAuthHeader(keyId, keySecret),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Razorpay payments list failed: ${response.status} ${errorText}`);
+  }
+
+  return (await response.json()) as RazorpayPaymentListResponse;
+}
+
 export async function verifyRazorpayWebhookSignature(
   webhookSecret: string,
   rawBody: string,

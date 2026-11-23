@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import type { Env, AuthContextVariables } from '../types/env';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
+import { fetchRazorpayPayments } from '../lib/razorpay';
 
 export const adminReportsRouter = new Hono<{
   Bindings: Env;
@@ -68,20 +69,14 @@ adminReportsRouter.get('/stats', async (c) => {
   const { startDate, endDate } = getDateRangeBounds(range, from, to);
 
   const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
 
-  const [ordersRes, todayOrdersRes, teachersRes] = await Promise.all([
+  const [ordersRes, teachersRes] = await Promise.all([
     adminClient
       .from('orders')
       .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, customer_id')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .neq('order_status', 'cancelled'),
-    adminClient
-      .from('orders')
-      .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, customer_id, profiles(display_name, email)')
-      .gte('created_at', todayStart.toISOString())
-      .order('created_at', { ascending: false }),
     adminClient
       .from('profiles')
       .select('*', { count: 'exact', head: true })
@@ -183,20 +178,38 @@ adminReportsRouter.get('/stats', async (c) => {
     }
   }
 
-  const todayOrders = (todayOrdersRes.data || []).map((o: any) => {
-    const prof = Array.isArray(o.profiles) ? o.profiles[0] : o.profiles;
-    return {
-      id: o.id,
-      order_number: o.order_number,
-      customer_name: prof?.display_name || prof?.email || 'Customer',
-      customer_email: prof?.email || null,
-      amount: o.total,
-      payment_method: o.payment_method,
-      payment_status: o.payment_status,
-      created_at: o.created_at,
-      paid_at: o.paid_at,
-    };
-  });
+  const isRazorpayConfigured = Boolean(c.env?.RAZORPAY_KEY_ID && c.env?.RAZORPAY_KEY_SECRET);
+  let todayRazorpayItems: any[] = [];
+  let todayRazorpayTotalPaise = 0;
+
+  if (isRazorpayConfigured) {
+    try {
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const istNow = new Date(now.getTime() + istOffsetMs);
+      const istTodayStart = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate(), 0, 0, 0));
+      const todayStartUtcSeconds = Math.floor((istTodayStart.getTime() - istOffsetMs) / 1000);
+
+      const rzpData = await fetchRazorpayPayments(c.env, { from: todayStartUtcSeconds, count: 50 });
+      todayRazorpayItems = (rzpData.items || []).map((p) => ({
+        id: p.id,
+        order_number: p.notes?.order_number || (p.order_id ? p.order_id.replace(/^order_/, '') : p.id),
+        customer_name: p.notes?.customer_name || (p.email ? p.email.split('@')[0] : null) || p.contact || 'Razorpay Payer',
+        customer_email: p.email || null,
+        customer_contact: p.contact || null,
+        amount: p.amount,
+        payment_method: 'razorpay',
+        method_detail: p.vpa ? `UPI (${p.vpa})` : (p.method || 'Razorpay').toUpperCase(),
+        payment_status: p.status,
+        created_at: new Date(p.created_at * 1000).toISOString(),
+        paid_at: p.status === 'captured' ? new Date(p.created_at * 1000).toISOString() : undefined,
+        source: 'razorpay_gateway',
+      }));
+
+      todayRazorpayTotalPaise = todayRazorpayItems
+        .filter((p) => p.payment_status === 'captured')
+        .reduce((sum, p) => sum + p.amount, 0);
+    } catch {}
+  }
 
   return c.json({
     success: true,
@@ -214,10 +227,102 @@ adminReportsRouter.get('/stats', async (c) => {
       average_order_value_inr: (avgOrderValuePaise / 100).toFixed(2),
       payment_breakdown: paymentBreakdown,
       chart_data: chartData,
-      today_payments: todayOrders,
+      today_payments: todayRazorpayItems,
+      today_razorpay_total_paise: todayRazorpayTotalPaise,
+      today_razorpay_total_inr: (todayRazorpayTotalPaise / 100).toFixed(2),
+      razorpay_configured: isRazorpayConfigured,
       teachers_count: teachersRes.count || 0,
     },
   });
+});
+
+adminReportsRouter.get('/razorpay-payments', async (c) => {
+  const isConfigured = Boolean(c.env?.RAZORPAY_KEY_ID && c.env?.RAZORPAY_KEY_SECRET);
+  if (!isConfigured) {
+    return c.json({
+      success: true,
+      data: {
+        configured: false,
+        message: 'Razorpay credentials not configured in backend environment',
+        count: 0,
+        total_captured_paise: 0,
+        total_captured_inr: '0.00',
+        items: [],
+      },
+    });
+  }
+
+  const range = c.req.query('range') || 'today';
+  const count = Math.min(100, Math.max(1, parseInt(c.req.query('count') || '50', 10)));
+  const skip = Math.max(0, parseInt(c.req.query('skip') || '0', 10));
+
+  const now = new Date();
+  const istOffsetMs = 5.5 * 60 * 60 * 1000;
+  const istNow = new Date(now.getTime() + istOffsetMs);
+  const istTodayStart = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate(), 0, 0, 0));
+  const todayStartUtcSeconds = Math.floor((istTodayStart.getTime() - istOffsetMs) / 1000);
+
+  try {
+    const options: { from?: number; to?: number; count?: number; skip?: number } = {
+      count,
+      skip,
+    };
+    if (range === 'today') {
+      options.from = todayStartUtcSeconds;
+    }
+
+    const rzpRes = await fetchRazorpayPayments(c.env, options);
+
+    const items = rzpRes.items.map((p) => ({
+      id: p.id,
+      order_id: p.order_id || null,
+      order_number: p.notes?.order_number || null,
+      amount: p.amount,
+      amount_inr: (p.amount / 100).toFixed(2),
+      currency: p.currency,
+      status: p.status,
+      method: p.method,
+      vpa: p.vpa || null,
+      bank: p.bank || null,
+      wallet: p.wallet || null,
+      email: p.email || null,
+      contact: p.contact || null,
+      customer_name: p.notes?.customer_name || (p.email ? p.email.split('@')[0] : null) || p.contact || 'Razorpay Payer',
+      description: p.description || null,
+      fee: p.fee || 0,
+      fee_inr: ((p.fee || 0) / 100).toFixed(2),
+      tax: p.tax || 0,
+      created_at: new Date(p.created_at * 1000).toISOString(),
+      captured: p.captured ?? (p.status === 'captured'),
+    }));
+
+    const totalCapturedPaise = items
+      .filter((p) => p.status === 'captured')
+      .reduce((sum, p) => sum + p.amount, 0);
+
+    return c.json({
+      success: true,
+      data: {
+        configured: true,
+        range,
+        count: items.length,
+        total_captured_paise: totalCapturedPaise,
+        total_captured_inr: (totalCapturedPaise / 100).toFixed(2),
+        items,
+      },
+    });
+  } catch (err: any) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'RAZORPAY_API_ERROR',
+          message: err.message || 'Failed to fetch payments from Razorpay',
+        },
+      },
+      502
+    );
+  }
 });
 
 adminReportsRouter.get('/payments', async (c) => {

@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Direct Razorpay Live Payment Logs & Verification Integration**:
+  - Replaced database-backed "Today's Live Payments" on the Admin Dashboard (`admin/src/app/page.tsx`) with direct API integration querying Razorpay (`https://api.razorpay.com/v1/payments`).
+  - Added `fetchRazorpayPayments()` in `backend/src/lib/razorpay.ts` and `GET /api/v1/admin/reports/razorpay-payments` in `backend/src/routes/reports.ts`.
+  - Filtered strictly to Razorpay transactions initiated today (since 12:00 AM IST, UTC+05:30) with real-time gross amount, gateway status, payment method (UPI VPA, Card, Netbanking), and direct payer information.
+  - Added dedicated "Razorpay Live Logs (Gateway API)" tab in `/financial` with date range filter (`Today` vs `All History`), live total captured amount in ₹, fees, net revenue, and transaction details to directly cross-verify money received in Razorpay.
 - **Non-Mutating Stock Reservation Architecture (`supabase/migrations/20261124000000_remove_teacher_id_and_fix_stock_locks.sql`)**:
   - Decoupled `cart_item_locks` from physical `menu_items.stock_quantity`: `lock_cart_item` computes available stock against active locks held by other sessions and records the reservation without pre-decrementing `menu_items.stock_quantity`.
   - Resolved double-deduction stock bug where items with limited portions (e.g. 2 portions) were decremented to 0 during cart addition and subsequently rejected at checkout with "insufficient stock (available: 0)".
