@@ -319,7 +319,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setItems((prev) => {
         const existingIndex = prev.findIndex((i) => i.id === newItem.id);
         if (existingIndex > -1) {
-          return prev.map((item, idx) => (idx === existingIndex ? { ...item, quantity: targetQty, expires_at: expiry } : item));
+          return prev.map((item, idx) => (idx === existingIndex ? { ...item, ...newItem, quantity: targetQty, expires_at: expiry } : item));
         }
         return [...prev, { ...newItem, quantity: 1, expires_at: expiry }];
       });

@@ -80,6 +80,8 @@ export default function CartPage() {
       }
     }
     fetchMenuStock();
+    const interval = setInterval(fetchMenuStock, 10000);
+    return () => clearInterval(interval);
   }, [items]);
 
   useEffect(() => {
@@ -271,12 +273,20 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-3.5">
                 {items.map((item) => {
                   const itemStockInfo = stockMap[item.id];
+                  const isTracked = itemStockInfo?.track_inventory !== undefined
+                    ? Boolean(itemStockInfo.track_inventory)
+                    : (item.track_inventory !== undefined ? Boolean(item.track_inventory) : true);
+
                   const isAvailable = itemStockInfo ? itemStockInfo.is_available : true;
-                  const maxStock = itemStockInfo?.stock_quantity !== undefined
+                  const stockQty = itemStockInfo?.stock_quantity !== undefined
                     ? itemStockInfo.stock_quantity
                     : (item.stock_quantity !== undefined ? item.stock_quantity : null);
-                  const isOutOfStock = !isAvailable || (maxStock !== null && maxStock <= 0);
-                  const isAtMaxStock = isOutOfStock || stockBlockedIds.has(item.id) || (maxStock !== null && item.quantity >= maxStock);
+
+                  const isOutOfStock = !isAvailable || (isTracked && stockQty !== null && stockQty <= 0);
+                  const isAtMaxStock =
+                    isOutOfStock ||
+                    stockBlockedIds.has(item.id) ||
+                    (isTracked && stockQty !== null && item.quantity >= stockQty);
 
                   return (
                     <div

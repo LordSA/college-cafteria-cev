@@ -6,7 +6,6 @@ import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
-  LifeBuoy,
   Bug,
   AlertTriangle,
   Lightbulb,
@@ -196,16 +195,9 @@ export default function AdminSupportPage() {
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
               <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3 py-1 text-[11px] font-bold text-purple-700 mb-2">
-                  <LifeBuoy className="h-3 w-3" />
-                  <span>Developer Help Desk</span>
-                </div>
                 <h1 className="text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                  Support & Bug Tracker
+                  Support Admin
                 </h1>
-                <p className="mt-1 text-xs text-[#666666]">
-                  Review customer complaints, bug reports, and suggestions with automated SMTP email replies
-                </p>
               </div>
 
               <button
@@ -236,25 +228,21 @@ export default function AdminSupportPage() {
               <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs">
                 <span className="text-xs font-semibold text-[#666666]">Total Tickets</span>
                 <div className="mt-2 text-2xl font-black text-[#252525]">{totalCount}</div>
-                <p className="mt-1 text-[11px] text-[#888888]">Across all categories</p>
               </div>
 
               <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs">
                 <span className="text-xs font-semibold text-[#666666]">Open Bugs</span>
                 <div className="mt-2 text-2xl font-black text-[#D94A43]">{openBugsCount}</div>
-                <p className="mt-1 text-[11px] text-[#888888]">Requiring investigation</p>
               </div>
 
               <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs">
                 <span className="text-xs font-semibold text-[#666666]">Pending Complaints</span>
                 <div className="mt-2 text-2xl font-black text-amber-600">{openComplaintsCount}</div>
-                <p className="mt-1 text-[11px] text-[#888888]">Counter / payment issues</p>
               </div>
 
               <div className="rounded-2xl bg-white border border-[#EEEEEE] p-5 shadow-xs">
                 <span className="text-xs font-semibold text-[#666666]">Resolved</span>
                 <div className="mt-2 text-2xl font-black text-[#269B62]">{resolvedCount}</div>
-                <p className="mt-1 text-[11px] text-[#888888]">Handled & closed</p>
               </div>
             </div>
 
@@ -266,11 +254,10 @@ export default function AdminSupportPage() {
                     <button
                       key={st}
                       onClick={() => setStatusFilter(st)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                        statusFilter === st
-                          ? 'bg-[#F47721] text-white shadow-2xs'
-                          : 'bg-white border border-[#EEEEEE] text-[#666666] hover:bg-[#FFF7F0]'
-                      }`}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap ${statusFilter === st
+                        ? 'bg-[#F47721] text-white shadow-2xs'
+                        : 'bg-white border border-[#EEEEEE] text-[#666666] hover:bg-[#FFF7F0]'
+                        }`}
                     >
                       {st.toUpperCase()}
                     </button>
@@ -280,11 +267,10 @@ export default function AdminSupportPage() {
                     <button
                       key={tp}
                       onClick={() => setTypeFilter(tp)}
-                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                        typeFilter === tp
-                          ? 'bg-purple-600 text-white shadow-2xs'
-                          : 'bg-white border border-[#EEEEEE] text-[#666666] hover:bg-purple-50'
-                      }`}
+                      className={`px-3 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap ${typeFilter === tp
+                        ? 'bg-purple-600 text-white shadow-2xs'
+                        : 'bg-white border border-[#EEEEEE] text-[#666666] hover:bg-purple-50'
+                        }`}
                     >
                       {tp.toUpperCase()}
                     </button>
@@ -354,13 +340,12 @@ export default function AdminSupportPage() {
                             <p className="text-[11px] text-[#888888] line-clamp-1">{t.message}</p>
                           </td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              t.status === 'resolved' || t.status === 'closed'
-                                ? 'bg-green-50 border-green-200 text-[#269B62]'
-                                : t.status === 'in_progress'
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${t.status === 'resolved' || t.status === 'closed'
+                              ? 'bg-green-50 border-green-200 text-[#269B62]'
+                              : t.status === 'in_progress'
                                 ? 'bg-blue-50 border-blue-200 text-blue-700'
                                 : 'bg-amber-50 border-amber-200 text-amber-700'
-                            }`}>
+                              }`}>
                               {t.status.toUpperCase()}
                             </span>
                           </td>

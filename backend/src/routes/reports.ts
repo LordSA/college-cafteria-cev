@@ -422,7 +422,7 @@ adminReportsRouter.get('/pay-later-logs', async (c) => {
     try {
       const { data: profs } = await adminClient
         .from('profiles')
-        .select('id, display_name, email, phone_number, account_type')
+        .select('id, display_name, email, phone, account_type')
         .in('id', customerIds);
       if (profs) {
         profileMap = new Map(profs.map((p: any) => [p.id, p]));
@@ -438,7 +438,7 @@ adminReportsRouter.get('/pay-later-logs', async (c) => {
       customer_id: o.customer_id,
       teacher_name: prof.display_name || (prof.email ? prof.email.split('@')[0] : 'Faculty Member'),
       teacher_email: prof.email || '',
-      teacher_phone: prof.phone_number || '',
+      teacher_phone: prof.phone || '',
       account_type: prof.account_type || 'staff_t',
       amount_paise: o.total,
       amount_inr: (o.total / 100).toFixed(2),

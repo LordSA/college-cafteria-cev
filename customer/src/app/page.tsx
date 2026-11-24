@@ -228,10 +228,14 @@ export default function CustomerHomePage() {
     id: string;
     name: string;
     price: number;
-    imageUrl: string | null;
+    imageUrl?: string | null;
+    image_url?: string | null;
     categoryName?: string;
+    category_name?: string;
     trackInventory?: boolean;
+    track_inventory?: boolean;
     stockQuantity?: number;
+    stock_quantity?: number;
   }) => {
     recordItemClick(item.id);
     if (!user) {
@@ -243,10 +247,10 @@ export default function CustomerHomePage() {
       id: item.id,
       name: item.name,
       price: item.price,
-      image_url: item.imageUrl,
-      category_name: item.categoryName,
-      track_inventory: item.trackInventory,
-      stock_quantity: item.stockQuantity,
+      image_url: item.image_url ?? item.imageUrl ?? null,
+      category_name: item.category_name ?? item.categoryName,
+      track_inventory: item.track_inventory ?? item.trackInventory ?? true,
+      stock_quantity: item.stock_quantity ?? item.stockQuantity,
     });
   };
 
@@ -508,8 +512,10 @@ export default function CustomerHomePage() {
               <div className="mt-4 divide-y divide-stone-100 dark:divide-white/10 rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] shadow-sm overflow-hidden">
                 {searchResults.map((product) => {
                   const inCartQty = cartQuantityMap.get(product.id) || 0;
-                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
-                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
+                  const isTracked = product.track_inventory !== false && Boolean(product.track_inventory);
+                  const maxStock = isTracked ? (product.stock_quantity ?? 0) : 999;
+                  const isOutOfStock = isTracked && maxStock <= 0;
+                  const cannotIncrement = !product.is_available || isOutOfStock || (isTracked && inCartQty >= maxStock);
 
                   return (
                     <div
@@ -581,7 +587,7 @@ export default function CustomerHomePage() {
                               <Plus className="h-3.5 w-3.5" />
                             </button>
                           </div>
-                        ) : maxStock <= 0 ? (
+                        ) : isOutOfStock ? (
                           <span className="rounded-xl bg-stone-100 dark:bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-stone-400 dark:text-stone-500">
                             Sold Out
                           </span>
@@ -768,8 +774,10 @@ export default function CustomerHomePage() {
                                 </span>
 
                                 {(() => {
-                                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
-                                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
+                                  const isTracked = product.track_inventory !== false && Boolean(product.track_inventory);
+                                  const maxStock = isTracked ? (product.stock_quantity ?? 0) : 999;
+                                  const isOutOfStock = isTracked && maxStock <= 0;
+                                  const cannotIncrement = !product.is_available || isOutOfStock || (isTracked && inCartQty >= maxStock);
 
                                   if (inCartQty > 0) {
                                     return (
@@ -804,7 +812,7 @@ export default function CustomerHomePage() {
                                     );
                                   }
 
-                                  if (maxStock <= 0) {
+                                  if (isOutOfStock) {
                                     return (
                                       <span className="rounded-xl bg-stone-100 dark:bg-white/10 px-3 py-1.5 text-xs font-semibold text-stone-400 dark:text-stone-500">
                                         Sold Out
@@ -907,8 +915,10 @@ export default function CustomerHomePage() {
                                 </span>
 
                                 {(() => {
-                                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
-                                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
+                                  const isTracked = product.track_inventory !== false && Boolean(product.track_inventory);
+                                  const maxStock = isTracked ? (product.stock_quantity ?? 0) : 999;
+                                  const isOutOfStock = isTracked && maxStock <= 0;
+                                  const cannotIncrement = !product.is_available || isOutOfStock || (isTracked && inCartQty >= maxStock);
 
                                   if (inCartQty > 0) {
                                     return (
@@ -947,7 +957,7 @@ export default function CustomerHomePage() {
                                     );
                                   }
 
-                                  if (maxStock <= 0) {
+                                  if (isOutOfStock) {
                                     return (
                                       <span className="rounded-lg bg-stone-100 dark:bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-stone-400 dark:text-stone-500">
                                         Sold Out

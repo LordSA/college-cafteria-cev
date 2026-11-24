@@ -19,6 +19,7 @@ const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
   payment_method: z.enum(['razorpay', 'pay_later', 'counter_cash']).optional().default('razorpay'),
+  session_id: z.string().optional().nullable(),
 });
 
 const VerifyPaymentSchema = z.object({
@@ -85,14 +86,8 @@ customerOrdersRouter.post(
     const paymentMethod = payload.payment_method || 'razorpay';
 
     if (paymentMethod === 'pay_later') {
-      const { data: prof } = await adminClient
-        .from('profiles')
-        .select('account_type')
-        .eq('id', user.id)
-        .maybeSingle();
-
       const isFacultyStaff = ['faculty', 'staff', 'staff_t'].includes(
-        prof?.account_type || ''
+        userProfile?.account_type || ''
       );
 
       if (!isFacultyStaff) {
@@ -186,6 +181,28 @@ customerOrdersRouter.post(
 
     const menuMap = new Map(menuItems.map((m: any) => [m.id, m]));
 
+    const headerSession = c.req.header('x-session-id') || c.req.query('session_id') || payload.session_id;
+    const myLockMap = new Map<string, number>();
+    try {
+      let lockQuery = adminClient
+        .from('cart_item_locks')
+        .select('menu_item_id, quantity')
+        .gt('expires_at', new Date().toISOString());
+
+      if (user?.id && headerSession) {
+        lockQuery = lockQuery.or(`user_id.eq.${user.id},session_id.eq.${headerSession}`);
+      } else if (user?.id) {
+        lockQuery = lockQuery.eq('user_id', user.id);
+      } else if (headerSession) {
+        lockQuery = lockQuery.eq('session_id', headerSession);
+      }
+
+      const { data: myLocks } = await lockQuery;
+      for (const l of myLocks || []) {
+        myLockMap.set(l.menu_item_id, (myLockMap.get(l.menu_item_id) || 0) + (l.quantity || 0));
+      }
+    } catch {}
+
     for (const reqItem of payload.items) {
       const item = menuMap.get(reqItem.menu_item_id);
       if (!item || item.is_archived) {
@@ -200,17 +217,21 @@ customerOrdersRouter.post(
           400
         );
       }
-      if (item.track_inventory && item.stock_quantity < reqItem.quantity) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'INSUFFICIENT_STOCK',
-              message: `Item "${item.name}" has insufficient stock (available: ${item.stock_quantity})`,
+      if (item.track_inventory) {
+        const lockedByCaller = myLockMap.get(item.id) || 0;
+        const availableStock = Math.max(item.stock_quantity, item.stock_quantity + lockedByCaller);
+        if (availableStock < reqItem.quantity) {
+          return c.json(
+            {
+              success: false,
+              error: {
+                code: 'INSUFFICIENT_STOCK',
+                message: `Item "${item.name}" has insufficient stock (available: ${availableStock})`,
+              },
             },
-          },
-          400
-        );
+            400
+          );
+        }
       }
     }
 
@@ -318,7 +339,15 @@ customerOrdersRouter.post(
     for (const reqItem of payload.items) {
       const item = menuMap.get(reqItem.menu_item_id)!;
       if (item.track_inventory) {
-        const nextStock = Math.max(0, item.stock_quantity - reqItem.quantity);
+        const lockedByCaller = myLockMap.get(item.id) || 0;
+        let nextStock: number;
+        if (item.stock_quantity >= reqItem.quantity) {
+          nextStock = item.stock_quantity - reqItem.quantity;
+        } else {
+          const unreservedNeeded = Math.max(0, reqItem.quantity - lockedByCaller);
+          nextStock = Math.max(0, item.stock_quantity - unreservedNeeded);
+        }
+
         await adminClient
           .from('menu_items')
           .update({
@@ -766,12 +795,12 @@ customerOrdersRouter.post(
     try {
       const { data: profile } = await adminClient
         .from('profiles')
-        .select('display_name, phone_number')
+        .select('display_name, phone')
         .eq('id', user.id)
         .maybeSingle();
 
       if (profile?.display_name) customerName = profile.display_name;
-      if (profile?.phone_number) customerPhone = profile.phone_number;
+      if (profile?.phone) customerPhone = profile.phone;
     } catch {}
 
     return c.json({

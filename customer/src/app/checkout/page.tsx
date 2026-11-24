@@ -19,12 +19,12 @@ import {
 
 import { loadRazorpayScript } from '../../lib/razorpay';
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading, session } = useAuth();
-  const { items, clearCart, subtotal, itemCount } = useCart();
+  const { items, clearCart, subtotal, itemCount, sessionId } = useCart();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,16 +126,22 @@ export default function CheckoutPage() {
     const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `idemp-${Date.now()}`;
 
     try {
+      const reqHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      };
+      if (sessionId) {
+        reqHeaders['x-session-id'] = sessionId;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/v1/orders`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: reqHeaders,
         body: JSON.stringify({
           items: items.map((i) => ({ menu_item_id: i.id, quantity: i.quantity })),
           payment_method: paymentMethod,
           idempotency_key: idempotencyKey,
+          session_id: sessionId || undefined,
         }),
       });
 
@@ -381,7 +387,6 @@ export default function CheckoutPage() {
                         Recommended
                       </span>
                     </div>
-                    {/* <span className="text-[10px] font-bold text-stone-400">UPI, Cards, NetBanking</span> */}
                   </div>
                 </div>
               </label>
