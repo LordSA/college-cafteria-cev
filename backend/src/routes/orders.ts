@@ -592,7 +592,6 @@ customerOrdersRouter.get('/pay-later/pending', async (c) => {
     .eq('customer_id', user.id)
     .eq('payment_method', 'pay_later')
     .in('payment_status', ['unpaid', 'pending'])
-    .neq('order_status', 'cancelled')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -641,8 +640,7 @@ customerOrdersRouter.post(
       .select('id, total')
       .eq('customer_id', user.id)
       .eq('payment_method', 'pay_later')
-      .in('payment_status', ['unpaid', 'pending'])
-      .neq('order_status', 'cancelled');
+      .in('payment_status', ['unpaid', 'pending']);
 
     if (fetchErr) {
       return c.json(
@@ -715,8 +713,7 @@ customerOrdersRouter.post(
       .select('id, total')
       .eq('customer_id', user.id)
       .eq('payment_method', 'pay_later')
-      .in('payment_status', ['unpaid', 'pending'])
-      .neq('order_status', 'cancelled');
+      .in('payment_status', ['unpaid', 'pending']);
 
     if (fetchErr) {
       return c.json(
@@ -838,7 +835,6 @@ customerOrdersRouter.post(
       .eq('customer_id', user.id)
       .eq('payment_method', 'pay_later')
       .in('payment_status', ['unpaid', 'pending'])
-      .neq('order_status', 'cancelled')
       .order('created_at', { ascending: true });
 
     if (fetchErr) {

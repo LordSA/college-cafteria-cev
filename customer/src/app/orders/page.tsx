@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Utensils,
   CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 
 interface OrderItem {
@@ -93,8 +92,7 @@ export default function CustomerOrdersPage() {
   const renderStatusBadge = (order: Order) => {
     const stage = order.order_stage || (
       order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' :
-        order.order_status === 'cancelled' ? 'CANCELLED' :
-          'ORDER_PLACED'
+        'ORDER_PLACED'
     );
 
     switch (stage) {
@@ -110,13 +108,6 @@ export default function CustomerOrdersPage() {
           <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-bold text-stone-700">
             <CheckCircle2 className="h-3 w-3" />
             <span>Collected</span>
-          </span>
-        );
-      case 'CANCELLED':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
-            <XCircle className="h-3 w-3" />
-            <span>Cancelled</span>
           </span>
         );
       default:

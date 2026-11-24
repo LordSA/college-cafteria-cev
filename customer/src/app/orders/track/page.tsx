@@ -10,7 +10,6 @@ import { QRCodeSvg } from '../../../components/QRCodeSvg';
 import { isOrderQrExpired } from '../../../lib/orderExpiry';
 import {
   CheckCircle2,
-  XCircle,
   ArrowLeft,
   Loader2,
   RefreshCw,
@@ -40,8 +39,6 @@ interface OrderDetail {
   qr_verification_token?: string | null;
   subtotal: number;
   total: number;
-  cancellation_reason?: string | null;
-  cancelled_at?: string | null;
   confirmed_at?: string | null;
   created_at: string;
   items: OrderItem[];
@@ -123,7 +120,6 @@ function OrderTrackerContent() {
   const stage = order.order_stage || (order.order_status === 'completed' || order.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
   const isCollected = stage === 'COLLECTED' || Boolean(order.qr_consumed_at);
   const isPlaced = stage === 'ORDER_PLACED';
-  const isCancelled = order.order_status === 'cancelled';
 
   return (
     <div className="space-y-6">
@@ -181,24 +177,7 @@ function OrderTrackerContent() {
         </div>
       </div>
 
-      {isCancelled && (
-        <div className="rounded-2xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 p-4 text-xs text-rose-800 dark:text-rose-300 flex items-start gap-3">
-          <XCircle className="h-5 w-5 text-rose-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold">This order was cancelled</p>
-            <p className="mt-0.5">
-              Reason: {order.cancellation_reason || 'Cancelled'}
-            </p>
-            {order.cancelled_at && (
-              <p className="mt-1 text-[11px] text-rose-600 dark:text-rose-400">
-                Cancelled at: {new Date(order.cancelled_at).toLocaleTimeString('en-IN')}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {order.qr_verification_token && !isCancelled && (
+      {order.qr_verification_token && (
         <div className="rounded-3xl border border-stone-200 dark:border-white/10 bg-white dark:bg-[#161822] p-6 sm:p-8 text-center shadow-xs space-y-4">
           {isCollected ? (
             <div className="space-y-2 py-4">

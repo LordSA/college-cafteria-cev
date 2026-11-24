@@ -41,7 +41,6 @@ interface AdminOrder {
   ready_at?: string | null;
   subtotal: number;
   total: number;
-  cancellation_reason?: string | null;
   customer_name?: string;
   customer_account_type?: string;
   created_at: string;

@@ -80,7 +80,7 @@ export interface MenuItem {
 }
 
 export type OrderStage = 'ORDER_PLACED' | 'COLLECTED';
-export type OrderStatus = OrderStage | 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
+export type OrderStatus = OrderStage | 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'completed';
 export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
 export type PaymentMethod = 'razorpay' | 'pay_later' | 'counter_cash';
 
@@ -111,9 +111,6 @@ export interface Order {
   subtotal: number;
   total: number;
   idempotency_key?: string | null;
-  cancellation_reason?: string | null;
-  cancelled_at?: string | null;
-  cancelled_by?: string | null;
   confirmed_at?: string | null;
   preparing_at?: string | null;
   ready_at?: string | null;
@@ -160,7 +157,7 @@ export interface InventoryLog {
   id: string;
   menu_item_id: string;
   quantity_change: number;
-  reason: 'order_placed' | 'order_cancelled' | 'manual_adjustment' | 'restock';
+  reason: 'order_placed' | 'manual_adjustment' | 'restock';
   order_id?: string | null;
   actor_id?: string | null;
   created_at: string;

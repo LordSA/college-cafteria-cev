@@ -69,7 +69,7 @@ interface SettlementRecord {
   created_at: string;
 }
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminFinancialPage() {
   const router = useRouter();
@@ -290,14 +290,11 @@ export default function AdminFinancialPage() {
                 </Link>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Financial Ledger & Payment Gateway
+                    Financial Overview
                   </h1>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black bg-blue-50 text-blue-700 border border-blue-200">
-                    Live Gateway Sync
-                  </span>
                 </div>
                 <p className="mt-1 text-xs text-[#666666]">
-                  Real-time transaction logs received from Razorpay gateway and database order records
+                  Transaction logs from payment logs
                 </p>
               </div>
 
@@ -332,15 +329,13 @@ export default function AdminFinancialPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('razorpay')}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs ${
-                  activeTab === 'razorpay'
-                    ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
-                    : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
-                }`}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition shadow-xs ${activeTab === 'razorpay'
+                  ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
+                  : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
+                  }`}
               >
-                <CreditCard className="h-4 w-4" />
-                <span>Razorpay Live Logs (Gateway API)</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${activeTab === 'razorpay' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
+                <span>Razorpay Logs</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${activeTab === 'razorpay' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
                   {razorpayPayments.length}
                 </span>
               </button>
@@ -348,14 +343,13 @@ export default function AdminFinancialPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('database')}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs ${
-                  activeTab === 'database'
-                    ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
-                    : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
-                }`}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition shadow-xs ${activeTab === 'database'
+                  ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
+                  : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
+                  }`}
               >
-                <span>Canteen Orders Ledger (Database)</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${activeTab === 'database' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
+                <span>Total Revenue</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${activeTab === 'database' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
                   {payments.length}
                 </span>
               </button>
@@ -363,15 +357,13 @@ export default function AdminFinancialPage() {
               <button
                 type="button"
                 onClick={() => setActiveTab('settlement')}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs ${
-                  activeTab === 'settlement'
-                    ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
-                    : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
-                }`}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition shadow-xs ${activeTab === 'settlement'
+                  ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
+                  : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
+                  }`}
               >
-                <Landmark className="h-4 w-4" />
-                <span>Bank Settlements (Razorpay &rarr; Bank)</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${activeTab === 'settlement' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
+                <span>Bank Settlements</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${activeTab === 'settlement' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
                   {settlements.length}
                 </span>
               </button>
@@ -379,7 +371,7 @@ export default function AdminFinancialPage() {
 
             {activeTab === 'razorpay' && (
               <div className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFAFA] border border-[#EEEEEE] p-3.5 rounded-2xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFAFA] border border-[#EEEEEE] p-3.5 rounded-full">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[#666666]">Filter Range:</span>
                     <button
@@ -388,13 +380,12 @@ export default function AdminFinancialPage() {
                         setRazorpayRange('today');
                         loadRazorpayPayments('today');
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                        razorpayRange === 'today'
-                          ? 'bg-[#F47721] text-white shadow-xs'
-                          : 'bg-white border border-[#EEEEEE] text-[#666666] hover:text-[#252525]'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${razorpayRange === 'today'
+                        ? 'bg-[#F47721] text-white shadow-xs'
+                        : 'bg-white border border-[#EEEEEE] text-[#666666] hover:text-[#252525]'
+                        }`}
                     >
-                      Today (Since 12:00 AM IST)
+                      Today
                     </button>
                     <button
                       type="button"
@@ -402,90 +393,60 @@ export default function AdminFinancialPage() {
                         setRazorpayRange('all');
                         loadRazorpayPayments('all');
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                        razorpayRange === 'all'
-                          ? 'bg-[#F47721] text-white shadow-xs'
-                          : 'bg-white border border-[#EEEEEE] text-[#666666] hover:text-[#252525]'
-                      }`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition ${razorpayRange === 'all'
+                        ? 'bg-[#F47721] text-white shadow-xs'
+                        : 'bg-white border border-[#EEEEEE] text-[#666666] hover:text-[#252525]'
+                        }`}
                     >
-                      All Gateway History
+                      All
                     </button>
-                  </div>
-                  <div className="text-xs font-semibold text-[#888888]">
-                    Source: <strong className="text-blue-700 font-bold">api.razorpay.com</strong>
-                  </div>
-                </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-5 shadow-xs">
-                    <span className="text-[11px] font-bold text-emerald-800 tracking-wide uppercase">
-                      Total Recieved in Razorpay
-                    </span>
-                    <div className="mt-2 text-2xl font-black text-emerald-800 font-mono">
-                      ₹{(razorpayTotalCapturedPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                    </div>
-                    <p className="mt-1 text-[11px] text-emerald-700">
-                      Direct balance from Razorpay gateway
-                    </p>
                   </div>
-
-                  <div className="rounded-2xl bg-[#FAFAFA] border border-[#EEEEEE] p-5 shadow-xs">
-                    <span className="text-[11px] font-bold text-[#666666] tracking-wide uppercase">
-                      Captured Transactions
-                    </span>
-                    <div className="mt-2 text-2xl font-black text-[#252525] font-mono">
-                      {filteredRazorpay.filter((p) => p.status === 'captured').length}
-                    </div>
-                    <p className="mt-1 text-[11px] text-[#666666]">
-                      Successfully settled payments
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl bg-[#FAFAFA] border border-[#EEEEEE] p-5 shadow-xs">
-                    <span className="text-[11px] font-bold text-[#666666] tracking-wide uppercase">
-                      Gateway Connection
-                    </span>
-                    <div className="mt-2 text-base font-bold text-[#252525] flex items-center gap-1.5">
-                      <span className={`h-2.5 w-2.5 rounded-full ${razorpayConfigured ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                      <span>{razorpayConfigured ? 'API Connected' : 'Unconfigured'}</span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-[#666666]">
-                      {razorpayConfigured ? 'Direct HTTPS sync active' : 'Set RAZORPAY_KEY_ID & SECRET'}
-                    </p>
-                  </div>
-                </div>
-
-                {!razorpayConfigured && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 space-y-1">
-                    <p className="font-bold">Razorpay API Credentials Required</p>
-                    <p className="text-[11px] text-amber-800">
-                      To pull live logs directly from Razorpay, ensure <code className="font-mono font-bold">RAZORPAY_KEY_ID</code> and <code className="font-mono font-bold">RAZORPAY_KEY_SECRET</code> are configured in your backend environment.
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3">
                   <div className="relative flex-1 max-w-md">
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Filter by Payment ID, UPI VPA, or Contact..."
-                      className="w-full rounded-xl bg-white border border-[#EEEEEE] hover:border-gray-300 pl-4 pr-9 py-2.5 text-xs font-medium text-[#252525] placeholder:text-[#888888] focus:outline-none focus:border-[#F47721] focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      placeholder="Search by Payment ID"
+                      className="w-full rounded-full bg-white border border-[#EEEEEE] hover:border-gray-300 pl-4 pr-9 py-2.5 text-xs font-medium text-[#252525] placeholder:text-[#888888] focus:outline-none focus:border-[#F47721] focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                     />
                     <Search className="absolute right-3.5 top-3 h-3.5 w-3.5 text-[#888888]" />
                   </div>
                 </div>
 
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-5 shadow-xs">
+                    <span className="text-[11px] font-bold text-emerald-800 tracking-wide uppercase">
+                      Total Recieved
+                    </span>
+                    <div className="mt-2 text-2xl font-black text-emerald-800 font-mono">
+                      ₹{(razorpayTotalCapturedPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#FAFAFA] border border-[#EEEEEE] p-5 shadow-xs">
+                    <span className="text-[11px] font-bold text-[#666666] tracking-wide uppercase">
+                      Succesfull Transactions
+                    </span>
+                    <div className="mt-2 text-2xl font-black text-[#252525] font-mono">
+                      {filteredRazorpay.filter((p) => p.status === 'captured').length}
+                    </div>
+                  </div>
+
+                </div>
+
+                <div className="flex items-center gap-3">
+
+                </div>
+
                 {razorpayLoading ? (
                   <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#666666]">
                     <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
-                    <p className="text-xs font-semibold">Streaming live transactions directly from Razorpay...</p>
+                    <p className="text-xs font-semibold">Loading...</p>
                   </div>
                 ) : filteredRazorpay.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center">
-                    <CreditCard className="mx-auto h-8 w-8 text-[#888888]" />
-                    <h3 className="mt-3 text-sm font-bold text-[#252525]">No Razorpay Payments Found</h3>
+                    <h3 className="mt-3 text-sm font-bold text-[#252525]">No Payments Found</h3>
                     <p className="mt-1 text-xs text-[#666666]">
                       {searchQuery ? 'Try matching another query or clear the filter.' : 'Live payments completed via Razorpay will appear here instantly.'}
                     </p>
@@ -552,13 +513,12 @@ export default function AdminFinancialPage() {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                   <span
-                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                      p.status === 'captured'
-                                        ? 'bg-green-50 text-[#269B62] border border-green-200'
-                                        : p.status === 'authorized'
-                                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                                          : 'bg-rose-50 text-rose-700 border border-rose-200'
-                                    }`}
+                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${p.status === 'captured'
+                                      ? 'bg-green-50 text-[#269B62] border border-green-200'
+                                      : p.status === 'authorized'
+                                        ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      }`}
                                   >
                                     {p.status}
                                   </span>
@@ -577,40 +537,31 @@ export default function AdminFinancialPage() {
             {activeTab === 'database' && (
               <div className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-[#FAFAFA] border border-[#EEEEEE] p-5 shadow-xs">
+                  <div className="rounded-2x  l bg-[#FAFAFA] border border-[#EEEEEE] p-5 shadow-xs">
                     <span className="text-[11px] font-bold text-[#666666] tracking-wide uppercase">
-                      Settled Revenue
+                      Revenue
                     </span>
                     <div className="mt-2 text-2xl font-black text-[#252525] font-mono">
                       ₹{(totalPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
-                    <p className="mt-1 text-[11px] text-[#666666]">
-                      Across {filteredDbPayments.filter((p) => p.payment_status === 'paid').length} completed transactions
-                    </p>
                   </div>
 
                   <div className="rounded-2xl bg-orange-50/50 border border-orange-200/80 p-5 shadow-xs">
                     <span className="text-[11px] font-bold text-[#F47721] tracking-wide uppercase">
-                      Razorpay UPI Settled
+                      Razorpay Revenue
                     </span>
                     <div className="mt-2 text-2xl font-black text-[#F47721] font-mono">
                       ₹{(upiPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
-                    <p className="mt-1 text-[11px] text-orange-700/80">
-                      Instant UPI verified payments
-                    </p>
                   </div>
 
                   <div className="rounded-2xl bg-amber-50/50 border border-amber-200/80 p-5 shadow-xs">
                     <span className="text-[11px] font-bold text-amber-800 tracking-wide uppercase">
-                      Faculty Post-Pay Balance
+                      Faculty Post-Payment
                     </span>
                     <div className="mt-2 text-2xl font-black text-amber-900 font-mono">
                       ₹{(payLaterPaise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
-                    <p className="mt-1 text-[11px] text-amber-700/80">
-                      Total cumulative faculty debt orders
-                    </p>
                   </div>
                 </div>
 
@@ -641,7 +592,6 @@ export default function AdminFinancialPage() {
                   </div>
                 ) : filteredDbPayments.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center">
-                    <CreditCard className="mx-auto h-8 w-8 text-[#888888]" />
                     <h3 className="mt-3 text-sm font-bold text-[#252525]">No Database Orders Found</h3>
                     <p className="mt-1 text-xs text-[#666666]">
                       {searchQuery ? 'Try matching another query or clear the filter.' : 'Completed orders will be recorded here.'}
@@ -701,11 +651,10 @@ export default function AdminFinancialPage() {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                   <span
-                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                      p.payment_status === 'paid'
-                                        ? 'bg-green-50 text-[#269B62] border border-green-200'
-                                        : 'bg-amber-50 text-amber-800 border border-amber-200'
-                                    }`}
+                                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${p.payment_status === 'paid'
+                                      ? 'bg-green-50 text-[#269B62] border border-green-200'
+                                      : 'bg-amber-50 text-amber-800 border border-amber-200'
+                                      }`}
                                   >
                                     {p.payment_status}
                                   </span>
@@ -730,21 +679,6 @@ export default function AdminFinancialPage() {
                     </span>
                     <div className="mt-1 font-mono text-2xl font-black text-[#252525] tabular-nums">
                       ₹{(settlementsTotalPaise / 100).toFixed(2)}
-                    </div>
-                    <span className="text-[10px] text-[#269B62] font-semibold mt-1 block">
-                      Dispatched to linked canteen bank account
-                    </span>
-                  </div>
-
-                  <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs md:col-span-2">
-                    <div className="flex items-start gap-2.5">
-                      <Landmark className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <h3 className="text-xs font-bold text-blue-900">How Razorpay Bank Settlements Work</h3>
-                        <p className="text-[11px] text-blue-800 mt-1 leading-relaxed">
-                          Payments captured via Razorpay are automatically batched and transferred to your verified college bank account on a T+1 or T+2 business days cycle. Each batch carries a Unique Transaction Reference (UTR) for bank statement reconciliation.
-                        </p>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -793,13 +727,12 @@ export default function AdminFinancialPage() {
                                 {s.utr || <span className="text-[#888888]">Pending</span>}
                               </td>
                               <td className="px-6 py-4">
-                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                  s.status === 'processed'
-                                    ? 'bg-emerald-50 text-[#269B62] border border-emerald-200'
-                                    : s.status === 'created'
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${s.status === 'processed'
+                                  ? 'bg-emerald-50 text-[#269B62] border border-emerald-200'
+                                  : s.status === 'created'
                                     ? 'bg-blue-50 text-blue-700 border border-blue-200'
                                     : 'bg-red-50 text-[#D94A43] border border-red-200'
-                                }`}>
+                                  }`}>
                                   {s.status === 'processed' && <CheckCircle2 className="h-3 w-3" />}
                                   <span>{s.status}</span>
                                 </span>

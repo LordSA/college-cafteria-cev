@@ -75,8 +75,7 @@ adminReportsRouter.get('/stats', async (c) => {
       .from('orders')
       .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, customer_id')
       .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .neq('order_status', 'cancelled'),
+      .lte('created_at', endDate.toISOString()),
     adminClient
       .from('profiles')
       .select('*', { count: 'exact', head: true })
@@ -400,7 +399,6 @@ adminReportsRouter.get('/pay-later-logs', async (c) => {
     .from('orders')
     .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, pay_later_settled_at, pay_later_settled_via, customer_id')
     .eq('payment_method', 'pay_later')
-    .neq('order_status', 'cancelled')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -549,8 +547,7 @@ adminReportsRouter.get('/funds', async (c) => {
     .from('orders')
     .select('total')
     .eq('payment_method', 'pay_later')
-    .in('payment_status', ['unpaid', 'pending'])
-    .neq('order_status', 'cancelled');
+    .in('payment_status', ['unpaid', 'pending']);
 
   const totalPendingPayLaterPaise = (payLaterPending || []).reduce((acc, o: any) => acc + (o.total || 0), 0);
 

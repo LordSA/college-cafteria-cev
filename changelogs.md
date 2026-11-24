@@ -9,6 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Removed
+- **Order Cancellation Functionality Completely Purged**:
+  - Dropped database functions `public.cancel_order` (`uuid, text`) and `public.cancel_order` (`uuid, text, uuid`).
+  - Dropped cancellation columns `cancellation_reason`, `cancelled_at`, and `cancelled_by` from `public.orders`.
+  - Updated CHECK constraint `orders_order_status_check` to remove `'cancelled'` (retaining active states `'pending'`, `'confirmed'`, `'preparing'`, `'ready_for_pickup'`, `'completed'`, `'ORDER_PLACED'`, `'COLLECTED'`).
+  - Updated CHECK constraint `inventory_logs_reason_check` to remove `'order_cancelled'`.
+  - Migrated any historical cancelled orders to `'completed'` before applying constraints.
+  - Removed `'cancelled'` and cancellation fields from backend types (`backend/src/types/env.ts`), admin order status transitions (`backend/src/routes/adminOrders.ts`), and non-cancelled query filters in `backend/src/routes/orders.ts` and `backend/src/routes/reports.ts`.
+  - Cleaned cancellation UI, status badges, and alert banners from admin orders (`admin/src/app/orders/page.tsx`), customer order history (`customer/src/app/orders/page.tsx`), and order tracking (`customer/src/app/orders/track/page.tsx`).
+  - Created database migrations `supabase/migrations/20261124000004_remove_order_cancellation.sql` and `backend/migrations/0013_remove_order_cancellation.sql`.
+
 ### Fixed
 - **Stock Reservation & Insufficient Stock Bug (`lock_cart_item`)**:
   - Resolved `Item has insufficient stock (available: 0)` error when buying items with available stock.

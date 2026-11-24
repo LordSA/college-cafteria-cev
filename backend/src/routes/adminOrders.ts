@@ -14,9 +14,7 @@ const OrderStatusUpdateSchema = z.object({
     'confirmed',
     'preparing',
     'completed',
-    'cancelled',
   ]),
-  cancellation_reason: z.string().max(300).optional().nullable(),
 });
 
 export const adminOrdersRouter = new Hono<{
@@ -376,7 +374,7 @@ adminOrdersRouter.patch(
   async (c) => {
     const adminClient = getSupabaseAdminClient(c.env);
     const orderId = c.req.param('id');
-    const { status: targetStatus, cancellation_reason } = c.req.valid('json');
+    const { status: targetStatus } = c.req.valid('json');
 
     if (!adminClient || typeof adminClient.from !== 'function') {
       return c.json(
@@ -419,15 +417,14 @@ adminOrdersRouter.patch(
     }
 
     const validTransitions: Record<string, string[]> = {
-      pending: ['confirmed', 'cancelled', 'ORDER_PLACED', 'COLLECTED'],
-      confirmed: ['preparing', 'cancelled', 'ORDER_PLACED', 'COLLECTED'],
-      preparing: ['COLLECTED', 'cancelled'],
-      ORDER_PLACED: ['COLLECTED', 'completed', 'confirmed', 'preparing', 'cancelled'],
-      ready_for_pickup: ['completed', 'COLLECTED', 'cancelled'],
-      READY_TO_PICK: ['COLLECTED', 'completed', 'cancelled'],
+      pending: ['confirmed', 'ORDER_PLACED', 'COLLECTED'],
+      confirmed: ['preparing', 'ORDER_PLACED', 'COLLECTED'],
+      preparing: ['COLLECTED'],
+      ORDER_PLACED: ['COLLECTED', 'completed', 'confirmed', 'preparing'],
+      ready_for_pickup: ['completed', 'COLLECTED'],
+      READY_TO_PICK: ['COLLECTED', 'completed'],
       completed: [],
       COLLECTED: [],
-      cancelled: [],
     };
 
     if (!validTransitions[currentStatus]?.includes(targetStatus)) {
@@ -463,10 +460,6 @@ adminOrdersRouter.patch(
       updatePayload.confirmed_at = now;
     } else if (targetStatus === 'preparing') {
       updatePayload.preparing_at = now;
-    } else if (targetStatus === 'cancelled') {
-      updatePayload.cancellation_reason = cancellation_reason?.trim() || 'Cancelled by canteen manager';
-      updatePayload.cancelled_at = now;
-      updatePayload.cancelled_by = c.get('user').id;
     }
 
     const { data: updatedOrder, error: updateErr } = await adminClient
@@ -481,39 +474,6 @@ adminOrdersRouter.patch(
         { success: false, error: { code: 'UPDATE_FAILED', message: updateErr.message } },
         500
       );
-    }
-
-    if (targetStatus === 'cancelled' && Array.isArray(updatedOrder.order_items)) {
-      for (const oi of updatedOrder.order_items) {
-        if (!oi.menu_item_id || !oi.quantity) continue;
-        try {
-          const { data: mItem } = await adminClient
-            .from('menu_items')
-            .select('id, stock_quantity, track_inventory, is_available')
-            .eq('id', oi.menu_item_id)
-            .maybeSingle();
-
-          if (mItem && mItem.track_inventory) {
-            const restoredStock = (mItem.stock_quantity ?? 0) + oi.quantity;
-            await adminClient
-              .from('menu_items')
-              .update({
-                stock_quantity: restoredStock,
-                is_available: true,
-                updated_at: now,
-              })
-              .eq('id', oi.menu_item_id);
-
-            await adminClient.from('inventory_logs').insert({
-              menu_item_id: oi.menu_item_id,
-              quantity_change: oi.quantity,
-              reason: 'order_cancelled',
-              order_id: orderId,
-              actor_id: c.get('user').id,
-            });
-          }
-        } catch {}
-      }
     }
 
     const resStage = updatedOrder.order_stage || (updatedOrder.order_status === 'ready_for_pickup' || updatedOrder.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : updatedOrder.order_status === 'completed' || updatedOrder.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');

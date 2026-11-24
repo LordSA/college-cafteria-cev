@@ -616,18 +616,11 @@ export default function AdminDashboardPage() {
                   type="button"
                   onClick={loadPayLaterLogs}
                   disabled={payLaterLoading}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-3 py-1.5 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-3 py-1.5 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs disabled:opacity-50"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${payLaterLoading ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
                 </button>
-                <Link
-                  href="/staff-requests"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-[#F47721] hover:underline"
-                >
-                  <span>Teachers</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
               </div>
             </div>
 
@@ -829,9 +822,6 @@ export default function AdminDashboardPage() {
             {!razorpayConfigured && (
               <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 space-y-1">
                 <p className="font-bold">Razorpay Keys Not Configured</p>
-                <p className="text-[11px] text-amber-700">
-                  Add <code className="font-mono font-bold">RAZORPAY_KEY_ID</code> and <code className="font-mono font-bold">RAZORPAY_KEY_SECRET</code> to your backend environment to stream live gateway transactions.
-                </p>
               </div>
             )}
 
@@ -883,16 +873,6 @@ export default function AdminDashboardPage() {
                     </div>
                   );
                 })}
-
-                <div className="pt-2 text-center">
-                  <Link
-                    href="/financial?tab=razorpay"
-                    className="inline-flex items-center justify-center gap-1 text-xs font-bold text-[#F47721] hover:underline"
-                  >
-                    <span>View All Live Gateway Logs</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
               </div>
             )}
           </div>
