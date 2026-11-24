@@ -16,6 +16,30 @@ export interface Env {
   RAZORPAY_WEBHOOK_SECRET?: string;
   PAYMENT_PROVIDER?: string;
   PAYMENT_MODE?: 'test' | 'live' | string;
+  SMTP_HOST?: string;
+  SMTP_PORT?: string;
+  SMTP_USER?: string;
+  SMTP_PASS?: string;
+  SMTP_FROM?: string;
+  DEVELOPER_EMAIL?: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  ticket_number: string;
+  user_id?: string | null;
+  name: string;
+  email: string;
+  type: 'bug' | 'complaint' | 'feedback' | 'inquiry' | 'other';
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  developer_notes?: string | null;
+  resolved_at?: string | null;
+  resolved_by?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export type StorageProviderType = 'supabase' | 'r2';

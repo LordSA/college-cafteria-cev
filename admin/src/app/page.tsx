@@ -64,6 +64,7 @@ interface DashboardInventoryItem {
   stock_quantity: number;
   low_stock_threshold: number;
   is_available: boolean;
+  track_inventory?: boolean;
 }
 
 interface PayLaterLogItem {
@@ -249,7 +250,7 @@ export default function AdminDashboardPage() {
           const json = await inventoryRes.value.json();
           const items: DashboardInventoryItem[] = Array.isArray(json.data) ? json.data : (json.data?.inventory || []);
           const lowPortions = items.filter(
-            (i) => i.stock_quantity <= i.low_stock_threshold
+            (i) => Boolean(i.track_inventory) && i.stock_quantity <= i.low_stock_threshold
           );
           lowStockCount = lowPortions.length;
           setLowStockItems(lowPortions.slice(0, 4));

@@ -482,3 +482,102 @@ staffRequestsRouter.post('/teachers/revoke', async (c) => {
     message: 'Teacher role revoked successfully',
   });
 });
+
+staffRequestsRouter.patch('/teachers/:id', async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  const teacherId = c.req.param('id');
+
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const body = await c.req.json().catch(() => ({}));
+  const { display_name, email, password } = body;
+
+  const { data: existing, error: checkError } = await adminClient
+    .from('profiles')
+    .select('id, account_type, email, display_name')
+    .eq('id', teacherId)
+    .maybeSingle();
+
+  if (checkError || !existing) {
+    return c.json(
+      { success: false, error: { code: 'NOT_FOUND', message: 'Teacher profile not found' } },
+      404
+    );
+  }
+
+  if (existing.account_type !== 'staff_t') {
+    return c.json(
+      { success: false, error: { code: 'BAD_REQUEST', message: 'User is not registered as a teacher' } },
+      400
+    );
+  }
+
+  const profileUpdate: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (display_name !== undefined) {
+    profileUpdate.display_name = display_name?.trim() || null;
+  }
+  if (email !== undefined && email.trim().length > 0) {
+    profileUpdate.email = email.trim().toLowerCase();
+  }
+
+  const { data: updatedProfile, error: profileErr } = await adminClient
+    .from('profiles')
+    .update(profileUpdate)
+    .eq('id', teacherId)
+    .select('id, display_name, email, account_type, updated_at')
+    .single();
+
+  if (profileErr) {
+    return c.json(
+      { success: false, error: { code: 'UPDATE_FAILED', message: profileErr.message } },
+      500
+    );
+  }
+
+  if (adminClient.auth?.admin?.updateUserById) {
+    const authUpdate: Record<string, any> = {};
+    if (email !== undefined && email.trim().length > 0) {
+      authUpdate.email = email.trim().toLowerCase();
+      authUpdate.email_confirm = true;
+    }
+    if (password !== undefined && password.trim().length >= 6) {
+      authUpdate.password = password.trim();
+    }
+    if (display_name !== undefined) {
+      authUpdate.user_metadata = {
+        display_name: display_name?.trim() || '',
+        account_type: 'staff_t',
+      };
+    }
+
+    if (Object.keys(authUpdate).length > 0) {
+      try {
+        await adminClient.auth.admin.updateUserById(teacherId, authUpdate);
+      } catch (authErr: any) {
+        return c.json(
+          {
+            success: true,
+            data: updatedProfile,
+            warning: `Profile updated, but auth credentials update returned: ${authErr.message}`,
+            message: 'Teacher details partially updated',
+          },
+          200
+        );
+      }
+    }
+  }
+
+  return c.json({
+    success: true,
+    data: updatedProfile,
+    message: 'Teacher details updated successfully',
+  });
+});

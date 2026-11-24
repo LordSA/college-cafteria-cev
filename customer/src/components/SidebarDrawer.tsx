@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronRight,
   Settings,
+  LifeBuoy,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -145,6 +146,18 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
               <div className="flex items-center gap-3">
                 <Settings className="h-4 w-4 text-[#ff5e3a]" />
                 <span>Settings & Theme</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600" />
+            </Link>
+
+            <Link
+              href="/support"
+              onClick={onClose}
+              className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-stone-700 dark:text-stone-200 hover:bg-orange-50 dark:hover:bg-white/[0.04] hover:text-[#ff5e3a] transition"
+            >
+              <div className="flex items-center gap-3">
+                <LifeBuoy className="h-4 w-4 text-[#ff5e3a]" />
+                <span>Support & Feedback</span>
               </div>
               <ChevronRight className="h-4 w-4 text-stone-300 dark:text-stone-600" />
             </Link>

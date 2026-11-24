@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Trash2,
   Check,
+  Pencil,
 } from 'lucide-react';
 
 interface Teacher {
@@ -59,6 +60,12 @@ export default function TeacherManagementPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedCandidateId, setSelectedCandidateId] = useState('');
   const [assigning, setAssigning] = useState(false);
+
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -231,6 +238,67 @@ export default function TeacherManagementPage() {
     }
   };
 
+  const handleOpenEditModal = (teacher: Teacher) => {
+    setEditingTeacher(teacher);
+    setEditName(teacher.display_name || '');
+    setEditEmail(teacher.email || '');
+    setEditPassword('');
+    setError(null);
+  };
+
+  const handleSaveEditTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeacher || !session?.access_token) return;
+
+    if (!editEmail.trim()) {
+      setError('Email address is required.');
+      return;
+    }
+
+    if (editPassword.trim() && editPassword.trim().length < 6) {
+      setError('New password must be at least 6 characters.');
+      return;
+    }
+
+    setSavingEdit(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/staff-requests/teachers/${editingTeacher.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          display_name: editName.trim(),
+          email: editEmail.trim(),
+          password: editPassword.trim() || undefined,
+        }),
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to update teacher details');
+      }
+
+      setTeachers((prev) =>
+        prev.map((t) =>
+          t.id === editingTeacher.id
+            ? { ...t, display_name: editName.trim() || null, email: editEmail.trim() }
+            : t
+        )
+      );
+
+      setSuccessMessage('Teacher details updated successfully.');
+      setTimeout(() => setSuccessMessage(null), 3500);
+      setEditingTeacher(null);
+    } catch (err: any) {
+      setError(err.message || 'Error updating teacher details');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   if (authLoading || !adminUser || isUnauthorized) {
     return (
       <>
@@ -346,12 +414,20 @@ export default function TeacherManagementPage() {
                         </div>
                       </div>
 
-                      <div className="pt-3 mt-2 border-t border-[#EEEEEE]">
+                      <div className="grid grid-cols-2 gap-1.5 pt-3 mt-2 border-t border-[#EEEEEE]">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(teacher)}
+                          className="inline-flex items-center justify-center gap-1 rounded-lg border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] py-1.5 px-2 text-[11px] font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs"
+                        >
+                          <Pencil className="h-3 w-3 text-[#F47721]" />
+                          <span>Edit</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRevokeTeacher(teacher)}
                           disabled={actionInProgress === teacher.id}
-                          className="w-full inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 py-1.5 px-2 text-[11px] font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
+                          className="inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 py-1.5 px-2 text-[11px] font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
                         >
                           <Trash2 className="h-3 w-3" />
                           <span>Revoke</span>
@@ -398,15 +474,26 @@ export default function TeacherManagementPage() {
                               </span>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <button
-                                onClick={() => handleRevokeTeacher(teacher)}
-                                disabled={actionInProgress === teacher.id}
-                                title="Revoke faculty teacher privileges"
-                                className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                                <span>Revoke</span>
-                              </button>
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditModal(teacher)}
+                                  title="Edit faculty teacher details"
+                                  className="inline-flex items-center gap-1 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-3 py-1.5 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs"
+                                >
+                                  <Pencil className="h-3.5 w-3.5 text-[#F47721]" />
+                                  <span>Edit</span>
+                                </button>
+                                <button
+                                  onClick={() => handleRevokeTeacher(teacher)}
+                                  disabled={actionInProgress === teacher.id}
+                                  title="Revoke faculty teacher privileges"
+                                  className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  <span>Revoke</span>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -574,6 +661,100 @@ export default function TeacherManagementPage() {
                           <>
                             <Check className="h-3.5 w-3.5" />
                             <span>Promote to Teacher</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {editingTeacher && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+                <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl border border-[#EEEEEE] space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#EEEEEE] pb-3">
+                    <h3 className="text-sm font-bold text-[#252525] flex items-center gap-2">
+                      <Pencil className="h-4 w-4 text-[#F47721]" />
+                      <span>Edit Teacher Details</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTeacher(null)}
+                      className="rounded-full p-1 text-[#666666] hover:bg-gray-100 transition"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleSaveEditTeacher} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editTeacherName">
+                        Faculty Full Name
+                      </label>
+                      <input
+                        id="editTeacherName"
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="Dr. Rajesh Kumar"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editTeacherEmail">
+                        Email Address
+                      </label>
+                      <input
+                        id="editTeacherEmail"
+                        type="email"
+                        required
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="teacher@cev.ac.in"
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#252525] mb-1" htmlFor="editTeacherPassword">
+                        New Password (Optional)
+                      </label>
+                      <input
+                        id="editTeacherPassword"
+                        type="password"
+                        value={editPassword}
+                        onChange={(e) => setEditPassword(e.target.value)}
+                        placeholder="Leave blank to keep current password"
+                        minLength={6}
+                        className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
+                      />
+                      <p className="mt-1 text-[11px] text-[#888888]">Minimum 6 characters if updating</p>
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">
+                      <button
+                        type="button"
+                        onClick={() => setEditingTeacher(null)}
+                        className="rounded-xl border border-[#EEEEEE] bg-white px-4 py-2 text-xs font-bold text-[#666666] hover:bg-gray-50 transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingEdit}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-5 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 disabled:opacity-50 transition"
+                      >
+                        {savingEdit ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-3.5 w-3.5" />
+                            <span>Save Changes</span>
                           </>
                         )}
                       </button>

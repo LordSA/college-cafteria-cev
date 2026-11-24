@@ -7,7 +7,6 @@ import { Footer } from '../../components/Footer';
 import { AdminSidebar } from '../../components/AdminSidebar';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import {
-  CreditCard,
   Search,
   Download,
   RefreshCw,
@@ -78,7 +77,6 @@ export default function AdminFinancialPage() {
   const [activeTab, setActiveTab] = useState<'razorpay' | 'database' | 'settlement'>('razorpay');
   const [razorpayRange, setRazorpayRange] = useState<'today' | 'all'>('today');
   const [razorpayPayments, setRazorpayPayments] = useState<RazorpayPaymentRecord[]>([]);
-  const [razorpayConfigured, setRazorpayConfigured] = useState<boolean>(true);
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [razorpayTotalCapturedPaise, setRazorpayTotalCapturedPaise] = useState<number>(0);
 
@@ -131,7 +129,6 @@ export default function AdminFinancialPage() {
         throw new Error(body.error?.message || 'Failed to fetch Razorpay gateway payments');
       }
 
-      setRazorpayConfigured(body.data?.configured ?? true);
       setRazorpayPayments(body.data?.items || []);
       setRazorpayTotalCapturedPaise(body.data?.total_captured_paise || 0);
     } catch (err: any) {

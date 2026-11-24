@@ -62,6 +62,12 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/support" className="hover:text-[#ff5e3a] transition flex items-center gap-1.5">
+                  <HelpCircle className="h-3.5 w-3.5 text-[#ff5e3a]" />
+                  <span>Support & Feedback Desk</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/privacy" className="hover:text-[#ff5e3a] transition flex items-center gap-1.5">
                   <Lock className="h-3.5 w-3.5 text-stone-400" />
                   <span>Privacy Policy</span>

@@ -12,6 +12,7 @@ import {
   LogOut,
   QrCode,
   FileCheck,
+  LifeBuoy,
 } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -36,6 +37,7 @@ export function AdminSidebar() {
     { label: 'Teacher Management', shortLabel: 'Teachers', href: '/staff-requests', icon: FileCheck, show: role === 'admin' || role === 'developer' },
     { label: 'Printer Kiosk', shortLabel: 'Printer', href: '/printer', icon: Printer, show: role === 'printer' || (isPrinter && role !== 'admin' && role !== 'staff') },
     { label: 'Developer', shortLabel: 'Developer', href: '/developer', icon: Terminal, show: role === 'developer' && canAccessDeveloper },
+    { label: 'Support Desk', shortLabel: 'Support', href: '/support', icon: LifeBuoy, show: role === 'developer' },
   ];
 
   const visibleLinks = allLinks.filter((l) => l.show);
