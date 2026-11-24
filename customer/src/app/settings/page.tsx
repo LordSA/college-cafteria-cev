@@ -36,6 +36,7 @@ export default function SettingsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pageNotice, setPageNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -72,13 +73,15 @@ export default function SettingsPage() {
         throw updateError;
       }
 
-      setPasswordSuccess('Password updated successfully!');
+      setShowPasswordModal(false);
       setNewPassword('');
       setConfirmPassword('');
+      setPasswordSuccess(null);
+      setPasswordError(null);
+      setPageNotice({ type: 'success', message: 'Password updated successfully!' });
       setTimeout(() => {
-        setPasswordSuccess(null);
-        setShowPasswordModal(false);
-      }, 1200);
+        setPageNotice(null);
+      }, 4000);
     } catch (err: any) {
       setPasswordError(err.message || 'Failed to update password');
     } finally {
@@ -147,6 +150,30 @@ export default function SettingsPage() {
               </h1>
             </div>
           </div>
+
+          {pageNotice && (
+            <div className={`rounded-2xl border p-4 text-xs flex items-center justify-between gap-3 shadow-xs transition-all ${
+              pageNotice.type === 'success'
+                ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300'
+                : 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                {pageNotice.type === 'success' ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0" />
+                )}
+                <span className="font-semibold">{pageNotice.message}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPageNotice(null)}
+                className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-0.5"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
 
           <div className="rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white/85 dark:bg-[#161820]/80 backdrop-blur-xl p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-stone-100 dark:border-white/10 pb-3">

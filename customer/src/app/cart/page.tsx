@@ -29,6 +29,7 @@ export default function CartPage() {
   const { user, loading: authLoading } = useAuth();
   const { items, updateQuantity, removeItem, clearCart, subtotal, itemCount, remainingSeconds, isExpired } = useCart();
   const [cartError, setCartError] = useState<string | null>(null);
+  const [stockBlockedIds, setStockBlockedIds] = useState<Set<string>>(new Set());
   const [stockMap, setStockMap] = useState<Record<string, { stock_quantity?: number; track_inventory?: boolean; is_available: boolean }>>({});
 
   useEffect(() => {
@@ -64,11 +65,17 @@ export default function CartPage() {
     const res = await updateQuantity(id, qty);
     if (!res.success) {
       setCartError(res.error || 'Cannot add more. No additional stock available.');
+      setStockBlockedIds((prev) => new Set(prev).add(id));
     }
   };
 
   const handleDecrease = async (id: string, qty: number) => {
     setCartError(null);
+    setStockBlockedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
     await updateQuantity(id, qty);
   };
 
@@ -226,12 +233,12 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-3.5">
                 {items.map((item) => {
                   const itemStockInfo = stockMap[item.id];
-                  const trackInventory = itemStockInfo?.track_inventory ?? item.track_inventory ?? false;
+                  const trackInventory = itemStockInfo?.track_inventory ?? item.track_inventory ?? true;
                   const isAvailable = itemStockInfo ? itemStockInfo.is_available : true;
-                  const maxStock = itemStockInfo?.track_inventory
-                    ? (itemStockInfo.stock_quantity ?? 0)
-                    : (item.track_inventory ? (item.stock_quantity ?? 0) : 999);
-                  const isAtMaxStock = !isAvailable || (trackInventory && (maxStock <= 0 || item.quantity >= maxStock));
+                  const maxStock = itemStockInfo?.stock_quantity !== undefined
+                    ? itemStockInfo.stock_quantity
+                    : (item.stock_quantity !== undefined ? item.stock_quantity : 999);
+                  const isAtMaxStock = !isAvailable || stockBlockedIds.has(item.id) || (trackInventory && (maxStock <= 0 || item.quantity >= maxStock));
 
                   return (
                     <div

@@ -267,7 +267,93 @@ export default function AdminInventoryPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+              <>
+                <div className="grid grid-cols-2 gap-3 md:hidden">
+                  {items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-2xl border border-[#EEEEEE] bg-white p-3.5 shadow-xs flex flex-col justify-between hover:border-[#F47721]/30 transition"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-1 mb-1.5">
+                          <span className="rounded-md bg-[#FAFAFA] border border-[#EEEEEE] px-1.5 py-0.5 text-[9px] font-semibold text-[#666666] truncate max-w-[85px]">
+                            {item.category_name || 'General'}
+                          </span>
+                          <span className="font-mono text-xs font-black text-[#252525] tabular-nums">
+                            ₹{(item.price / 100).toFixed(0)}
+                          </span>
+                        </div>
+
+                        <h3 className="font-bold text-[#252525] text-xs line-clamp-2 leading-tight">
+                          {item.name}
+                        </h3>
+
+                        <div className="mt-2.5 pt-2 border-t border-[#EEEEEE]/80">
+                          {item.track_inventory ? (
+                            <div className="flex items-baseline justify-between">
+                              <span className="text-[10px] text-[#888888]">Stock:</span>
+                              <div className="flex items-center gap-1">
+                                <span
+                                  className={`font-mono text-sm font-black tabular-nums ${
+                                    item.stock_quantity === 0
+                                      ? 'text-[#D94A43]'
+                                      : item.is_low_stock
+                                      ? 'text-amber-700'
+                                      : 'text-[#269B62]'
+                                  }`}
+                                >
+                                  {item.stock_quantity}
+                                </span>
+                                {item.is_low_stock && (
+                                  <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-[10px] font-semibold text-[#888888]">
+                              Unlimited Stock
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-3 space-y-1.5 pt-2 border-t border-[#EEEEEE]/80">
+                        <button
+                          type="button"
+                          onClick={() => toggleAvailability(item)}
+                          className={`w-full inline-flex items-center justify-center gap-1 rounded-xl py-1 px-2 text-[10px] font-bold transition shadow-2xs ${
+                            item.is_available
+                              ? 'bg-green-50 border border-green-200 text-[#269B62]'
+                              : 'bg-red-50 border border-red-200 text-[#D94A43]'
+                          }`}
+                        >
+                          {item.is_available ? (
+                            <>
+                              <CheckCircle2 className="h-2.5 w-2.5" />
+                              <span>Available</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-2.5 w-2.5" />
+                              <span>Sold Out</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(item)}
+                          className="w-full inline-flex items-center justify-center gap-1 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] py-1 px-2 text-[10px] font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs"
+                        >
+                          <Edit3 className="h-2.5 w-2.5 text-[#F47721]" />
+                          <span>Restock / Edit</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden md:block overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#FAFAFA] border-b border-[#EEEEEE] text-[11px] font-bold uppercase tracking-wider text-[#666666]">
@@ -374,6 +460,7 @@ export default function AdminInventoryPage() {
                   </table>
                 </div>
               </div>
+              </>
             )}
 
             {editingItem && (
@@ -486,6 +573,7 @@ export default function AdminInventoryPage() {
                   </div>
                 </div>
               </div>
+              </>
             )}
           </div>
         </main>
