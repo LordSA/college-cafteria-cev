@@ -10,6 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Fixed
+- **Razorpay Checkout & CORS Preflight (`backend/src/middleware/cors.ts`, `customer/src/app/checkout/page.tsx`)**:
+  - Added `'X-Session-Id'` and `'x-session-id'` to CORS `allowHeaders` in `backend/src/middleware/cors.ts`. When `checkout/page.tsx` sent the session header during order placement, browsers previously blocked the preflight `OPTIONS` request, manifesting as a `"Failed to fetch"` error.
+  - Expanded CORS origin regex to support local network IP ranges (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`) to prevent `"Failed to fetch"` when testing from physical phones over local Wi-Fi.
+  - Enforced normalized `API_BASE_URL` with automatic fallback `(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '')` across all customer application pages (`checkout`, `profile`, `menu`, `orders`, `receipt`, `track`, `support`, `page`), preventing network failures caused by missing environment variables or trailing slashes.
+  - Guarded Razorpay checkout script injection in `customer/src/lib/razorpay.ts` against duplicate DOM insertions.
+  - Trimmed `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `backend/src/lib/razorpay.ts` to prevent whitespace from breaking signature generation or gateway order creation.
+- **SMTP Mailer Infrastructure (`backend/src/lib/mailer.ts`, `backend/src/types/env.ts`)**:
+  - Sanitized and trimmed all SMTP environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `DEVELOPER_EMAIL`) in `backend/src/lib/mailer.ts`.
+  - Added `SMTP_FROM` to `backend/src/types/env.ts` for clean TypeScript typing.
+  - Documented SMTP configuration template and variables in `backend/.dev.vars` and `backend/.dev.vars.example`.
+
+### Fixed
 - **Order Stock Verification & Reserved Stock Purchasing (`backend/src/routes/orders.ts`)**:
   - In `POST /api/v1/orders`, resolved caller's active reservation locks (`myLocks`) by `user_id` and `x-session-id`, computing available stock as `Math.max(item.stock_quantity, item.stock_quantity + lockedByCaller)`. This completely prevents items reserved by the caller from failing checkout with `Item has insufficient stock (available: 0)`.
   - When deducting physical stock, prevented double-deductions and negative stock by checking `item.stock_quantity >= reqItem.quantity`.

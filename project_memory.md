@@ -124,7 +124,8 @@ college-canteen-cev/
 * **Key Files:**
   - `src/index.ts`: Primary Hono router, global middleware binding, route mounting, and 404/error handler.
   - `src/middleware/auth.ts`: Reusable `requireAuth` (Bearer token verification), `requireRole(allowedRoles)`, `requireAdmin`, and `requireDeveloper` middlewares with context caching.
-  - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding with localhost and 127.0.0.1 port allowances and Idempotency-Key header support.
+  - `src/middleware/cors.ts`: Dynamic CORS origin matching against `ALLOWED_ORIGINS` binding with localhost, 127.0.0.1, and private local network IP allowances, Idempotency-Key and x-session-id header support.
+  - `src/lib/mailer.ts`: Raw socket SMTP mail client supporting port 587 (STARTTLS) and port 465 (Direct TLS), support ticket alerts, and developer email delivery.
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
   - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, webhook signature verification, and live payments listing (`fetchRazorpayPayments`) using Web Crypto HMAC SHA-256 and constant-time comparison.

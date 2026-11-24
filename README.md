@@ -150,6 +150,8 @@ cp admin/.env.example admin/.env.local
 
 # Backend API
 cp backend/.dev.vars.example backend/.dev.vars
+# Configure Supabase, Razorpay (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET), and SMTP credentials in backend/.dev.vars
+
 ```
 
 ### Install Dependencies

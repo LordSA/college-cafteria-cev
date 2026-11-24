@@ -23,6 +23,17 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 # R2_BUCKET_NAME=cafteria-assets
 # R2_PUBLIC_URL=https://images.yourdomain.com
 
-# Upcoming Phase Integrations (Phase 6)
-# RAZORPAY_KEY_ID=rzp_test_placeholder
-# RAZORPAY_KEY_SECRET=placeholder_secret
+# Razorpay Standard Checkout & Webhooks
+RAZORPAY_KEY_ID=rzp_test_placeholder
+RAZORPAY_KEY_SECRET=placeholder_secret
+RAZORPAY_WEBHOOK_SECRET=placeholder_webhook_secret
+PAYMENT_PROVIDER=razorpay
+PAYMENT_MODE=test
+
+# SMTP Mail Delivery Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_16_character_app_password
+SMTP_FROM=Cafeteria CEV <your_email@gmail.com>
+DEVELOPER_EMAIL=your_email@gmail.com

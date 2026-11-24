@@ -37,7 +37,7 @@ function sendRawSmtp(
         finished = true;
         try {
           socket.destroy();
-        } catch {}
+        } catch { }
         resolve({ success: false, error: 'SMTP connection timed out' });
       }
     }, 12000);
@@ -48,7 +48,7 @@ function sendRawSmtp(
         clearTimeout(timeout);
         try {
           socket.end();
-        } catch {}
+        } catch { }
         resolve(res);
       }
     }
@@ -135,10 +135,10 @@ function sendRawSmtp(
           servername: host,
           rejectUnauthorized: false,
         },
-        () => {}
+        () => { }
       );
     } else {
-      socket = net.connect({ host, port }, () => {});
+      socket = net.connect({ host, port }, () => { });
     }
 
     socket.on('data', onData);
@@ -147,13 +147,13 @@ function sendRawSmtp(
 }
 
 export async function sendEmail(env: Env, options: EmailOptions): Promise<MailResult> {
-  const host = env.SMTP_HOST;
-  const user = env.SMTP_USER;
-  const pass = env.SMTP_PASS;
-  const port = parseInt(env.SMTP_PORT || '587', 10);
-  const from = options.from || env.SMTP_FROM || user || 'canteen@cev.ac.in';
+  const host = env.SMTP_HOST?.trim();
+  const user = env.SMTP_USER?.trim();
+  const pass = env.SMTP_PASS?.trim();
+  const port = parseInt(env.SMTP_PORT?.trim() || '587', 10);
+  const from = options.from?.trim() || env.SMTP_FROM_EMAIL?.trim();
 
-  if (!host || !user || !pass) {
+  if (!host || !user || !pass || !from) {
     return {
       success: false,
       error: 'SMTP credentials unconfigured in backend environment',
@@ -212,7 +212,7 @@ export async function sendTicketCreatedEmails(
   env: Env,
   ticket: SupportTicket
 ): Promise<{ userMail: MailResult; devMail: MailResult }> {
-  const devEmail = env.DEVELOPER_EMAIL || env.SMTP_USER || 'developer@cev.ac.in';
+  const devEmail = env.DEVELOPER_EMAIL?.trim() || env.SMTP_USER?.trim() || 'developer@cev.ac.in';
 
   const userHtml = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #eeeeee; border-radius: 16px; background-color: #ffffff;">
@@ -230,7 +230,7 @@ export async function sendTicketCreatedEmails(
       </div>
       <p style="color: #252525; font-size: 13px; line-height: 1.6;">You will receive an email update as soon as our developers have investigated or resolved this ticket.</p>
       <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #eeeeee; text-align: center; color: #888888; font-size: 11px;">
-        Cafeteria CEV • College of Engineering Vadakara • Counter #1
+        Cafeteria CEV • College of Engineering Vadakara
       </div>
     </div>
   `;
@@ -295,7 +295,7 @@ export async function sendTicketReplyEmail(
       </div>
       <p style="color: #666666; font-size: 12px;">Ticket Status: <strong style="text-transform: uppercase; color: #252525;">${ticket.status}</strong></p>
       <div style="margin-top: 32px; padding-top: 16px; border-top: 1px solid #eeeeee; text-align: center; color: #888888; font-size: 11px;">
-        Cafeteria CEV • College of Engineering Vadakara • Counter #1
+        Cafeteria CEV • College of Engineering Vadakara
       </div>
     </div>
   `;

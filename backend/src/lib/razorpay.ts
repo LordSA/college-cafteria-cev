@@ -57,7 +57,7 @@ export function constantTimeCompare(a: string, b: string): boolean {
 }
 
 function getBasicAuthHeader(keyId: string, keySecret: string): string {
-  const credentials = `${keyId}:${keySecret}`;
+  const credentials = `${keyId.trim()}:${keySecret.trim()}`;
   const encoded = btoa(credentials);
   return `Basic ${encoded}`;
 }
@@ -70,8 +70,8 @@ export async function createRazorpayOrder(
     notes?: Record<string, string>;
   }
 ): Promise<RazorpayOrderResponse> {
-  const keyId = env.RAZORPAY_KEY_ID;
-  const keySecret = env.RAZORPAY_KEY_SECRET;
+  const keyId = env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
 
   if (!keyId || !keySecret) {
     throw new Error('Razorpay credentials not configured');
@@ -103,8 +103,8 @@ export async function fetchRazorpayPayment(
   env: Env,
   paymentId: string
 ): Promise<RazorpayPaymentResponse> {
-  const keyId = env.RAZORPAY_KEY_ID;
-  const keySecret = env.RAZORPAY_KEY_SECRET;
+  const keyId = env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
 
   if (!keyId || !keySecret) {
     throw new Error('Razorpay credentials not configured');
@@ -179,8 +179,8 @@ export async function fetchRazorpayPayments(
     skip?: number;
   }
 ): Promise<RazorpayPaymentListResponse> {
-  const keyId = env.RAZORPAY_KEY_ID;
-  const keySecret = env.RAZORPAY_KEY_SECRET;
+  const keyId = env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
 
   if (!keyId || !keySecret) {
     throw new Error('Razorpay credentials not configured');
@@ -236,8 +236,8 @@ export async function fetchRazorpaySettlements(
     skip?: number;
   }
 ): Promise<RazorpaySettlementListResponse> {
-  const keyId = env.RAZORPAY_KEY_ID;
-  const keySecret = env.RAZORPAY_KEY_SECRET;
+  const keyId = env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = env.RAZORPAY_KEY_SECRET?.trim();
 
   if (!keyId || !keySecret) {
     throw new Error('Razorpay credentials not configured');

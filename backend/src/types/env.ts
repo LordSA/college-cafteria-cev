@@ -21,6 +21,7 @@ export interface Env {
   SMTP_USER?: string;
   SMTP_PASS?: string;
   SMTP_FROM?: string;
+  SMTP_FROM_EMAIL?: string;
   DEVELOPER_EMAIL?: string;
 }
 
