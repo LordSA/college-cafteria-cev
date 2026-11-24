@@ -1,4 +1,4 @@
-name = "cafteria-backend"
+name = "college-cafteria-cev"
 main = "src/index.ts"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
@@ -6,7 +6,7 @@ keep_vars = true
 
 [vars]
 ENVIRONMENT = "development"
-ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,https://cafeteria.campus.shibili.xyz,https://admin.cafeteria.campus.shibili.xyz"
+ALLOWED_ORIGINS = "https://cafeteria.campus.shibili.xyz,https://admin.cafeteria.campus.shibili.xyz"
 
 [dev]
 port = 8787
