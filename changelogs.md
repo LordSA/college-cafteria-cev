@@ -9,6 +9,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Order Stock Verification & Reserved Stock Purchasing (`backend/src/routes/orders.ts`)**:
+  - In `POST /api/v1/orders`, resolved caller's active reservation locks (`myLocks`) by `user_id` and `x-session-id`, computing available stock as `Math.max(item.stock_quantity, item.stock_quantity + lockedByCaller)`. This completely prevents items reserved by the caller from failing checkout with `Item has insufficient stock (available: 0)`.
+  - When deducting physical stock, prevented double-deductions and negative stock by checking `item.stock_quantity >= reqItem.quantity`.
+- **Zero-Stock & Max-Stock Button Blocking in Customer UI**:
+  - In `customer/src/app/cart/page.tsx`, `customer/src/app/menu/page.tsx`, and `customer/src/app/page.tsx`, corrected `cannotIncrement` and `isAtMaxStock` logic so items with unlimited stock (`track_inventory: false`) are never treated as 0 stock, and items with tracked inventory (`track_inventory: true`) strictly disable the `+` increment button whenever available stock is 0 or all available portions are already in the user's cart (`inCartQty >= maxStock`).
+  - Fixed property mapping in `customer/src/app/page.tsx` (`handleAddToCart` now preserves `track_inventory` and `stock_quantity` from API models instead of passing `undefined`, ensuring cart items immediately inherit stock limits).
+  - Added 10-second polling interval in `customer/src/app/cart/page.tsx` to keep inventory and disabled button states synchronized with live cafeteria stock.
+  - Linked `sessionId` in `customer/src/app/checkout/page.tsx` via `x-session-id` header to associate anonymous reservations with the authenticated checkout session.
+- **Resilient Profile Column Queries (`backend/src/routes/reports.ts`, `backend/src/routes/orders.ts`)**:
+  - Fixed column queries referencing `phone` instead of non-existent `phone_number` in `reports.ts`, and utilized cached context profile in `orders.ts` for faculty Pay Later checks and display names, avoiding redundant queries.
+- **Stock Locks & Profile Schema Recovery Database Migration**:
+  - Created migration `supabase/migrations/20261124000006_fix_stock_and_profile_recovery.sql` and `backend/migrations/0015_fix_stock_and_profile_recovery.sql`.
+
 ### Removed
 - **Order Cancellation Functionality Completely Purged**:
   - Dropped database functions `public.cancel_order` (`uuid, text`) and `public.cancel_order` (`uuid, text, uuid`).

@@ -41,6 +41,7 @@ customerOrdersRouter.post(
   zValidator('json', OrderCreateSchema),
   async (c) => {
     const user = c.get('user');
+    const userProfile = c.get('profile');
     const payload = c.req.valid('json');
     const adminClient = getSupabaseAdminClient(c.env);
 
@@ -727,6 +728,7 @@ customerOrdersRouter.post(
   zValidator('json', InitiateSettlementSchema),
   async (c) => {
     const user = c.get('user');
+    const userProfile = c.get('profile');
     const { amount } = c.req.valid('json');
     const adminClient = getSupabaseAdminClient(c.env);
 
@@ -790,18 +792,8 @@ customerOrdersRouter.post(
       razorpayOrderId = `order_sim_${Date.now()}`;
     }
 
-    let customerName = user.email?.split('@')[0] || 'Faculty Member';
-    let customerPhone = '';
-    try {
-      const { data: profile } = await adminClient
-        .from('profiles')
-        .select('display_name, phone')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile?.display_name) customerName = profile.display_name;
-      if (profile?.phone) customerPhone = profile.phone;
-    } catch {}
+    let customerName = userProfile?.display_name || user.email?.split('@')[0] || 'Faculty Member';
+    let customerPhone = userProfile?.phone || '';
 
     return c.json({
       success: true,

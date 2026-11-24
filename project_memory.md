@@ -151,6 +151,9 @@ college-canteen-cev/
   - `supabase/migrations/20261124000001_database_cleanup.sql`: Database cleanup migration dropping unused table `storage_assets`, obsolete request columns from `profiles`, non-negative inventory constraint, and security-hardened `lock_cart_item()` with explicit `SET search_path = public`.
   - `supabase/migrations/20261124000002_remove_wallet.sql`: Complete removal of wallet schema, dropping `public.wallets`, `public.wallet_transactions`, `pay_order_with_wallet`, `adjust_wallet_balance`, and `get_or_create_wallet`.
   - `supabase/migrations/20261124000003_fix_stock_locks_and_profile_sync.sql`: Updated `handle_new_user()` to only insert active columns, hardened `lock_cart_item()` to exclude caller's own locks by `user_id` and `session_id`, claiming session locks upon login, and auto-recovering item availability.
+  - `supabase/migrations/20261124000004_remove_order_cancellation.sql`: Removal of order cancellation database schema, functions, constraints, and logging reasons.
+  - `supabase/migrations/20261124000005_support_tickets.sql`: Support tickets system table with auto-generated ticket numbers, user feedback categories, and RLS policies.
+  - `supabase/migrations/20261124000006_fix_stock_and_profile_recovery.sql`: Comprehensive stock locks, cart limits, and profile schema recovery migration ensuring non-deducting `lock_cart_item`, zero negative inventory, and PostgREST schema cache reload.
 
 ---
 
