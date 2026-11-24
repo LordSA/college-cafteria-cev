@@ -94,13 +94,33 @@ export async function verifySupabaseToken(
     .eq('id', user.id)
     .maybeSingle();
 
-  if (profileError) {
-    return {
-      success: false,
-      statusCode: 500,
-      code: 'DATABASE_ERROR',
-      message: 'Failed to retrieve profile record',
-    };
+  let activeProfile = profileData;
+
+  if (profileError || !activeProfile) {
+    try {
+      const fallbackName = userData.user.user_metadata?.full_name || user.email?.split('@')[0] || 'Customer';
+      const rawType = userData.user.user_metadata?.account_type as string | undefined;
+      const fallbackAccount = rawType === 'staff' || rawType === 'staff_t' ? 'staff_t' : 'student';
+      const { data: upsertedProf } = await adminClient
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            email: user.email,
+            display_name: fallbackName,
+            account_type: fallbackAccount,
+            app_role: 'customer',
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        )
+        .select('id, display_name, avatar_key, account_type, app_role, created_at, updated_at')
+        .maybeSingle();
+
+      if (upsertedProf) {
+        activeProfile = upsertedProf;
+      }
+    } catch {}
   }
 
   const mapAccountType = (type?: string | null): AccountType => {
@@ -116,20 +136,20 @@ export async function verifySupabaseToken(
     return 'customer';
   };
 
-  const profile: UserProfile = profileData
+  const profile: UserProfile = activeProfile
     ? {
-        id: profileData.id,
-        display_name: profileData.display_name,
-        avatar_key: profileData.avatar_key,
-        account_type: mapAccountType(profileData.account_type),
-        requested_account_type: mapAccountType(profileData.account_type),
-        approved_account_type: mapAccountType(profileData.account_type),
-        staff_approval_status: (profileData.account_type === 'staff_t' ? 'approved' : 'not_requested') as StaffApprovalStatus,
+        id: activeProfile.id,
+        display_name: activeProfile.display_name,
+        avatar_key: activeProfile.avatar_key,
+        account_type: mapAccountType(activeProfile.account_type),
+        requested_account_type: mapAccountType(activeProfile.account_type),
+        approved_account_type: mapAccountType(activeProfile.account_type),
+        staff_approval_status: (activeProfile.account_type === 'staff_t' ? 'approved' : 'not_requested') as StaffApprovalStatus,
         reviewed_by: null,
         reviewed_at: null,
-        app_role: mapAppRole(profileData.app_role),
-        created_at: profileData.created_at,
-        updated_at: profileData.updated_at,
+        app_role: mapAppRole(activeProfile.app_role),
+        created_at: activeProfile.created_at,
+        updated_at: activeProfile.updated_at,
       }
     : {
         id: user.id,

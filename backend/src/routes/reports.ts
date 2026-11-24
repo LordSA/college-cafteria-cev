@@ -103,20 +103,17 @@ adminReportsRouter.get('/stats', async (c) => {
   const razorpayPaise = paidOrders
     .filter((o: any) => o.payment_method === 'razorpay')
     .reduce((sum, o: any) => sum + (o.total || 0), 0);
-  const walletPaise = paidOrders
-    .filter((o: any) => o.payment_method === 'testing_wallet')
-    .reduce((sum, o: any) => sum + (o.total || 0), 0);
   const payLaterPaise = orderList
     .filter((o: any) => o.payment_method === 'pay_later')
     .reduce((sum, o: any) => sum + (o.total || 0), 0);
 
   const paymentBreakdown = {
     razorpay: orderList.filter((o: any) => o.payment_method === 'razorpay').length,
-    wallet: orderList.filter((o: any) => o.payment_method === 'testing_wallet').length,
+    wallet: 0,
     pay_later: orderList.filter((o: any) => o.payment_method === 'pay_later').length,
     counter_cash: orderList.filter((o: any) => o.payment_method === 'counter_cash').length,
     razorpayPaise,
-    walletPaise,
+    walletPaise: 0,
     payLaterPaise,
   };
 
@@ -546,13 +543,7 @@ adminReportsRouter.get('/funds', async (c) => {
     .eq('status', 'captured');
 
   const totalOnlineCollectedPaise = (onlinePayments || []).reduce((acc, p: any) => acc + (p.amount || 0), 0);
-
-  const { data: walletDebits } = await adminClient
-    .from('wallet_transactions')
-    .select('amount, transaction_type')
-    .eq('transaction_type', 'debit');
-
-  const totalWalletPaidPaise = (walletDebits || []).reduce((acc, w: any) => acc + (w.amount || 0), 0);
+  const totalWalletPaidPaise = 0;
 
   const { data: payLaterPending } = await adminClient
     .from('orders')

@@ -483,6 +483,39 @@ adminOrdersRouter.patch(
       );
     }
 
+    if (targetStatus === 'cancelled' && Array.isArray(updatedOrder.order_items)) {
+      for (const oi of updatedOrder.order_items) {
+        if (!oi.menu_item_id || !oi.quantity) continue;
+        try {
+          const { data: mItem } = await adminClient
+            .from('menu_items')
+            .select('id, stock_quantity, track_inventory, is_available')
+            .eq('id', oi.menu_item_id)
+            .maybeSingle();
+
+          if (mItem && mItem.track_inventory) {
+            const restoredStock = (mItem.stock_quantity ?? 0) + oi.quantity;
+            await adminClient
+              .from('menu_items')
+              .update({
+                stock_quantity: restoredStock,
+                is_available: true,
+                updated_at: now,
+              })
+              .eq('id', oi.menu_item_id);
+
+            await adminClient.from('inventory_logs').insert({
+              menu_item_id: oi.menu_item_id,
+              quantity_change: oi.quantity,
+              reason: 'order_cancelled',
+              order_id: orderId,
+              actor_id: c.get('user').id,
+            });
+          }
+        } catch {}
+      }
+    }
+
     const resStage = updatedOrder.order_stage || (updatedOrder.order_status === 'ready_for_pickup' || updatedOrder.order_status === 'READY_TO_PICK' ? 'READY_TO_PICK' : updatedOrder.order_status === 'completed' || updatedOrder.order_status === 'COLLECTED' ? 'COLLECTED' : 'ORDER_PLACED');
 
     return c.json({

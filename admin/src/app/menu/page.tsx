@@ -1257,9 +1257,77 @@ export default function AdminMenuPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-[#252525]">
+                <>
+                  <div className="grid grid-cols-2 gap-3 md:hidden">
+                    {categories.map((cat) => (
+                      <div
+                        key={cat.id}
+                        className="flex flex-col justify-between rounded-2xl border border-[#EEEEEE] bg-white p-3.5 shadow-xs hover:border-[#F47721]/30 transition"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[10px] font-bold text-[#888888] bg-[#FAFAFA] border border-[#EEEEEE] px-2 py-0.5 rounded-md">
+                              #{cat.sort_order ?? 0}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCategoryActive(cat)}
+                              disabled={catTogglingId === cat.id}
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold transition shadow-xs ${
+                                cat.is_active
+                                  ? 'bg-green-50 border border-green-200 text-[#269B62]'
+                                  : 'bg-stone-100 border border-stone-200 text-stone-500'
+                              }`}
+                            >
+                              {cat.is_active ? (
+                                <>
+                                  <CheckCircle2 className="h-2.5 w-2.5 text-[#269B62]" />
+                                  <span>Active</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-2.5 w-2.5 text-stone-500" />
+                                  <span>Off</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          <div>
+                            <h4 className="font-bold text-xs text-[#252525] line-clamp-1">{cat.name}</h4>
+                            <p className="text-[10px] text-[#666666] line-clamp-2 mt-0.5 min-h-[1.75rem]">
+                              {cat.description || 'No description'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="pt-3 mt-2 border-t border-[#EEEEEE] flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEditCategoryModal(cat)}
+                            className="flex-1 py-1 px-2 rounded-lg border border-[#EEEEEE] bg-[#FAFAFA] text-[#666666] hover:text-[#F47721] hover:bg-[#FFF7F0] text-[11px] font-bold transition flex items-center justify-center gap-1"
+                            title="Edit category"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(cat)}
+                            disabled={deletingCatId === cat.id}
+                            className="p-1.5 rounded-lg border border-red-200 bg-red-50 text-[#D94A43] hover:bg-red-100 transition disabled:opacity-30"
+                            title="Delete category"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs text-[#252525]">
                       <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
                         <tr>
                           <th className="px-6 py-3.5 font-bold">Sort Order</th>
@@ -1329,7 +1397,8 @@ export default function AdminMenuPage() {
                     </table>
                   </div>
                 </div>
-              )
+              </>
+            )
             )}
 
             {editingItem && (

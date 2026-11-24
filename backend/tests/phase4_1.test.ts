@@ -50,205 +50,31 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
     vi.restoreAllMocks();
   });
 
-  it('GET /api/v1/wallet/me returns 401 when unauthenticated', async () => {
+  it('GET /api/v1/wallet/me returns 404 (wallet architecture removed)', async () => {
     const res = await app.request('/api/v1/wallet/me');
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(404);
   });
 
-  it('GET /api/v1/wallet/me returns wallet details and balance in paise', async () => {
+  it('GET /api/v1/admin/wallets returns 404 when authenticated (wallet architecture removed)', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
-      user: mockCustomerUser,
-      profile: mockCustomerProfile,
+      user: mockAdminUser,
+      profile: mockAdminProfile,
     });
-
-    const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: {
-          id: 'wal-001',
-          customer_id: 'usr-customer-1',
-          balance: 25000,
-          created_at: '2026-10-21T00:00:00Z',
-          updated_at: '2026-10-21T00:00:00Z',
-        },
-        error: null,
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
-
-    const res = await app.request('/api/v1/wallet/me', {
-      headers: {
-        Authorization: 'Bearer valid-customer-token',
-      },
-    });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.balance).toBe(25000);
-    expect(body.data.formatted_balance).toBe('₹250.00');
-  });
-
-  it('GET /api/v1/wallet/transactions returns paginated transaction history', async () => {
-    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
-      success: true,
-      user: mockCustomerUser,
-      profile: mockCustomerProfile,
-    });
-
-    const mockTxs = [
-      {
-        id: 'tx-001',
-        wallet_id: 'wal-001',
-        customer_id: 'usr-customer-1',
-        amount: 50000,
-        transaction_type: 'credit',
-        balance_after: 50000,
-        reason: 'Initial testing credits',
-        created_at: '2026-10-21T10:00:00Z',
-      },
-    ];
-
-    const mockDb = {
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            order: vi.fn().mockReturnValue({
-              range: vi.fn().mockResolvedValue({ data: mockTxs, error: null }),
-            }),
-          }),
-        }),
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
-
-    const res = await app.request('/api/v1/wallet/transactions', {
-      headers: {
-        Authorization: 'Bearer valid-customer-token',
-      },
-    });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data).toHaveLength(1);
-    expect(body.data[0].amount).toBe(50000);
-  });
-
-  it('GET /api/v1/admin/wallets rejects customer with 403 Forbidden', async () => {
-    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
-      success: true,
-      user: mockCustomerUser,
-      profile: mockCustomerProfile,
-    });
-
     const res = await app.request('/api/v1/admin/wallets', {
       headers: {
-        Authorization: 'Bearer customer-token',
-      },
-    });
-
-    expect(res.status).toBe(403);
-  });
-
-  it('POST /api/v1/admin/wallets/:customerId/adjust successfully credits wallet', async () => {
-    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
-      success: true,
-      user: mockAdminUser,
-      profile: mockAdminProfile,
-    });
-
-    const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: {
-          wallet_id: 'wal-001',
-          customer_id: 'usr-customer-1',
-          previous_balance: 10000,
-          new_balance: 30000,
-          amount: 20000,
-          transaction_type: 'credit',
-          transaction_id: 'tx-002',
-          reason: 'Manual lab test credit',
-          adjusted_at: '2026-10-21T11:00:00Z',
-        },
-        error: null,
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
-
-    const res = await app.request('/api/v1/admin/wallets/usr-customer-1/adjust', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
         Authorization: 'Bearer valid-admin-token',
       },
-      body: JSON.stringify({
-        amount: 20000,
-        transaction_type: 'credit',
-        reason: 'Manual lab test credit',
-      }),
     });
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(body.data.new_balance).toBe(30000);
-    expect(body.data.formatted_balance).toBe('₹300.00');
+    expect(res.status).toBe(404);
   });
 
-  it('POST /api/v1/admin/wallets/:customerId/adjust prevents negative balance on debit', async () => {
-    vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
-      success: true,
-      user: mockAdminUser,
-      profile: mockAdminProfile,
-    });
-
-    const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: null,
-        error: new Error('ERR_INSUFFICIENT_FUNDS: Wallet balance (1000 paise) is insufficient for debit of 5000 paise'),
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
-
-    const res = await app.request('/api/v1/admin/wallets/usr-customer-1/adjust', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer valid-admin-token',
-      },
-      body: JSON.stringify({
-        amount: 5000,
-        transaction_type: 'debit',
-        reason: 'Deduction test',
-      }),
-    });
-
-    expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.success).toBe(false);
-    expect(body.error.code).toBe('INSUFFICIENT_FUNDS');
-  });
-
-  it('POST /api/v1/orders with testing_wallet rejects order when balance is insufficient', async () => {
+  it('POST /api/v1/orders rejects unsupported testing_wallet payment method', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockCustomerUser,
       profile: mockCustomerProfile,
     });
-
-    const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: null,
-        error: new Error('ERR_INSUFFICIENT_FUNDS: Wallet balance of ₹10.00 is insufficient for total ₹90.00'),
-      }),
-    };
-
-    vi.spyOn(supabaseLib, 'getSupabaseAdminClient').mockReturnValue(mockDb as any);
 
     const res = await app.request('/api/v1/orders', {
       method: 'POST',
@@ -265,49 +91,105 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.success).toBe(false);
-    expect(body.error.code).toBe('INSUFFICIENT_FUNDS');
   });
 
-  it('POST /api/v1/orders with testing_wallet creates paid order with QR verification token', async () => {
+  it('POST /api/v1/orders with pay_later creates order with QR verification token', async () => {
     vi.spyOn(supabaseLib, 'verifySupabaseToken').mockResolvedValueOnce({
       success: true,
       user: mockCustomerUser,
-      profile: mockCustomerProfile,
+      profile: { ...mockCustomerProfile, account_type: 'staff_t' },
     });
 
     const mockDb = {
-      rpc: vi.fn().mockResolvedValue({
-        data: {
-          id: 'ord-paid-101',
-          order_number: 'CAF-261021-WXYZ',
-          order_status: 'confirmed',
-          payment_status: 'paid',
-          payment_method: 'testing_wallet',
-          qr_verification_token: 'CAF-QR-AABBCCDDEEFF',
-          subtotal: 9000,
-          total: 9000,
-          wallet_balance_after: 16000,
-          created_at: '2026-10-21T12:00:00Z',
-          is_idempotent_replay: false,
-        },
-        error: null,
-      }),
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockResolvedValue({
-            data: [
-              {
-                id: 'oi-1',
-                order_id: 'ord-paid-101',
-                item_name: 'Masala Dosa',
-                unit_price: 4500,
-                quantity: 2,
-                line_total: 9000,
-              },
-            ],
-            error: null,
-          }),
-        }),
+      from: vi.fn().mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { account_type: 'staff_t' },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'menu_items') {
+          return {
+            select: vi.fn().mockReturnValue({
+              in: vi.fn().mockResolvedValue({
+                data: [
+                  {
+                    id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+                    name: 'Masala Dosa',
+                    price: 4500,
+                    is_available: true,
+                    track_inventory: false,
+                    stock_quantity: 10,
+                  },
+                ],
+                error: null,
+              }),
+            }),
+            update: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          };
+        }
+        if (table === 'orders') {
+          return {
+            insert: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: {
+                    id: 'ord-paid-101',
+                    order_number: 'CAF-261021-WXYZ',
+                    order_status: 'ORDER_PLACED',
+                    payment_status: 'unpaid',
+                    payment_method: 'pay_later',
+                    qr_verification_token: 'CAF-QR-AABBCCDDEEFF',
+                    subtotal: 9000,
+                    total: 9000,
+                    created_at: '2026-10-21T12:00:00Z',
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'order_items') {
+          return {
+            insert: vi.fn().mockReturnValue({
+              select: vi.fn().mockResolvedValue({
+                data: [
+                  {
+                    id: 'oi-1',
+                    order_id: 'ord-paid-101',
+                    item_name: 'Masala Dosa',
+                    unit_price: 4500,
+                    quantity: 2,
+                    line_total: 9000,
+                  },
+                ],
+                error: null,
+              }),
+            }),
+          };
+        }
+        if (table === 'cart_item_locks') {
+          return {
+            delete: vi.fn().mockReturnValue({
+              eq: vi.fn().mockResolvedValue({ data: null, error: null }),
+            }),
+          };
+        }
+        return {
+          select: vi.fn().mockReturnThis(),
+          insert: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          delete: vi.fn().mockReturnThis(),
+        };
       }),
     };
 
@@ -321,17 +203,15 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
       },
       body: JSON.stringify({
         items: [{ menu_item_id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', quantity: 2 }],
-        payment_method: 'testing_wallet',
+        payment_method: 'pay_later',
       }),
     });
 
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.success).toBe(true);
-    expect(body.data.payment_status).toBe('paid');
-    expect(body.data.order_status).toBe('confirmed');
+    expect(body.data.payment_method).toBe('pay_later');
     expect(body.data.qr_verification_token).toBe('CAF-QR-AABBCCDDEEFF');
-    expect(body.data.wallet_balance_after).toBe(16000);
   });
 
   it('POST /api/v1/admin/orders/verify-qr rejects invalid QR token with 404', async () => {
@@ -381,7 +261,7 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
           order_number: 'CAF-261021-WXYZ',
           order_status: 'confirmed',
           payment_status: 'paid',
-          payment_method: 'testing_wallet',
+          payment_method: 'pay_later',
           total: 9000,
           qr_verification_token: 'CAF-QR-AABBCCDDEEFF',
           customer: {
@@ -509,7 +389,7 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
                 order_number: 'CAF-261021-WXYZ',
                 order_status: 'confirmed',
                 payment_status: 'paid',
-                payment_method: 'testing_wallet',
+                payment_method: 'pay_later',
                 subtotal: 9000,
                 total: 9000,
                 qr_verification_token: 'CAF-QR-AABBCCDDEEFF',
@@ -544,7 +424,7 @@ describe('Phase 4.1: Testing Wallet, QR Order Verification and Bill Printing Tes
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(body.data.order_number).toBe('CAF-261021-WXYZ');
-    expect(body.data.payment_method).toBe('testing_wallet');
+    expect(body.data.payment_method).toBe('pay_later');
     expect(body.data.total).toBe(9000);
     expect(body.data.canteen.name).toBe('Cafteria College Canteen');
   });

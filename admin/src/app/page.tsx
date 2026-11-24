@@ -31,7 +31,6 @@ interface FinancialStats {
   completedOrders: number;
   paymentBreakdown: {
     razorpayPaise: number;
-    walletPaise: number;
     payLaterPaise: number;
   };
 }
@@ -266,7 +265,6 @@ export default function AdminDashboardPage() {
               completedOrders: json.data.collected_orders || 0,
               paymentBreakdown: {
                 razorpayPaise: json.data.payment_breakdown?.razorpayPaise || 0,
-                walletPaise: json.data.payment_breakdown?.walletPaise || 0,
                 payLaterPaise: json.data.payment_breakdown?.payLaterPaise || 0,
               },
             });

@@ -345,9 +345,9 @@ export default function MenuPage() {
             <div className="flex flex-col gap-3.5">
               {filteredItems.map((item) => {
                 const inCartQuantity = cartQuantityMap.get(item.id) || 0;
-                const maxStock = item.track_inventory ? (item.stock_quantity ?? 0) : 999;
-                const isAvailable = item.is_available && (!item.track_inventory || maxStock > 0 || inCartQuantity > 0);
-                const cannotIncrement = !item.is_available || (item.track_inventory && (maxStock <= 0 || inCartQuantity >= maxStock));
+                const maxStock = item.stock_quantity !== undefined ? item.stock_quantity : (item.track_inventory ? 0 : 999);
+                const isAvailable = item.is_available && (maxStock > 0 || inCartQuantity > 0);
+                const cannotIncrement = !item.is_available || (maxStock <= 0 || inCartQuantity >= maxStock);
 
                 return (
                   <div

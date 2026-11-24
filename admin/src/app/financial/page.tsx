@@ -690,7 +690,7 @@ export default function AdminFinancialPage() {
                                 </td>
                                 <td className="px-6 py-4">
                                   <span className="inline-block uppercase text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF7F0] text-[#F47721] border border-[#F47721]/30">
-                                    {p.payment_method === 'razorpay' ? 'UPI' : p.payment_method === 'testing_wallet' ? 'Wallet' : p.payment_method}
+                                    {p.payment_method === 'razorpay' ? 'Razorpay / UPI' : p.payment_method === 'pay_later' ? 'Pay Later' : p.payment_method}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 font-mono text-[11px] text-[#666666]">

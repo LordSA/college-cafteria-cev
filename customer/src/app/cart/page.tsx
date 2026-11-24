@@ -7,6 +7,7 @@ import { Header } from '../../components/Header';
 import { Footer } from '../../components/Footer';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { getSupabaseBrowserClient } from '../../lib/supabase';
 import {
   ShoppingBag,
   Trash2,
@@ -34,6 +35,7 @@ export default function CartPage() {
 
   useEffect(() => {
     async function fetchMenuStock() {
+      let populated = false;
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/menu?t=${Date.now()}`, { cache: 'no-store' });
         const json = await res.json();
@@ -47,9 +49,35 @@ export default function CartPage() {
               is_available: it.is_available,
             };
           }
-          setStockMap(map);
+          if (Object.keys(map).length > 0) {
+            setStockMap(map);
+            populated = true;
+          }
         }
       } catch {}
+
+      if (!populated) {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          if (supabase) {
+            const { data } = await supabase
+              .from('menu_items')
+              .select('id, stock_quantity, track_inventory, is_available')
+              .eq('is_archived', false);
+            if (data && Array.isArray(data)) {
+              const map: Record<string, { stock_quantity?: number; track_inventory?: boolean; is_available: boolean }> = {};
+              for (const it of data) {
+                map[it.id] = {
+                  stock_quantity: it.stock_quantity,
+                  track_inventory: it.track_inventory,
+                  is_available: it.is_available,
+                };
+              }
+              setStockMap(map);
+            }
+          }
+        } catch {}
+      }
     }
     fetchMenuStock();
   }, [items]);
@@ -64,8 +92,18 @@ export default function CartPage() {
     setCartError(null);
     const res = await updateQuantity(id, qty);
     if (!res.success) {
-      setCartError(res.error || 'Cannot add more. No additional stock available.');
+      const errMsg = res.error || 'Cannot add more. No additional stock available.';
+      setCartError(errMsg);
       setStockBlockedIds((prev) => new Set(prev).add(id));
+      setStockMap((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          stock_quantity: Math.max(0, qty - 1),
+          track_inventory: true,
+          is_available: (qty - 1) > 0,
+        },
+      }));
     }
   };
 
@@ -233,12 +271,12 @@ export default function CartPage() {
               <div className="lg:col-span-2 space-y-3.5">
                 {items.map((item) => {
                   const itemStockInfo = stockMap[item.id];
-                  const trackInventory = itemStockInfo?.track_inventory ?? item.track_inventory ?? true;
                   const isAvailable = itemStockInfo ? itemStockInfo.is_available : true;
                   const maxStock = itemStockInfo?.stock_quantity !== undefined
                     ? itemStockInfo.stock_quantity
-                    : (item.stock_quantity !== undefined ? item.stock_quantity : 999);
-                  const isAtMaxStock = !isAvailable || stockBlockedIds.has(item.id) || (trackInventory && (maxStock <= 0 || item.quantity >= maxStock));
+                    : (item.stock_quantity !== undefined ? item.stock_quantity : null);
+                  const isOutOfStock = !isAvailable || (maxStock !== null && maxStock <= 0);
+                  const isAtMaxStock = isOutOfStock || stockBlockedIds.has(item.id) || (maxStock !== null && item.quantity >= maxStock);
 
                   return (
                     <div
@@ -267,11 +305,15 @@ export default function CartPage() {
                           <p className="font-mono text-xs font-semibold text-stone-500 dark:text-stone-400 mt-0.5 tabular-nums">
                             ₹{(item.price / 100).toFixed(2)} each
                           </p>
-                          {isAtMaxStock && (
-                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">
-                              Max stock reached
+                          {isOutOfStock ? (
+                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold block mt-0.5">
+                              Out of stock
                             </span>
-                          )}
+                          ) : isAtMaxStock ? (
+                            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold block mt-0.5">
+                              Max available stock reached
+                            </span>
+                          ) : null}
                         </div>
                       </div>
 

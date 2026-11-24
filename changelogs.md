@@ -10,6 +10,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Fixed
+- **Stock Reservation & Insufficient Stock Bug (`lock_cart_item`)**:
+  - Resolved `Item has insufficient stock (available: 0)` error when buying items with available stock.
+  - In `public.lock_cart_item`, caller's own locks are now strictly excluded by both `user_id` AND `session_id`, preventing the caller's prior anonymous lock from being double-counted as an "other lock".
+  - Automatically claims or removes anonymous session locks when an authenticated user locks items.
+  - Created migration `supabase/migrations/20261124000003_fix_stock_locks_and_profile_sync.sql` and `backend/migrations/0012_fix_stock_locks_and_profile_sync.sql`.
+- **Zero-Stock Button Blocking in Customer UI**:
+  - In `customer/src/app/cart/page.tsx`, `customer/src/app/menu/page.tsx`, and `customer/src/app/page.tsx`, disabled the `+` increment button whenever an item's stock reaches 0 or all available stock is in the cart (`maxStock <= 0 || item.quantity >= maxStock`).
+  - Added real-time stock sync via Supabase browser client fallback in `cart/page.tsx` when API base URL is unreachable on mobile devices.
+  - Added "Out of stock" indicator when item stock is 0.
+- **Resilient Profile Self-Healing & Verification**:
+  - Updated `verifySupabaseToken` in `backend/src/lib/supabase.ts` with self-healing profile upsert and graceful fallback, preventing `Failed to retrieve profile record` from rejecting authenticated user operations.
+  - Updated `handle_new_user()` trigger function in database migrations to insert only existing columns (`id, email, display_name, avatar_key, account_type, app_role, created_at, updated_at`).
+- **Order Cancellation Inventory Restoration**:
+  - In `backend/src/routes/adminOrders.ts`, restored `menu_items.stock_quantity` and created `inventory_logs` entries with `reason: 'order_cancelled'` whenever an order is cancelled by canteen managers.
+
+### Removed
+- **Wallet & Testing Wallet System Entirely Purged**:
+  - Removed all wallet tables and functions (`public.wallets`, `public.wallet_transactions`, `pay_order_with_wallet`, `adjust_wallet_balance`, `get_or_create_wallet`) via `supabase/migrations/20261124000002_remove_wallet.sql` and `backend/migrations/0011_remove_wallet.sql`.
+  - Deleted backend wallet routes `backend/src/routes/wallet.ts` and `backend/src/routes/adminWallet.ts`, and unmounted them from `backend/src/routes/api.ts`.
+  - Purged `testing_wallet` from payment methods in `backend/src/types/env.ts`, `backend/src/routes/orders.ts`, and `backend/src/routes/reports.ts`.
+  - Deleted customer and admin wallet pages: `customer/src/app/wallet/page.tsx` and `admin/src/app/wallets/page.tsx`.
+  - Cleaned wallet statistics from admin dashboard (`admin/src/app/page.tsx`) and financial page (`admin/src/app/financial/page.tsx`).
+
+### Added
+- **Categories 2-Column Mobile Box Cards (`admin/src/app/menu/page.tsx`)**:
+  - Added responsive 2-column mobile cards (`grid grid-cols-2 gap-3 md:hidden`) displaying category sort order badge, name, description, active status toggle switch, edit modal, and delete button.
+- **Teacher Management Mobile UI (`admin/src/app/staff-requests/page.tsx`)**:
+  - Transformed faculty management into responsive 2-column cards on mobile view with avatar badges, Post-Pay status, email with icons, and full-width revoke action buttons.
+
+### Fixed
 - **Post-Migration Profile Retrieval Failure**:
   - Resolved `Failed to retrieve profile record` error occurring after applying migration `20261124000001_database_cleanup.sql`.
   - Updated `backend/src/lib/supabase.ts` (`verifySupabaseToken`) to query only existing columns (`id, display_name, avatar_key, account_type, app_role, created_at, updated_at`) instead of dropped legacy columns (`requested_account_type`, `approved_account_type`, `staff_approval_status`, `reviewed_by`, `reviewed_at`).

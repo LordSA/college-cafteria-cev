@@ -55,7 +55,7 @@ cartRouter.post('/lock', zValidator('json', LockSchema), async (c) => {
   }
 
   const { userId } = await resolveUserOrSession(c);
-  const effectiveSessionId = userId ? null : payload.session_id?.trim() || null;
+  const effectiveSessionId = payload.session_id?.trim() || null;
 
   if (!userId && !effectiveSessionId) {
     return c.json(
@@ -113,7 +113,7 @@ cartRouter.post('/unlock', zValidator('json', UnlockSchema), async (c) => {
   }
 
   const { userId } = await resolveUserOrSession(c);
-  const effectiveSessionId = userId ? null : payload.session_id?.trim() || null;
+  const effectiveSessionId = payload.session_id?.trim() || null;
 
   try {
     const { data, error } = await adminClient.rpc('release_cart_locks', {
@@ -150,7 +150,7 @@ cartRouter.post('/release-all', zValidator('json', ReleaseAllSchema), async (c) 
   }
 
   const { userId } = await resolveUserOrSession(c);
-  const effectiveSessionId = userId ? null : payload.session_id?.trim() || null;
+  const effectiveSessionId = payload.session_id?.trim() || null;
 
   try {
     const { data, error } = await adminClient.rpc('release_cart_locks', {

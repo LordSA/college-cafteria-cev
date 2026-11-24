@@ -252,22 +252,20 @@ export default function TeacherManagementPage() {
         <main className="flex-1 pt-8 pb-24 md:py-8 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-6xl space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#EEEEEE] pb-6">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
-                    Teachers Management
-                  </h1>
-                  <p className="mt-1 text-xs text-[#666666]">
-                    Directly register faculty teachers or assign existing accounts to teacher post-pay status
-                  </p>
-                </div>
+              <div>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-[#252525] sm:text-3xl">
+                  Teachers Management
+                </h1>
+                <p className="mt-1 text-xs text-[#666666]">
+                  Directly register faculty teachers or assign existing accounts to teacher post-pay status
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={loadData}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
+                  className="col-span-2 sm:col-auto inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${loading ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
@@ -275,15 +273,15 @@ export default function TeacherManagementPage() {
 
                 <button
                   onClick={() => setShowAssignModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-xs"
                 >
                   <UserPlus className="h-3.5 w-3.5 text-[#F47721]" />
-                  <span>Assign Existing User</span>
+                  <span>Assign User</span>
                 </button>
 
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#F47721] hover:bg-[#E06310] px-4 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-full bg-[#F47721] hover:bg-[#E06310] px-4 py-2 text-xs font-black text-white shadow-md shadow-[#F47721]/20 transition"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Add Teacher</span>
@@ -319,57 +317,102 @@ export default function TeacherManagementPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-[#252525]">
-                    <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
-                      <tr>
-                        <th className="px-6 py-3.5 font-bold">Faculty Name</th>
-                        <th className="px-6 py-3.5 font-bold">Email</th>
-                        <th className="px-6 py-3.5 font-bold">Post-Pay Status</th>
-                        <th className="px-6 py-3.5 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#EEEEEE] font-medium">
-                      {teachers.map((teacher) => (
-                        <tr key={teacher.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2.5">
-                              <div className="h-8 w-8 rounded-full bg-[#FFF7F0] border border-[#F47721]/20 flex items-center justify-center text-[#F47721] font-bold text-xs">
-                                {((teacher.display_name || teacher.email || 'T')[0] || 'T').toUpperCase()}
-                              </div>
-                              <span className="font-bold text-[#252525]">
-                                {teacher.display_name || 'Faculty Member'}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-[#666666]">
-                            <div className="flex items-center gap-1.5">
-                              <Mail className="h-3.5 w-3.5 text-[#888888]" />
-                              <span>{teacher.email || 'No email on record'}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
-                              <ShieldCheck className="h-3 w-3" />
-                              <span>Faculty Post-Pay</span>
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button
-                              onClick={() => handleRevokeTeacher(teacher)}
-                              disabled={actionInProgress === teacher.id}
-                              title="Revoke faculty teacher privileges"
-                              className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              <span>Revoke</span>
-                            </button>
-                          </td>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3 md:hidden">
+                  {teachers.map((teacher) => (
+                    <div
+                      key={teacher.id}
+                      className="flex flex-col justify-between rounded-2xl border border-[#EEEEEE] bg-white p-3.5 shadow-xs hover:border-[#F47721]/30 transition"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="h-8 w-8 rounded-full bg-[#FFF7F0] border border-[#F47721]/20 flex items-center justify-center text-[#F47721] font-black text-xs flex-shrink-0">
+                            {((teacher.display_name || teacher.email || 'T')[0] || 'T').toUpperCase()}
+                          </div>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[9px] font-bold text-blue-700">
+                            <ShieldCheck className="h-2.5 w-2.5" />
+                            <span>Post-Pay</span>
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-xs text-[#252525] line-clamp-1">
+                            {teacher.display_name || 'Faculty Member'}
+                          </h4>
+                          <div className="flex items-center gap-1 text-[10px] text-[#666666] line-clamp-1 mt-0.5">
+                            <Mail className="h-2.5 w-2.5 text-[#888888] flex-shrink-0" />
+                            <span className="truncate">{teacher.email || 'No email'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 mt-2 border-t border-[#EEEEEE]">
+                        <button
+                          type="button"
+                          onClick={() => handleRevokeTeacher(teacher)}
+                          disabled={actionInProgress === teacher.id}
+                          className="w-full inline-flex items-center justify-center gap-1 rounded-lg border border-red-200 bg-red-50 py-1.5 px-2 text-[11px] font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Revoke</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hidden md:block overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs text-[#252525]">
+                      <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
+                        <tr>
+                          <th className="px-6 py-3.5 font-bold">Faculty Name</th>
+                          <th className="px-6 py-3.5 font-bold">Email</th>
+                          <th className="px-6 py-3.5 font-bold">Post-Pay Status</th>
+                          <th className="px-6 py-3.5 font-bold text-right">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-[#EEEEEE] font-medium">
+                        {teachers.map((teacher) => (
+                          <tr key={teacher.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2.5">
+                                <div className="h-8 w-8 rounded-full bg-[#FFF7F0] border border-[#F47721]/20 flex items-center justify-center text-[#F47721] font-bold text-xs">
+                                  {((teacher.display_name || teacher.email || 'T')[0] || 'T').toUpperCase()}
+                                </div>
+                                <span className="font-bold text-[#252525]">
+                                  {teacher.display_name || 'Faculty Member'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-[#666666]">
+                              <div className="flex items-center gap-1.5">
+                                <Mail className="h-3.5 w-3.5 text-[#888888]" />
+                                <span>{teacher.email || 'No email on record'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold text-blue-700">
+                                <ShieldCheck className="h-3 w-3" />
+                                <span>Faculty Post-Pay</span>
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => handleRevokeTeacher(teacher)}
+                                disabled={actionInProgress === teacher.id}
+                                title="Revoke faculty teacher privileges"
+                                className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-[#D94A43] hover:bg-red-100 disabled:opacity-40 transition"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                                <span>Revoke</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}

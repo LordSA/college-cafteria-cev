@@ -9,8 +9,6 @@ import { uploadsRouter } from './uploads';
 import { customerOrdersRouter } from './orders';
 import { adminOrdersRouter } from './adminOrders';
 import { adminInventoryRouter } from './adminInventory';
-import { customerWalletRouter } from './wallet';
-import { adminWalletRouter } from './adminWallet';
 import { cartRouter } from './cart';
 import { adminReportsRouter } from './reports';
 import { webhooksRouter } from './webhooks';
@@ -32,8 +30,6 @@ apiV1Router.route('/uploads', uploadsRouter);
 apiV1Router.route('/orders', customerOrdersRouter);
 apiV1Router.route('/admin/orders', adminOrdersRouter);
 apiV1Router.route('/admin/inventory', adminInventoryRouter);
-apiV1Router.route('/wallet', customerWalletRouter);
-apiV1Router.route('/admin/wallets', adminWalletRouter);
 apiV1Router.route('/cart', cartRouter);
 apiV1Router.route('/webhooks', webhooksRouter);
 
@@ -65,9 +61,6 @@ apiV1Router.get('/', (c) => {
         ordersMe: '/api/v1/orders/me',
         adminOrders: '/api/v1/admin/orders',
         adminInventory: '/api/v1/admin/inventory',
-        walletMe: '/api/v1/wallet/me',
-        walletTx: '/api/v1/wallet/transactions',
-        adminWallets: '/api/v1/admin/wallets',
         verifyQr: '/api/v1/admin/orders/verify-qr',
         collectOrder: '/api/v1/admin/orders/:id/collect',
         webhooksRazorpay: '/api/v1/webhooks/razorpay',

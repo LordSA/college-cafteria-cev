@@ -508,8 +508,8 @@ export default function CustomerHomePage() {
               <div className="mt-4 divide-y divide-stone-100 dark:divide-white/10 rounded-3xl border border-stone-200/80 dark:border-white/10 bg-white dark:bg-[#161822] shadow-sm overflow-hidden">
                 {searchResults.map((product) => {
                   const inCartQty = cartQuantityMap.get(product.id) || 0;
-                  const maxStock = product.track_inventory ? (product.stock_quantity ?? 0) : 999;
-                  const cannotIncrement = !product.is_available || (product.track_inventory && (maxStock <= 0 || inCartQty >= maxStock));
+                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
+                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
 
                   return (
                     <div
@@ -768,8 +768,8 @@ export default function CustomerHomePage() {
                                 </span>
 
                                 {(() => {
-                                  const maxStock = product.track_inventory ? (product.stock_quantity ?? 0) : 999;
-                                  const cannotIncrement = !product.is_available || (product.track_inventory && (maxStock <= 0 || inCartQty >= maxStock));
+                                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
+                                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
 
                                   if (inCartQty > 0) {
                                     return (
@@ -906,50 +906,77 @@ export default function CustomerHomePage() {
                                   ₹{(product.price / 100).toFixed(0)}
                                 </span>
 
-                                {inCartQty > 0 ? (
-                                  <div
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center gap-1.5 rounded-lg border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 shadow-xs"
-                                  >
+                                {(() => {
+                                  const maxStock = product.stock_quantity !== undefined ? product.stock_quantity : (product.track_inventory ? 0 : 999);
+                                  const cannotIncrement = !product.is_available || (maxStock <= 0 || inCartQty >= maxStock);
+
+                                  if (inCartQty > 0) {
+                                    return (
+                                      <div
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex items-center gap-1.5 rounded-lg border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 shadow-xs"
+                                      >
+                                        <button
+                                          type="button"
+                                          onClick={() => updateQuantity(product.id, inCartQty - 1)}
+                                          className="flex h-5 w-5 items-center justify-center rounded-md bg-white dark:bg-[#202230] text-stone-700 dark:text-white shadow-xs"
+                                        >
+                                          <Minus className="h-2.5 w-2.5" />
+                                        </button>
+                                        <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
+                                          {inCartQty}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          disabled={cannotIncrement}
+                                          onClick={() => {
+                                            if (!cannotIncrement) {
+                                              updateQuantity(product.id, inCartQty + 1);
+                                            }
+                                          }}
+                                          className={`flex h-5 w-5 items-center justify-center rounded-md shadow-xs ${
+                                            cannotIncrement
+                                              ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-60'
+                                              : 'bg-gradient-to-r from-orange-500 to-rose-500 text-white'
+                                          }`}
+                                          title={cannotIncrement ? 'Max stock reached' : 'Increase'}
+                                        >
+                                          <Plus className="h-2.5 w-2.5" />
+                                        </button>
+                                      </div>
+                                    );
+                                  }
+
+                                  if (maxStock <= 0) {
+                                    return (
+                                      <span className="rounded-lg bg-stone-100 dark:bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-stone-400 dark:text-stone-500">
+                                        Sold Out
+                                      </span>
+                                    );
+                                  }
+
+                                  return (
                                     <button
                                       type="button"
-                                      onClick={() => updateQuantity(product.id, inCartQty - 1)}
-                                      className="flex h-5 w-5 items-center justify-center rounded-md bg-white dark:bg-[#202230] text-stone-700 dark:text-white shadow-xs"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddToCart({
+                                          id: product.id,
+                                          name: product.name,
+                                          price: product.price,
+                                          imageUrl: product.image_url,
+                                          categoryName: product.category_name,
+                                          trackInventory: product.track_inventory,
+                                          stockQuantity: product.stock_quantity,
+                                        });
+                                      }}
+                                      className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"
                                     >
-                                      <Minus className="h-2.5 w-2.5" />
+                                      <Plus className="h-3 w-3" />
+                                      <span>Add</span>
                                     </button>
-                                    <span className="min-w-[14px] text-center font-mono text-xs font-bold text-orange-950 dark:text-orange-200">
-                                      {inCartQty}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateQuantity(product.id, inCartQty + 1)}
-                                      className="flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-xs"
-                                    >
-                                      <Plus className="h-2.5 w-2.5" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleAddToCart({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        imageUrl: product.image_url,
-                                        categoryName: product.category_name,
-                                        trackInventory: product.track_inventory,
-                                        stockQuantity: product.stock_quantity,
-                                      });
-                                    }}
-                                    className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:opacity-90 transition active:scale-95"
-                                  >
-                                    <Plus className="h-3 w-3" />
-                                    <span>Add</span>
-                                  </button>
-                                )}
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>

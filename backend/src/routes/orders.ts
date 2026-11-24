@@ -18,7 +18,7 @@ const OrderItemInputSchema = z.object({
 const OrderCreateSchema = z.object({
   items: z.array(OrderItemInputSchema).min(1, 'At least one item is required'),
   idempotency_key: z.string().max(100).optional().nullable(),
-  payment_method: z.enum(['razorpay', 'testing_wallet', 'counter_cash', 'pay_later']).optional().default('razorpay'),
+  payment_method: z.enum(['razorpay', 'pay_later', 'counter_cash']).optional().default('razorpay'),
 });
 
 const VerifyPaymentSchema = z.object({
@@ -82,7 +82,7 @@ customerOrdersRouter.post(
       }
     }
 
-    const paymentMethod = payload.payment_method || (c.env?.RAZORPAY_KEY_ID ? 'razorpay' : 'testing_wallet');
+    const paymentMethod = payload.payment_method || 'razorpay';
 
     if (paymentMethod === 'pay_later') {
       const { data: prof } = await adminClient
@@ -109,73 +109,7 @@ customerOrdersRouter.post(
       }
     }
 
-    if (paymentMethod === 'testing_wallet' && typeof adminClient.rpc === 'function') {
-      try {
-        const { data: rpcResult, error: rpcErr } = await adminClient.rpc('pay_order_with_wallet', {
-          p_customer_id: user.id,
-          p_items: payload.items,
-          p_idempotency_key: idempotencyKey,
-        });
-
-        if (!rpcErr && rpcResult) {
-          let items: any[] = [];
-          if (typeof adminClient.from === 'function') {
-            try {
-              const { data: fetchedItems } = await adminClient
-                .from('order_items')
-                .select('*')
-                .eq('order_id', rpcResult.id);
-              items = fetchedItems || [];
-            } catch {}
-          }
-
-          return c.json(
-            {
-              success: true,
-              data: {
-                ...rpcResult,
-                items,
-              },
-            },
-            rpcResult.is_idempotent_replay ? 200 : 201
-          );
-        }
-
-        if (rpcErr) {
-          const errMsg = rpcErr.message || '';
-          if (errMsg.includes('ERR_INSUFFICIENT_FUNDS')) {
-            return c.json(
-              { success: false, error: { code: 'INSUFFICIENT_FUNDS', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_INSUFFICIENT_STOCK')) {
-            return c.json(
-              { success: false, error: { code: 'INSUFFICIENT_STOCK', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_UNAVAILABLE')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_UNAVAILABLE', message: errMsg } },
-              400
-            );
-          }
-          if (errMsg.includes('ERR_ITEM_NOT_FOUND')) {
-            return c.json(
-              { success: false, error: { code: 'ITEM_NOT_FOUND', message: errMsg } },
-              404
-            );
-          }
-          if (errMsg.includes('ERR_EMPTY_CART') || errMsg.includes('ERR_INVALID_QUANTITY')) {
-            return c.json(
-              { success: false, error: { code: 'INVALID_ORDER', message: errMsg } },
-              400
-            );
-          }
-        }
-      } catch {}
-    } else if (paymentMethod === 'counter_cash' && typeof adminClient.rpc === 'function') {
+    if (paymentMethod === 'counter_cash' && typeof adminClient.rpc === 'function') {
       try {
         const { data: rpcResult, error: rpcErr } = await adminClient.rpc('place_order', {
           p_customer_id: user.id,
@@ -297,30 +231,6 @@ customerOrdersRouter.post(
       });
     }
 
-    let walletRecord: any = null;
-    if (paymentMethod === 'testing_wallet') {
-      const { data: wallet } = await adminClient
-        .from('wallets')
-        .select('*')
-        .eq('customer_id', user.id)
-        .maybeSingle();
-
-      const currentBalance = wallet ? wallet.balance : 0;
-      if (currentBalance < calculatedTotal) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'INSUFFICIENT_FUNDS',
-              message: `Wallet balance (₹${(currentBalance / 100).toFixed(2)}) is insufficient for total ₹${(calculatedTotal / 100).toFixed(2)}`,
-            },
-          },
-          400
-        );
-      }
-      walletRecord = wallet;
-    }
-
     const datePrefix = `CAF-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-`;
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const orderNumber = `${datePrefix}${randomSuffix}`;
@@ -355,10 +265,8 @@ customerOrdersRouter.post(
       }
     }
 
-    const isWalletPaid = paymentMethod === 'testing_wallet';
     const isPayLater = paymentMethod === 'pay_later';
-    const generatesQr = isWalletPaid || isPayLater;
-    const qrVerificationToken = generatesQr
+    const qrVerificationToken = isPayLater
       ? `CAF-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}${Date.now().toString(36).slice(-4).toUpperCase()}`
       : null;
 
@@ -368,15 +276,15 @@ customerOrdersRouter.post(
         customer_id: user.id,
         order_number: orderNumber,
         order_stage: 'ORDER_PLACED',
-        order_status: (isWalletPaid || isPayLater) ? 'ORDER_PLACED' : 'pending',
-        payment_status: isWalletPaid ? 'paid' : 'unpaid',
+        order_status: isPayLater ? 'ORDER_PLACED' : 'pending',
+        payment_status: 'unpaid',
         payment_method: paymentMethod,
-        paid_at: isWalletPaid ? new Date().toISOString() : null,
+        paid_at: null,
         qr_verification_token: qrVerificationToken,
         subtotal: calculatedTotal,
         total: calculatedTotal,
         idempotency_key: idempotencyKey,
-        confirmed_at: (isWalletPaid || isPayLater) ? new Date().toISOString() : null,
+        confirmed_at: isPayLater ? new Date().toISOString() : null,
         razorpay_order_id: razorpayOrderId,
       })
       .select('*')
@@ -435,26 +343,15 @@ customerOrdersRouter.post(
         .from('cart_item_locks')
         .delete()
         .eq('user_id', user.id);
+
+      const headerSession = c.req.header('x-session-id') || c.req.query('session_id');
+      if (headerSession) {
+        await adminClient
+          .from('cart_item_locks')
+          .delete()
+          .eq('session_id', headerSession);
+      }
     } catch {}
-
-    if (isWalletPaid && walletRecord) {
-      const newBalance = walletRecord.balance - calculatedTotal;
-      await adminClient
-        .from('wallets')
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq('id', walletRecord.id);
-
-      await adminClient.from('wallet_transactions').insert({
-        wallet_id: walletRecord.id,
-        customer_id: user.id,
-        amount: calculatedTotal,
-        transaction_type: 'debit',
-        balance_after: newBalance,
-        reason: `Order payment: ${orderNumber}`,
-        order_id: createdOrder.id,
-        actor_id: user.id,
-      });
-    }
 
     if (paymentMethod === 'razorpay' && razorpayOrderId) {
       try {
@@ -723,13 +620,13 @@ customerOrdersRouter.post(
   zValidator(
     'json',
     z.object({
-      settlement_method: z.enum(['wallet', 'upi']),
+      settlement_method: z.string().optional().default('upi'),
       upi_reference: z.string().max(100).optional().nullable(),
     })
   ),
   async (c) => {
     const user = c.get('user');
-    const { settlement_method, upi_reference } = c.req.valid('json');
+    const { upi_reference } = c.req.valid('json');
     const adminClient = getSupabaseAdminClient(c.env);
 
     if (!adminClient) {
@@ -763,43 +660,6 @@ customerOrdersRouter.post(
 
     const totalToSettle = pendingOrders.reduce((acc, o: any) => acc + (o.total || 0), 0);
     const orderIds = pendingOrders.map((o: any) => o.id);
-
-    if (settlement_method === 'wallet') {
-      const { data: wallet, error: walletErr } = await adminClient
-        .from('wallets')
-        .select('*')
-        .eq('customer_id', user.id)
-        .maybeSingle();
-
-      if (walletErr || !wallet || wallet.balance < totalToSettle) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              code: 'INSUFFICIENT_FUNDS',
-              message: `Insufficient wallet balance to clear dues (Balance: ₹${((wallet?.balance || 0) / 100).toFixed(0)}, Required: ₹${(totalToSettle / 100).toFixed(0)})`,
-            },
-          },
-          400
-        );
-      }
-
-      const nextBalance = wallet.balance - totalToSettle;
-      await adminClient
-        .from('wallets')
-        .update({ balance: nextBalance, updated_at: new Date().toISOString() })
-        .eq('id', wallet.id);
-
-      await adminClient.from('wallet_transactions').insert({
-        wallet_id: wallet.id,
-        customer_id: user.id,
-        amount: totalToSettle,
-        transaction_type: 'debit',
-        balance_after: nextBalance,
-        reason: `Settlement of ${pendingOrders.length} Pay Later orders`,
-      });
-    }
-
     const now = new Date().toISOString();
     const { error: updateErr } = await adminClient
       .from('orders')
@@ -807,7 +667,7 @@ customerOrdersRouter.post(
         payment_status: 'paid',
         paid_at: now,
         pay_later_settled_at: now,
-        pay_later_settled_via: settlement_method === 'upi' ? `upi:${upi_reference || 'simulated'}` : 'wallet',
+        pay_later_settled_via: `upi:${upi_reference || 'simulated'}`,
         updated_at: now,
       })
       .in('id', orderIds);
@@ -824,7 +684,7 @@ customerOrdersRouter.post(
       data: {
         settled_orders_count: pendingOrders.length,
         total_settled: totalToSettle,
-        settlement_method,
+        settlement_method: 'upi',
         settled_at: now,
       },
     });
