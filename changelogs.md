@@ -10,6 +10,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 
 ### Added
+- **Admin Inventory & Menu 2-Column Mobile Box Cards**:
+  - Transformed pantry inventory (`admin/src/app/inventory/page.tsx`) and menu dish list (`admin/src/app/menu/page.tsx`) into responsive 2-column box cards on mobile devices (`grid grid-cols-2 gap-3 md:hidden`).
+  - Added food image/icon, name, category pill, price, stock counter with color-coded portions, tracking status, quick availability toggle (`Available` vs `86`), and edit/restock modal drawer triggers.
+- **Faculty Pay Later Live Logs on Dashboard**:
+  - Implemented `GET /api/v1/admin/reports/pay-later-logs` in `backend/src/routes/reports.ts` returning pay later orders with customer profile join (`display_name`, `email`, `phone_number`), amount, and settlement status (`paid` vs `unpaid`).
+  - Integrated "Teachers Pay Later Logs" section beneath the Real-time Financial Velocity graph on `admin/src/app/page.tsx` with unsettled dues vs settled totals, order details, and `Settled` vs `Due (Unsettled)` status badges.
+- **Razorpay Bank Settlements Ledger (`admin/src/app/financial/page.tsx`)**:
+  - Added `fetchRazorpaySettlements()` in `backend/src/lib/razorpay.ts` querying `https://api.razorpay.com/v1/settlements`.
+  - Added `GET /api/v1/admin/reports/razorpay-settlements` in `backend/src/routes/reports.ts`.
+  - Added 3rd tab "Bank Settlements (Razorpay -> Bank)" in `admin/src/app/financial/page.tsx` displaying bank transfer amount, Razorpay fees, tax, bank UTR reference numbers, status, and settlement date.
+- **Customer Settings Password Modal Auto-Close & Confirmation Notice**:
+  - In `customer/src/app/settings/page.tsx`, closed the password change dialog immediately upon successful update and surfaced a persistent 4-second confirmation banner at the top of the page.
+- **Database Cleanup & Security Hardening (`supabase/migrations/20261124000001_database_cleanup.sql`)**:
+  - Dropped unused table `public.storage_assets`.
+  - Dropped obsolete request and identification columns from `public.profiles`: `teacher_id`, `requested_account_type`, `approved_account_type`, `staff_approval_status`, `reviewed_by`, `reviewed_at`.
+  - Added non-negative inventory constraint (`stock_quantity >= 0`).
+  - Hardened stored procedures `cleanup_expired_cart_locks`, `lock_cart_item`, and `release_cart_locks` with explicit `SET search_path = public`.
+
+### Added
 - **Direct Razorpay Live Payment Logs & Verification Integration**:
   - Replaced database-backed "Today's Live Payments" on the Admin Dashboard (`admin/src/app/page.tsx`) with direct API integration querying Razorpay (`https://api.razorpay.com/v1/payments`).
   - Added `fetchRazorpayPayments()` in `backend/src/lib/razorpay.ts` and `GET /api/v1/admin/reports/razorpay-payments` in `backend/src/routes/reports.ts`.

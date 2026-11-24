@@ -210,6 +210,63 @@ export async function fetchRazorpayPayments(
   return (await response.json()) as RazorpayPaymentListResponse;
 }
 
+export interface RazorpaySettlementItem {
+  id: string;
+  entity: string;
+  amount: number;
+  status: string;
+  fees: number;
+  tax: number;
+  utr?: string | null;
+  created_at: number;
+}
+
+export interface RazorpaySettlementListResponse {
+  entity: string;
+  count: number;
+  items: RazorpaySettlementItem[];
+}
+
+export async function fetchRazorpaySettlements(
+  env: Env,
+  options?: {
+    from?: number;
+    to?: number;
+    count?: number;
+    skip?: number;
+  }
+): Promise<RazorpaySettlementListResponse> {
+  const keyId = env.RAZORPAY_KEY_ID;
+  const keySecret = env.RAZORPAY_KEY_SECRET;
+
+  if (!keyId || !keySecret) {
+    throw new Error('Razorpay credentials not configured');
+  }
+
+  const queryParams = new URLSearchParams();
+  if (options?.from !== undefined) queryParams.set('from', options.from.toString());
+  if (options?.to !== undefined) queryParams.set('to', options.to.toString());
+  if (options?.count !== undefined) queryParams.set('count', Math.min(100, options.count).toString());
+  if (options?.skip !== undefined) queryParams.set('skip', options.skip.toString());
+
+  const qs = queryParams.toString();
+  const url = `https://api.razorpay.com/v1/settlements${qs ? `?${qs}` : ''}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: getBasicAuthHeader(keyId, keySecret),
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Razorpay settlements list failed: ${response.status} ${errorText}`);
+  }
+
+  return (await response.json()) as RazorpaySettlementListResponse;
+}
+
 export async function verifyRazorpayWebhookSignature(
   webhookSecret: string,
   rawBody: string,

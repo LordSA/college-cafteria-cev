@@ -1036,7 +1036,105 @@ export default function AdminMenuPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+                <>
+                  <div className="grid grid-cols-2 gap-3 md:hidden">
+                    {menuItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl border border-[#EEEEEE] bg-white p-3 shadow-xs flex flex-col justify-between hover:border-[#F47721]/30 transition"
+                      >
+                        <div>
+                          <div className="relative h-24 w-full rounded-xl bg-[#FAFAFA] border border-[#EEEEEE] overflow-hidden flex items-center justify-center mb-2.5">
+                            {item.image_url ? (
+                              <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
+                            ) : (
+                              <Utensils className="h-6 w-6 text-[#888888]" />
+                            )}
+                            {item.is_archived && (
+                              <span className="absolute top-1.5 left-1.5 rounded-full bg-red-600/90 text-white text-[9px] font-bold px-2 py-0.5 shadow-xs">
+                                Archived
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between gap-1 mb-1">
+                            <span className="rounded-md bg-[#FAFAFA] border border-[#EEEEEE] px-1.5 py-0.5 text-[9px] font-semibold text-[#666666] truncate max-w-[80px]">
+                              {item.category_name || 'General'}
+                            </span>
+                            <span className="font-mono text-xs font-black text-[#252525] tabular-nums">
+                              ₹{(item.price / 100).toFixed(0)}
+                            </span>
+                          </div>
+
+                          <h3 className="font-bold text-[#252525] text-xs line-clamp-1">
+                            {item.name}
+                          </h3>
+                        </div>
+
+                        <div className="mt-2.5 space-y-1.5 pt-2 border-t border-[#EEEEEE]/80">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleAvailability(item)}
+                            disabled={actionInProgress === item.id || item.is_archived}
+                            className={`w-full inline-flex items-center justify-center gap-1 rounded-xl py-1 px-2 text-[10px] font-bold transition shadow-2xs ${
+                              item.is_available
+                                ? 'bg-green-50 border border-green-200 text-[#269B62]'
+                                : 'bg-red-50 border border-red-200 text-[#D94A43]'
+                            }`}
+                          >
+                            {item.is_available ? (
+                              <>
+                                <CheckCircle2 className="h-2.5 w-2.5" />
+                                <span>Available</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="h-2.5 w-2.5" />
+                                <span>Sold Out</span>
+                              </>
+                            )}
+                          </button>
+
+                          <div className="flex items-center justify-between gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openEditModal(item)}
+                              disabled={actionInProgress === item.id}
+                              className="flex-1 inline-flex items-center justify-center gap-1 rounded-lg border border-[#EEEEEE] bg-[#FAFAFA] hover:bg-[#FFF7F0] py-1 text-[10px] font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs disabled:opacity-30"
+                              title="Edit dish"
+                            >
+                              <Edit3 className="h-2.5 w-2.5" />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleArchive(item)}
+                              disabled={actionInProgress === item.id}
+                              className={`p-1 rounded-lg border text-[10px] transition disabled:opacity-30 ${
+                                item.is_archived
+                                  ? 'border-green-200 bg-green-50 text-[#269B62]'
+                                  : 'border-amber-200 bg-amber-50 text-[#F59E0B]'
+                              }`}
+                              title={item.is_archived ? 'Restore dish' : 'Archive dish'}
+                            >
+                              {item.is_archived ? <RotateCcw className="h-3 w-3" /> : <Archive className="h-3 w-3" />}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item)}
+                              disabled={actionInProgress === item.id}
+                              className="p-1 rounded-lg border border-red-200 bg-red-50 text-[#D94A43] hover:bg-red-100 transition disabled:opacity-30"
+                              title="Delete dish"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs text-[#252525]">
                       <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
@@ -1142,6 +1240,7 @@ export default function AdminMenuPage() {
                     </table>
                   </div>
                 </div>
+              </>
               )
             ) : (
               loading ? (

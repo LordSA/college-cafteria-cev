@@ -67,6 +67,23 @@ interface DashboardInventoryItem {
   is_available: boolean;
 }
 
+interface PayLaterLogItem {
+  id: string;
+  order_number: string;
+  customer_id: string;
+  teacher_name: string;
+  teacher_email: string;
+  teacher_phone: string;
+  amount_paise: number;
+  amount_inr: string;
+  payment_status: string;
+  is_settled: boolean;
+  order_stage: string;
+  created_at: string;
+  settled_at?: string | null;
+  settled_via?: string | null;
+}
+
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 export default function AdminDashboardPage() {
@@ -100,6 +117,10 @@ export default function AdminDashboardPage() {
   const [refreshingPayments, setRefreshingPayments] = useState(false);
   const [teachersCount, setTeachersCount] = useState<number>(0);
   const [lowStockItems, setLowStockItems] = useState<DashboardInventoryItem[]>([]);
+  const [payLaterLogs, setPayLaterLogs] = useState<PayLaterLogItem[]>([]);
+  const [payLaterLoading, setPayLaterLoading] = useState(false);
+  const [payLaterUnpaidPaise, setPayLaterUnpaidPaise] = useState(0);
+  const [payLaterSettledPaise, setPayLaterSettledPaise] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
@@ -141,6 +162,28 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const loadPayLaterLogs = async () => {
+    if (!session?.access_token) return;
+    setPayLaterLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/reports/pay-later-logs?limit=20&t=${Date.now()}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setPayLaterLogs(json.data.items || []);
+          setPayLaterUnpaidPaise(json.data.total_unpaid_paise || 0);
+          setPayLaterSettledPaise(json.data.total_settled_paise || 0);
+        }
+      }
+    } catch {
+    } finally {
+      setPayLaterLoading(false);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -158,6 +201,7 @@ export default function AdminDashboardPage() {
           ordersRes,
           inventoryRes,
           financialRes,
+          payLaterRes,
         ] = await Promise.allSettled([
           fetch(`${API_BASE_URL}/api/v1/admin/menu?t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/categories?t=${Date.now()}`, { headers, cache: 'no-store' }),
@@ -165,6 +209,7 @@ export default function AdminDashboardPage() {
           fetch(`${API_BASE_URL}/api/v1/admin/orders?limit=6&t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/inventory?t=${Date.now()}`, { headers, cache: 'no-store' }),
           fetch(`${API_BASE_URL}/api/v1/admin/reports/stats?range=${timeframe}&t=${Date.now()}`, { headers, cache: 'no-store' }),
+          fetch(`${API_BASE_URL}/api/v1/admin/reports/pay-later-logs?limit=20&t=${Date.now()}`, { headers, cache: 'no-store' }),
         ]);
 
         if (!isMounted) return;
@@ -232,6 +277,15 @@ export default function AdminDashboardPage() {
             if (json.data.teachers_count !== undefined) {
               setTeachersCount(json.data.teachers_count);
             }
+          }
+        }
+
+        if (payLaterRes.status === 'fulfilled' && payLaterRes.value.ok) {
+          const json = await payLaterRes.value.json();
+          if (json.success && json.data) {
+            setPayLaterLogs(json.data.items || []);
+            setPayLaterUnpaidPaise(json.data.total_unpaid_paise || 0);
+            setPayLaterSettledPaise(json.data.total_settled_paise || 0);
           }
         }
 
@@ -543,6 +597,150 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="rounded-2xl bg-white border border-[#EEEEEE] p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEEEEE] pb-4">
+              <div>
+                <h2 className="text-sm font-bold text-[#252525] tracking-wide">Teachers Pay Later Logs</h2>
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <span className="rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
+                    Unsettled Dues: ₹{(payLaterUnpaidPaise / 100).toFixed(2)}
+                  </span>
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                    Settled: ₹{(payLaterSettledPaise / 100).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={loadPayLaterLogs}
+                  disabled={payLaterLoading}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-3 py-1.5 text-xs font-bold text-[#252525] hover:text-[#F47721] transition shadow-2xs disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${payLaterLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+                <Link
+                  href="/staff-requests"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#F47721] hover:underline"
+                >
+                  <span>Teachers</span>
+                  <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+
+            {payLaterLoading && payLaterLogs.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-[#666666]">
+                <Loader2 className="h-6 w-6 animate-spin text-[#F47721]" />
+                <p className="text-xs font-semibold">Loading pay later logs...</p>
+              </div>
+            ) : payLaterLogs.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-[#FAFAFA] border border-dashed border-[#EEEEEE]">
+                <p className="text-xs text-[#666666]">No Pay Later orders recorded yet.</p>
+                <p className="text-[10px] text-[#888888] mt-1">Orders placed by verified faculty teachers using Pay Later will appear here with settlement tracking.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="hidden sm:block overflow-x-auto">
+                  <table className="w-full text-left text-xs text-[#252525]">
+                    <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
+                      <tr>
+                        <th className="px-4 py-2.5 font-bold">Teacher / Faculty</th>
+                        <th className="px-3 py-2.5 font-bold">Order #</th>
+                        <th className="px-3 py-2.5 font-bold">Date & Time</th>
+                        <th className="px-3 py-2.5 font-bold">Total (₹)</th>
+                        <th className="px-4 py-2.5 font-bold text-right">Settlement Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EEEEEE] font-medium">
+                      {payLaterLogs.slice(0, 8).map((log) => (
+                        <tr key={log.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-[#252525]">{log.teacher_name}</div>
+                            {log.teacher_email && (
+                              <div className="text-[10px] text-[#888888]">{log.teacher_email}</div>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 font-mono font-bold text-[#252525]">
+                            {log.order_number}
+                          </td>
+                          <td className="px-3 py-3 text-[11px] text-[#666666]">
+                            {new Date(log.created_at).toLocaleString('en-IN', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            })}
+                          </td>
+                          <td className="px-3 py-3 font-mono font-black text-sm text-[#252525] tabular-nums">
+                            ₹{(log.amount_paise / 100).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {log.is_settled ? (
+                              <div className="inline-flex flex-col items-end">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-[#269B62]">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  <span>Settled</span>
+                                </span>
+                                {log.settled_at && (
+                                  <span className="text-[9px] text-[#888888] mt-0.5">
+                                    {new Date(log.settled_at).toLocaleDateString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-800">
+                                <span>Due (Unsettled)</span>
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="sm:hidden space-y-2">
+                  {payLaterLogs.slice(0, 8).map((log) => (
+                    <div
+                      key={log.id}
+                      className="rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-3 text-xs space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-[#252525]">{log.teacher_name}</div>
+                          <div className="text-[10px] text-[#888888]">Order #{log.order_number}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-mono font-black text-sm text-[#252525]">
+                            ₹{(log.amount_paise / 100).toFixed(2)}
+                          </div>
+                          <div className="text-[9px] text-[#888888]">
+                            {new Date(log.created_at).toLocaleDateString('en-IN')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-[#EEEEEE]">
+                        <span className="text-[10px] text-[#666666]">Status:</span>
+                        {log.is_settled ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-[#269B62]">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Settled</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                            <span>Due (Unsettled)</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </main>
 

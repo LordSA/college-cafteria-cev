@@ -14,6 +14,8 @@ import {
   Loader2,
   AlertCircle,
   ArrowLeft,
+  Landmark,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface PaymentRecord {
@@ -54,18 +56,35 @@ interface RazorpayPaymentRecord {
   captured: boolean;
 }
 
+interface SettlementRecord {
+  id: string;
+  amount: number;
+  amount_inr: string;
+  status: string;
+  fees: number;
+  fees_inr: string;
+  tax: number;
+  tax_inr: string;
+  utr?: string | null;
+  created_at: string;
+}
+
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787').replace(/\/+$/, '');
 
 export default function AdminFinancialPage() {
   const router = useRouter();
   const { adminUser, isUnauthorized, loading: authLoading, session, canAccessDashboard } = useAdminAuth();
 
-  const [activeTab, setActiveTab] = useState<'razorpay' | 'database'>('razorpay');
+  const [activeTab, setActiveTab] = useState<'razorpay' | 'database' | 'settlement'>('razorpay');
   const [razorpayRange, setRazorpayRange] = useState<'today' | 'all'>('today');
   const [razorpayPayments, setRazorpayPayments] = useState<RazorpayPaymentRecord[]>([]);
   const [razorpayConfigured, setRazorpayConfigured] = useState<boolean>(true);
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [razorpayTotalCapturedPaise, setRazorpayTotalCapturedPaise] = useState<number>(0);
+
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
+  const [settlementsLoading, setSettlementsLoading] = useState(false);
+  const [settlementsTotalPaise, setSettlementsTotalPaise] = useState<number>(0);
 
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -79,6 +98,8 @@ export default function AdminFinancialPage() {
       const tabParam = params.get('tab');
       if (tabParam === 'database') {
         setActiveTab('database');
+      } else if (tabParam === 'settlement') {
+        setActiveTab('settlement');
       } else {
         setActiveTab('razorpay');
       }
@@ -147,10 +168,39 @@ export default function AdminFinancialPage() {
     }
   };
 
+  const loadSettlements = async () => {
+    if (!session?.access_token) return;
+
+    setSettlementsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/reports/razorpay-settlements?count=50&t=${Date.now()}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        cache: 'no-store',
+      });
+
+      const body = await res.json();
+      if (!res.ok || !body.success) {
+        throw new Error(body.error?.message || 'Failed to fetch settlements from Razorpay');
+      }
+
+      setSettlements(body.data?.items || []);
+      setSettlementsTotalPaise(body.data?.total_settled_paise || 0);
+    } catch (err: any) {
+      setError(err.message || 'Error loading settlements');
+    } finally {
+      setSettlementsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (adminUser && !isUnauthorized) {
       if (activeTab === 'razorpay') {
         loadRazorpayPayments(razorpayRange);
+      } else if (activeTab === 'settlement') {
+        loadSettlements();
       } else {
         loadDatabasePayments();
       }
@@ -253,11 +303,11 @@ export default function AdminFinancialPage() {
 
               <div className="flex items-center gap-2 flex-wrap">
                 <button
-                  onClick={() => (activeTab === 'razorpay' ? loadRazorpayPayments(razorpayRange) : loadDatabasePayments())}
-                  disabled={loading || razorpayLoading}
+                  onClick={() => (activeTab === 'razorpay' ? loadRazorpayPayments(razorpayRange) : activeTab === 'settlement' ? loadSettlements() : loadDatabasePayments())}
+                  disabled={loading || razorpayLoading || settlementsLoading}
                   className="inline-flex items-center gap-1.5 rounded-full border border-[#EEEEEE] bg-white hover:bg-[#FFF7F0] px-4 py-2 text-xs font-bold text-[#252525] hover:text-[#F47721] disabled:opacity-50 transition shadow-xs"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${(loading || razorpayLoading) ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-3.5 w-3.5 text-[#F47721] ${(loading || razorpayLoading || settlementsLoading) ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
                 </button>
 
@@ -307,6 +357,22 @@ export default function AdminFinancialPage() {
                 <span>Canteen Orders Ledger (Database)</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${activeTab === 'database' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
                   {payments.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('settlement')}
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-xs ${
+                  activeTab === 'settlement'
+                    ? 'bg-[#F47721] text-white shadow-[#F47721]/25'
+                    : 'bg-[#FAFAFA] text-[#666666] hover:bg-stone-100 hover:text-[#252525]'
+                }`}
+              >
+                <Landmark className="h-4 w-4" />
+                <span>Bank Settlements (Razorpay &rarr; Bank)</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${activeTab === 'settlement' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-700'}`}>
+                  {settlements.length}
                 </span>
               </button>
             </div>
@@ -647,6 +713,105 @@ export default function AdminFinancialPage() {
                               </tr>
                             );
                           })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'settlement' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="rounded-2xl border border-[#EEEEEE] bg-white p-5 shadow-xs">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#888888]">
+                      Total Bank Payouts
+                    </span>
+                    <div className="mt-1 font-mono text-2xl font-black text-[#252525] tabular-nums">
+                      ₹{(settlementsTotalPaise / 100).toFixed(2)}
+                    </div>
+                    <span className="text-[10px] text-[#269B62] font-semibold mt-1 block">
+                      Dispatched to linked canteen bank account
+                    </span>
+                  </div>
+
+                  <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5 shadow-xs md:col-span-2">
+                    <div className="flex items-start gap-2.5">
+                      <Landmark className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="text-xs font-bold text-blue-900">How Razorpay Bank Settlements Work</h3>
+                        <p className="text-[11px] text-blue-800 mt-1 leading-relaxed">
+                          Payments captured via Razorpay are automatically batched and transferred to your verified college bank account on a T+1 or T+2 business days cycle. Each batch carries a Unique Transaction Reference (UTR) for bank statement reconciliation.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {settlementsLoading ? (
+                  <div className="py-20 flex flex-col items-center justify-center gap-3 text-[#666666]">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#F47721]" />
+                    <p className="text-xs font-semibold">Connecting to Razorpay Settlements API...</p>
+                  </div>
+                ) : settlements.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-[#EEEEEE] bg-[#FAFAFA] p-12 text-center space-y-2">
+                    <Landmark className="mx-auto h-8 w-8 text-[#888888]" />
+                    <h3 className="text-sm font-bold text-[#252525]">No Bank Settlements Found</h3>
+                    <p className="text-xs text-[#666666] max-w-md mx-auto">
+                      Settlement logs stream directly from Razorpay once the daily settlement cycle completes and funds are dispatched to your verified bank account.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-2xl border border-[#EEEEEE] bg-white shadow-xs">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs text-[#252525]">
+                        <thead className="bg-[#FAFAFA] uppercase text-[10px] tracking-wider text-[#666666] border-b border-[#EEEEEE]">
+                          <tr>
+                            <th className="px-6 py-3.5 font-bold">Settlement ID</th>
+                            <th className="px-6 py-3.5 font-bold">Transfer Amount (₹)</th>
+                            <th className="px-6 py-3.5 font-bold">Fees & Taxes</th>
+                            <th className="px-6 py-3.5 font-bold">Bank UTR Reference</th>
+                            <th className="px-6 py-3.5 font-bold">Status</th>
+                            <th className="px-6 py-3.5 font-bold text-right">Settled Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#EEEEEE] font-medium">
+                          {settlements.map((s) => (
+                            <tr key={s.id} className="hover:bg-[#FFF7F0]/30 transition-colors">
+                              <td className="px-6 py-4 font-mono font-bold text-[#252525]">
+                                {s.id}
+                              </td>
+                              <td className="px-6 py-4 font-mono text-sm font-black text-[#269B62] tabular-nums">
+                                ₹{s.amount_inr}
+                              </td>
+                              <td className="px-6 py-4 text-[11px] text-[#666666]">
+                                <div>Fee: ₹{s.fees_inr}</div>
+                                <div className="text-[10px] text-[#888888]">Tax: ₹{s.tax_inr}</div>
+                              </td>
+                              <td className="px-6 py-4 font-mono text-xs font-semibold text-[#252525]">
+                                {s.utr || <span className="text-[#888888]">Pending</span>}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  s.status === 'processed'
+                                    ? 'bg-emerald-50 text-[#269B62] border border-emerald-200'
+                                    : s.status === 'created'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    : 'bg-red-50 text-[#D94A43] border border-red-200'
+                                }`}>
+                                  {s.status === 'processed' && <CheckCircle2 className="h-3 w-3" />}
+                                  <span>{s.status}</span>
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right text-[11px] text-[#666666]">
+                                {new Date(s.created_at).toLocaleString('en-IN', {
+                                  dateStyle: 'medium',
+                                  timeStyle: 'short',
+                                })}
+                              </td>
+                            </tr>
+                          ))}
                         </tbody>
                       </table>
                     </div>

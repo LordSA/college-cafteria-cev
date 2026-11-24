@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import type { Env, AuthContextVariables } from '../types/env';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { getSupabaseAdminClient } from '../lib/supabase';
-import { fetchRazorpayPayments } from '../lib/razorpay';
+import { fetchRazorpayPayments, fetchRazorpaySettlements } from '../lib/razorpay';
 
 export const adminReportsRouter = new Hono<{
   Bindings: Env;
@@ -323,6 +323,158 @@ adminReportsRouter.get('/razorpay-payments', async (c) => {
       502
     );
   }
+});
+
+adminReportsRouter.get('/razorpay-settlements', async (c) => {
+  const isConfigured = Boolean(c.env?.RAZORPAY_KEY_ID && c.env?.RAZORPAY_KEY_SECRET);
+  if (!isConfigured) {
+    return c.json({
+      success: true,
+      data: {
+        configured: false,
+        message: 'Razorpay credentials not configured in backend environment',
+        count: 0,
+        total_settled_paise: 0,
+        total_settled_inr: '0.00',
+        items: [],
+      },
+    });
+  }
+
+  const count = Math.min(100, Math.max(1, parseInt(c.req.query('count') || '50', 10)));
+  const skip = Math.max(0, parseInt(c.req.query('skip') || '0', 10));
+
+  try {
+    const rzpRes = await fetchRazorpaySettlements(c.env, { count, skip });
+    const items = rzpRes.items.map((s) => ({
+      id: s.id,
+      amount: s.amount,
+      amount_inr: (s.amount / 100).toFixed(2),
+      status: s.status,
+      fees: s.fees || 0,
+      fees_inr: ((s.fees || 0) / 100).toFixed(2),
+      tax: s.tax || 0,
+      tax_inr: ((s.tax || 0) / 100).toFixed(2),
+      utr: s.utr || null,
+      created_at: new Date(s.created_at * 1000).toISOString(),
+    }));
+
+    const totalSettledPaise = items
+      .filter((s) => s.status === 'processed')
+      .reduce((sum, s) => sum + s.amount, 0);
+
+    return c.json({
+      success: true,
+      data: {
+        configured: true,
+        count: items.length,
+        total_settled_paise: totalSettledPaise,
+        total_settled_inr: (totalSettledPaise / 100).toFixed(2),
+        items,
+      },
+    });
+  } catch (err: any) {
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: 'RAZORPAY_SETTLEMENTS_ERROR',
+          message: err.message || 'Failed to fetch settlements from Razorpay',
+        },
+      },
+      502
+    );
+  }
+});
+
+adminReportsRouter.get('/pay-later-logs', async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query('limit') || '50', 10)));
+  const statusFilter = c.req.query('status') || 'all';
+
+  let query = adminClient
+    .from('orders')
+    .select('id, order_number, total, payment_status, payment_method, order_stage, order_status, created_at, paid_at, pay_later_settled_at, pay_later_settled_via, customer_id')
+    .eq('payment_method', 'pay_later')
+    .neq('order_status', 'cancelled')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (statusFilter === 'unpaid') {
+    query = query.in('payment_status', ['unpaid', 'pending']);
+  } else if (statusFilter === 'paid') {
+    query = query.eq('payment_status', 'paid');
+  }
+
+  const { data: orders, error } = await query;
+  if (error) {
+    return c.json(
+      { success: false, error: { code: 'QUERY_FAILED', message: error.message } },
+      500
+    );
+  }
+
+  const customerIds = Array.from(new Set((orders || []).map((o: any) => o.customer_id).filter(Boolean)));
+  let profileMap = new Map<string, any>();
+  if (customerIds.length > 0) {
+    try {
+      const { data: profs } = await adminClient
+        .from('profiles')
+        .select('id, display_name, email, phone_number, account_type')
+        .in('id', customerIds);
+      if (profs) {
+        profileMap = new Map(profs.map((p: any) => [p.id, p]));
+      }
+    } catch {}
+  }
+
+  const items = (orders || []).map((o: any) => {
+    const prof = profileMap.get(o.customer_id) || {};
+    return {
+      id: o.id,
+      order_number: o.order_number,
+      customer_id: o.customer_id,
+      teacher_name: prof.display_name || (prof.email ? prof.email.split('@')[0] : 'Faculty Member'),
+      teacher_email: prof.email || '',
+      teacher_phone: prof.phone_number || '',
+      account_type: prof.account_type || 'staff_t',
+      amount_paise: o.total,
+      amount_inr: (o.total / 100).toFixed(2),
+      payment_status: o.payment_status,
+      is_settled: o.payment_status === 'paid',
+      order_stage: o.order_stage || o.order_status,
+      created_at: o.created_at,
+      settled_at: o.pay_later_settled_at || o.paid_at || null,
+      settled_via: o.pay_later_settled_via || (o.payment_status === 'paid' ? 'settled' : null),
+    };
+  });
+
+  const totalUnpaidPaise = items
+    .filter((o) => !o.is_settled)
+    .reduce((sum, o) => sum + o.amount_paise, 0);
+
+  const totalSettledPaise = items
+    .filter((o) => o.is_settled)
+    .reduce((sum, o) => sum + o.amount_paise, 0);
+
+  return c.json({
+    success: true,
+    data: {
+      count: items.length,
+      total_unpaid_paise: totalUnpaidPaise,
+      total_unpaid_inr: (totalUnpaidPaise / 100).toFixed(2),
+      total_settled_paise: totalSettledPaise,
+      total_settled_inr: (totalSettledPaise / 100).toFixed(2),
+      items,
+    },
+  });
 });
 
 adminReportsRouter.get('/payments', async (c) => {
