@@ -30,13 +30,13 @@ staffRequestsRouter.get('/', async (c) => {
 
   let query = adminClient
     .from('profiles')
-    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, avatar_key, account_type, app_role, created_at, updated_at')
     .order('created_at', { ascending: false });
 
   if (statusFilter !== 'all') {
-    query = query.eq('staff_approval_status', statusFilter);
+    query = query.eq('account_type', statusFilter === 'approved' ? 'staff_t' : statusFilter);
   } else {
-    query = query.in('staff_approval_status', ['pending', 'approved', 'rejected']);
+    query = query.in('account_type', ['staff_t', 'student']);
   }
 
   const { data, error } = await query;
@@ -82,7 +82,6 @@ staffRequestsRouter.get('/', async (c) => {
 
 staffRequestsRouter.post('/:id/approve', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
-  const adminUser = c.get('user');
   const targetId = c.req.param('id');
 
   if (!adminClient) {
@@ -100,7 +99,7 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
 
   const { data: existing, error: checkError } = await adminClient
     .from('profiles')
-    .select('id, staff_approval_status, requested_account_type')
+    .select('id, account_type')
     .eq('id', targetId)
     .maybeSingle();
 
@@ -122,15 +121,11 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
   const { data, error } = await adminClient
     .from('profiles')
     .update({
-      approved_account_type: targetAccountType,
       account_type: targetAccountType,
-      staff_approval_status: 'approved',
-      reviewed_by: adminUser.id,
-      reviewed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select('id, display_name, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, account_type, created_at, updated_at')
     .single();
 
   if (error) {
@@ -155,7 +150,6 @@ staffRequestsRouter.post('/:id/approve', async (c) => {
 
 staffRequestsRouter.post('/:id/reject', async (c) => {
   const adminClient = getSupabaseAdminClient(c.env);
-  const adminUser = c.get('user');
   const targetId = c.req.param('id');
 
   if (!adminClient) {
@@ -173,7 +167,7 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
 
   const { data: existing, error: checkError } = await adminClient
     .from('profiles')
-    .select('id, staff_approval_status')
+    .select('id, account_type')
     .eq('id', targetId)
     .maybeSingle();
 
@@ -193,13 +187,11 @@ staffRequestsRouter.post('/:id/reject', async (c) => {
   const { data, error } = await adminClient
     .from('profiles')
     .update({
-      staff_approval_status: 'rejected',
-      reviewed_by: adminUser.id,
-      reviewed_at: new Date().toISOString(),
+      account_type: 'student',
       updated_at: new Date().toISOString(),
     })
     .eq('id', targetId)
-    .select('id, display_name, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, created_at, updated_at')
+    .select('id, display_name, account_type, created_at, updated_at')
     .single();
 
   if (error) {
@@ -236,8 +228,8 @@ staffRequestsRouter.get('/teachers/list', async (c) => {
 
   const { data, error } = await adminClient
     .from('profiles')
-    .select('id, display_name, email, account_type, approved_account_type, staff_approval_status, created_at, updated_at')
-    .or('account_type.eq.staff_t,approved_account_type.eq.staff_t')
+    .select('id, display_name, email, account_type, created_at, updated_at')
+    .eq('account_type', 'staff_t')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -286,7 +278,7 @@ staffRequestsRouter.get('/teachers/candidates', async (c) => {
 
   const { data, error } = await adminClient
     .from('profiles')
-    .select('id, display_name, email, account_type, approved_account_type, created_at')
+    .select('id, display_name, email, account_type, created_at')
     .neq('account_type', 'staff_t')
     .order('created_at', { ascending: false });
 
@@ -373,8 +365,6 @@ staffRequestsRouter.post('/teachers/create', async (c) => {
     email,
     display_name: display_name || email.split('@')[0],
     account_type: 'staff_t',
-    approved_account_type: 'staff_t',
-    staff_approval_status: 'approved',
     updated_at: new Date().toISOString(),
   });
 
@@ -418,12 +408,10 @@ staffRequestsRouter.post('/teachers/assign', async (c) => {
     .from('profiles')
     .update({
       account_type: 'staff_t',
-      approved_account_type: 'staff_t',
-      staff_approval_status: 'approved',
       updated_at: new Date().toISOString(),
     })
     .eq('id', user_id)
-    .select('id, display_name, email, account_type, approved_account_type, staff_approval_status')
+    .select('id, display_name, email, account_type')
     .single();
 
   if (error) {
@@ -472,12 +460,10 @@ staffRequestsRouter.post('/teachers/revoke', async (c) => {
     .from('profiles')
     .update({
       account_type: 'student',
-      approved_account_type: 'student',
-      staff_approval_status: 'not_requested',
       updated_at: new Date().toISOString(),
     })
     .eq('id', user_id)
-    .select('id, display_name, email, account_type, approved_account_type')
+    .select('id, display_name, email, account_type')
     .single();
 
   if (error) {

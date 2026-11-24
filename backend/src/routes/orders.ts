@@ -87,12 +87,12 @@ customerOrdersRouter.post(
     if (paymentMethod === 'pay_later') {
       const { data: prof } = await adminClient
         .from('profiles')
-        .select('account_type, approved_account_type')
+        .select('account_type')
         .eq('id', user.id)
         .maybeSingle();
 
       const isFacultyStaff = ['faculty', 'staff', 'staff_t'].includes(
-        prof?.approved_account_type || prof?.account_type || ''
+        prof?.account_type || ''
       );
 
       if (!isFacultyStaff) {

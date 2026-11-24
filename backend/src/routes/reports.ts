@@ -80,7 +80,7 @@ adminReportsRouter.get('/stats', async (c) => {
     adminClient
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .or('account_type.eq.staff_t,approved_account_type.eq.staff_t'),
+      .eq('account_type', 'staff_t'),
   ]);
 
   if (ordersRes.error) {

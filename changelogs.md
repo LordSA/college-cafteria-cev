@@ -9,6 +9,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Fixed
+- **Post-Migration Profile Retrieval Failure**:
+  - Resolved `Failed to retrieve profile record` error occurring after applying migration `20261124000001_database_cleanup.sql`.
+  - Updated `backend/src/lib/supabase.ts` (`verifySupabaseToken`) to query only existing columns (`id, display_name, avatar_key, account_type, app_role, created_at, updated_at`) instead of dropped legacy columns (`requested_account_type`, `approved_account_type`, `staff_approval_status`, `reviewed_by`, `reviewed_at`).
+  - Updated `backend/src/routes/admin.ts`, `backend/src/routes/orders.ts`, `backend/src/routes/reports.ts`, `backend/src/routes/staffRequests.ts`, and `customer/src/context/AuthContext.tsx` to strictly use `account_type` (`staff_t` vs `student`) without referencing removed request columns.
+
 ### Added
 - **Admin Inventory & Menu 2-Column Mobile Box Cards**:
   - Transformed pantry inventory (`admin/src/app/inventory/page.tsx`) and menu dish list (`admin/src/app/menu/page.tsx`) into responsive 2-column box cards on mobile devices (`grid grid-cols-2 gap-3 md:hidden`).

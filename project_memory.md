@@ -128,7 +128,7 @@ college-canteen-cev/
   - `src/middleware/logger.ts`: Sanitized JSON request logger redacting authorization headers and sensitive query parameters.
   - `src/middleware/error.ts`: Centralized error handling returning structured JSON envelopes.
   - `src/lib/razorpay.ts`: Standard Razorpay payment gateway client, order generation, checkout signature verification, webhook signature verification, and live payments listing (`fetchRazorpayPayments`) using Web Crypto HMAC SHA-256 and constant-time comparison.
-  - `src/lib/supabase.ts`: Token verification and database profile retrieval via Supabase Admin/User clients.
+  - `src/lib/supabase.ts`: Token verification and database profile retrieval (`id`, `display_name`, `avatar_key`, `account_type`, `app_role`, `created_at`, `updated_at`) via Supabase Admin/User clients.
   - `src/lib/storage/`: Provider-independent storage service (`types.ts`, `supabaseProvider.ts`, `r2Provider.ts`, `index.ts`).
   - `src/routes/health.ts`: Unauthenticated `/health` check reporting uptime, worker version, and timestamp.
   - `src/routes/api.ts`: `/api/v1` router mounting all sub-routers.

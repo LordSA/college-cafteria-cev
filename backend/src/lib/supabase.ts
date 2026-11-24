@@ -90,7 +90,7 @@ export async function verifySupabaseToken(
 
   const { data: profileData, error: profileError } = await adminClient
     .from('profiles')
-    .select('id, display_name, avatar_key, account_type, requested_account_type, approved_account_type, staff_approval_status, reviewed_by, reviewed_at, app_role, created_at, updated_at')
+    .select('id, display_name, avatar_key, account_type, app_role, created_at, updated_at')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -121,14 +121,12 @@ export async function verifySupabaseToken(
         id: profileData.id,
         display_name: profileData.display_name,
         avatar_key: profileData.avatar_key,
-        account_type: mapAccountType(profileData.approved_account_type || profileData.account_type),
-        requested_account_type: mapAccountType(profileData.requested_account_type),
-        approved_account_type: mapAccountType(profileData.approved_account_type),
-        staff_approval_status: (['not_requested', 'pending', 'approved', 'rejected'].includes(profileData.staff_approval_status)
-          ? profileData.staff_approval_status
-          : 'not_requested') as StaffApprovalStatus,
-        reviewed_by: profileData.reviewed_by ?? null,
-        reviewed_at: profileData.reviewed_at ?? null,
+        account_type: mapAccountType(profileData.account_type),
+        requested_account_type: mapAccountType(profileData.account_type),
+        approved_account_type: mapAccountType(profileData.account_type),
+        staff_approval_status: (profileData.account_type === 'staff_t' ? 'approved' : 'not_requested') as StaffApprovalStatus,
+        reviewed_by: null,
+        reviewed_at: null,
         app_role: mapAppRole(profileData.app_role),
         created_at: profileData.created_at,
         updated_at: profileData.updated_at,
@@ -139,8 +137,8 @@ export async function verifySupabaseToken(
         avatar_key: null,
         account_type: mapAccountType(userData.user.user_metadata?.account_type as string),
         requested_account_type: mapAccountType(userData.user.user_metadata?.account_type as string),
-        approved_account_type: (userData.user.user_metadata?.account_type === 'guest' ? 'guest' : 'student') as AccountType,
-        staff_approval_status: (userData.user.user_metadata?.account_type === 'staff' || userData.user.user_metadata?.account_type === 'staff_t') ? 'pending' : 'not_requested',
+        approved_account_type: mapAccountType(userData.user.user_metadata?.account_type as string),
+        staff_approval_status: (userData.user.user_metadata?.account_type === 'staff' || userData.user.user_metadata?.account_type === 'staff_t') ? 'approved' : 'not_requested',
         reviewed_by: null,
         reviewed_at: null,
         app_role: 'customer',
