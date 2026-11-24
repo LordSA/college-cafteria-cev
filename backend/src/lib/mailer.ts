@@ -16,6 +16,12 @@ export interface MailResult {
   error?: string;
 }
 
+function extractEmail(address: string): string {
+  const match = address.match(/<([^>]+)>/);
+  if (match && match[1]) return match[1].trim();
+  return address.trim();
+}
+
 function sendRawSmtp(
   host: string,
   port: number,
@@ -25,6 +31,8 @@ function sendRawSmtp(
   to: string,
   rawMessage: string
 ): Promise<MailResult> {
+  const envelopeFrom = extractEmail(from);
+  const envelopeTo = extractEmail(to);
   return new Promise((resolve) => {
     const isDirectTls = port === 465;
     let socket: net.Socket | tls.TLSSocket;
@@ -89,7 +97,6 @@ function sendRawSmtp(
               socket,
               host,
               servername: host,
-              rejectUnauthorized: false,
             },
             () => {
               step = 1;
@@ -107,10 +114,10 @@ function sendRawSmtp(
           sendCmd(btoa(pass));
         } else if (step === 5 && code === 235) {
           step = 6;
-          sendCmd(`MAIL FROM:<${from}>`);
+          sendCmd(`MAIL FROM:<${envelopeFrom}>`);
         } else if (step === 6 && code === 250) {
           step = 7;
-          sendCmd(`RCPT TO:<${to}>`);
+          sendCmd(`RCPT TO:<${envelopeTo}>`);
         } else if (step === 7 && code === 250) {
           step = 8;
           sendCmd('DATA');
@@ -133,7 +140,6 @@ function sendRawSmtp(
           host,
           port,
           servername: host,
-          rejectUnauthorized: false,
         },
         () => { }
       );
@@ -151,7 +157,7 @@ export async function sendEmail(env: Env, options: EmailOptions): Promise<MailRe
   const user = env.SMTP_USER?.trim();
   const pass = env.SMTP_PASS?.trim();
   const port = parseInt(env.SMTP_PORT?.trim() || '587', 10);
-  const from = options.from?.trim() || env.SMTP_FROM_EMAIL?.trim();
+  const from = options.from?.trim() || env.SMTP_FROM?.trim();
 
   if (!host || !user || !pass || !from) {
     return {
