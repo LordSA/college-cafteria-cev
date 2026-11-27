@@ -986,14 +986,16 @@ export default function AdminMenuPage() {
                           </div>
                           <button
                             type="button"
+                            role="switch"
+                            aria-checked={catDailyReset}
                             onClick={() => setCatDailyReset(!catDailyReset)}
-                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                              catDailyReset ? 'bg-[#F47721]' : 'bg-gray-300'
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:ring-offset-2 ${
+                              catDailyReset ? 'bg-[#F47721]' : 'bg-gray-200'
                             }`}
                           >
                             <span
-                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                                catDailyReset ? 'translate-x-4.5' : 'translate-x-1'
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                                catDailyReset ? 'translate-x-5' : 'translate-x-0'
                               }`}
                             />
                           </button>
@@ -1716,14 +1718,16 @@ export default function AdminMenuPage() {
                       </div>
                       <button
                         type="button"
+                        role="switch"
+                        aria-checked={editCatDailyReset}
                         onClick={() => setEditCatDailyReset(!editCatDailyReset)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          editCatDailyReset ? 'bg-[#F47721]' : 'bg-gray-300'
+                        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#F47721] focus:ring-offset-2 ${
+                          editCatDailyReset ? 'bg-[#F47721]' : 'bg-gray-200'
                         }`}
                       >
                         <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            editCatDailyReset ? 'translate-x-4.5' : 'translate-x-1'
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                            editCatDailyReset ? 'translate-x-5' : 'translate-x-0'
                           }`}
                         />
                       </button>

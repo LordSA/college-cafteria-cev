@@ -31,6 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Updated `customer/src/components/MobileBottomNav.tsx` to automatically hide bottom navigation when the canteen is closed.
 
 ### Fixed
+- **Daily Stock Reset Toggle Switch Alignment (`admin/src/app/menu/page.tsx`)**:
+  - Replaced unsupported `translate-x-4.5` Tailwind class with standard `h-6 w-11` switch container, `border-2 border-transparent`, and `h-5 w-5` white knob using standard `translate-x-5` / `translate-x-0` transitions.
+  - Resolved visual alignment clipping and positioned the active toggle circle flush to the right when enabled.
 - **Razorpay Checkout & CORS Preflight (`backend/src/middleware/cors.ts`, `customer/src/app/checkout/page.tsx`)**:
   - Added `'X-Session-Id'` and `'x-session-id'` to CORS `allowHeaders` in `backend/src/middleware/cors.ts`. When `checkout/page.tsx` sent the session header during order placement, browsers previously blocked the preflight `OPTIONS` request, manifesting as a `"Failed to fetch"` error.
   - Expanded CORS origin regex to support local network IP ranges (`192.168.x.x`, `10.x.x.x`, `172.16-31.x.x`) to prevent `"Failed to fetch"` when testing from physical phones over local Wi-Fi.
