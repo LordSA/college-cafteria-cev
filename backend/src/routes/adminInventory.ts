@@ -173,3 +173,28 @@ const handleInventoryUpdate = async (c: any) => {
 
 adminInventoryRouter.patch('/:menuItemId', zValidator('json', InventoryUpdateSchema), handleInventoryUpdate);
 adminInventoryRouter.put('/:menuItemId', zValidator('json', InventoryUpdateSchema), handleInventoryUpdate);
+
+adminInventoryRouter.post('/daily-reset', async (c) => {
+  const adminClient = getSupabaseAdminClient(c.env);
+
+  if (!adminClient) {
+    return c.json(
+      { success: false, error: { code: 'DATABASE_ERROR', message: 'Database unconfigured' } },
+      500
+    );
+  }
+
+  const { data, error } = await adminClient.rpc('reset_daily_category_stock');
+
+  if (error) {
+    return c.json(
+      { success: false, error: { code: 'RESET_FAILED', message: error.message } },
+      500
+    );
+  }
+
+  return c.json({
+    success: true,
+    data: data || { success: true },
+  });
+});

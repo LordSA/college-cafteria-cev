@@ -11,3 +11,6 @@ ALLOWED_ORIGINS = "https://cafeteria.campus.shibili.xyz,https://admin.cafeteria.
 [dev]
 port = 8787
 ip = "localhost"
+
+[triggers]
+crons = ["30 18 * * *"]

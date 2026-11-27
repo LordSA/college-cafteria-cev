@@ -5,13 +5,15 @@ import { usePathname } from 'next/navigation';
 import { Home, UtensilsCrossed, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useStoreStatus } from '../context/StoreStatusContext';
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { itemCount } = useCart();
+  const { isOpen } = useStoreStatus();
 
-  if (!user || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname === '/verify-email') {
+  if (!user || !isOpen || pathname === '/closed' || pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password' || pathname === '/verify-email') {
     return null;
   }
 

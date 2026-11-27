@@ -9,6 +9,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- **Daily Category Stock Reset System (`backend`, `admin`, `supabase`)**:
+  - Added `daily_reset boolean NOT NULL DEFAULT false` to `public.categories`.
+  - Added `'daily_reset'` valid reason to `inventory_logs_reason_check` constraint.
+  - Created `public.store_settings` table storing store configuration (`canteen_status`).
+  - Created stored procedure `public.reset_daily_category_stock()` that resets `stock_quantity = 0` (and `is_available = false` for tracked inventory) for all items in categories with `daily_reset = true`.
+  - Configured Cloudflare Workers scheduled cron trigger `30 18 * * *` (12:00 AM IST / 18:30 UTC) in `backend/wrangler.toml` and attached worker `scheduled` cron handler in `backend/src/index.ts`.
+  - Added lazy midnight IST catch-up mechanism in `GET /api/v1/store-status` to guarantee daily reset execution even during local development without active cron daemons.
+  - Added `POST /api/v1/admin/inventory/daily-reset` endpoint in `backend/src/routes/adminInventory.ts` allowing authorized managers to trigger reset on-demand.
+  - In Admin Menu Management (`admin/src/app/menu/page.tsx`), added "Daily Reset (12 AM)" toggle in category creation form and edit modal, and added "Reset 12 AM" badges to mobile cards and desktop table.
+
+- **Admin Canteen Open/Closed Sliding Button & Customer Closed Portal (`admin`, `customer`, `backend`)**:
+  - Replaced dashboard header search box with an animated sliding toggle button in `admin/src/app/page.tsx` displaying live "CANTEEN OPEN" (green with radiant dot) vs "CANTEEN CLOSED" (red with moon icon) and optimistic status updates.
+  - Added public `GET /api/v1/store-status` and admin-restricted `PATCH /api/v1/admin/store-status` in `backend/src/routes/storeStatus.ts`.
+  - Enforced server-side canteen open check in `backend/src/routes/orders.ts` (`POST /api/v1/orders`), returning `400 CANTEEN_CLOSED` when closed.
+  - Created `StoreStatusContext` in `customer/src/context/StoreStatusContext.tsx` with 20-second background polling and `visibilitychange` focus re-check.
+  - Created `CanteenClosedView` component in `customer/src/components/CanteenClosedView.tsx` with campus operating hours, IEDC CEV attribution, and interactive re-check button.
+  - Created `StoreStatusGuard` in `customer/src/components/StoreStatusGuard.tsx` intercepting customer routes and blocking ordering workflows when closed.
+  - Created standalone static page `customer/src/app/closed/page.tsx`.
+  - Updated `customer/src/components/MobileBottomNav.tsx` to automatically hide bottom navigation when the canteen is closed.
+
 ### Fixed
 - **Razorpay Checkout & CORS Preflight (`backend/src/middleware/cors.ts`, `customer/src/app/checkout/page.tsx`)**:
   - Added `'X-Session-Id'` and `'x-session-id'` to CORS `allowHeaders` in `backend/src/middleware/cors.ts`. When `checkout/page.tsx` sent the session header during order placement, browsers previously blocked the preflight `OPTIONS` request, manifesting as a `"Failed to fetch"` error.

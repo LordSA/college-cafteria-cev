@@ -29,6 +29,7 @@ interface Category {
   description?: string | null;
   sort_order?: number;
   is_active: boolean;
+  daily_reset?: boolean;
   created_at?: string;
 }
 
@@ -76,6 +77,7 @@ export default function AdminMenuPage() {
   const [catName, setCatName] = useState('');
   const [catDescription, setCatDescription] = useState('');
   const [catSortOrder, setCatSortOrder] = useState<number>(0);
+  const [catDailyReset, setCatDailyReset] = useState(false);
   const [catCreating, setCatCreating] = useState(false);
   const [catTogglingId, setCatTogglingId] = useState<string | null>(null);
 
@@ -84,6 +86,7 @@ export default function AdminMenuPage() {
   const [editCatDescription, setEditCatDescription] = useState('');
   const [editCatSortOrder, setEditCatSortOrder] = useState<number>(0);
   const [editCatIsActive, setEditCatIsActive] = useState(true);
+  const [editCatDailyReset, setEditCatDailyReset] = useState(false);
   const [savingCatEdit, setSavingCatEdit] = useState(false);
   const [deletingCatId, setDeletingCatId] = useState<string | null>(null);
 
@@ -532,6 +535,7 @@ export default function AdminMenuPage() {
           name: catName.trim(),
           description: catDescription.trim() || undefined,
           sort_order: catSortOrder,
+          daily_reset: catDailyReset,
         }),
       });
 
@@ -543,6 +547,7 @@ export default function AdminMenuPage() {
       setCatName('');
       setCatDescription('');
       setCatSortOrder(0);
+      setCatDailyReset(false);
       setShowAddForm(false);
       setSuccess('Category created successfully.');
       setTimeout(() => setSuccess(null), 3000);
@@ -589,6 +594,7 @@ export default function AdminMenuPage() {
     setEditCatDescription(cat.description || '');
     setEditCatSortOrder(cat.sort_order || 0);
     setEditCatIsActive(cat.is_active);
+    setEditCatDailyReset(Boolean(cat.daily_reset));
     setError(null);
   };
 
@@ -616,6 +622,7 @@ export default function AdminMenuPage() {
           description: editCatDescription.trim() || null,
           sort_order: editCatSortOrder,
           is_active: editCatIsActive,
+          daily_reset: editCatDailyReset,
         }),
       });
 
@@ -971,6 +978,26 @@ export default function AdminMenuPage() {
                             className="w-full rounded-xl border border-[#EEEEEE] hover:border-gray-300 bg-white px-3.5 py-2.5 text-xs text-[#252525] placeholder:text-[#888888] focus:border-[#F47721] focus:outline-none focus:ring-2 focus:ring-[#F47721]/20 transition-all"
                           />
                         </div>
+
+                        <div className="rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-3 flex items-center justify-between">
+                          <div>
+                            <span className="block text-xs font-semibold text-[#252525]">Daily Stock Reset</span>
+                            <span className="block text-[10px] text-[#888888]">Wipe dish stock to 0 at 12:00 AM daily for morning replenishment</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setCatDailyReset(!catDailyReset)}
+                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                              catDailyReset ? 'bg-[#F47721]' : 'bg-gray-300'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                                catDailyReset ? 'translate-x-4.5' : 'translate-x-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="space-y-4">
@@ -1294,7 +1321,14 @@ export default function AdminMenuPage() {
                           </div>
 
                           <div>
-                            <h4 className="font-bold text-xs text-[#252525] line-clamp-1">{cat.name}</h4>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="font-bold text-xs text-[#252525] line-clamp-1">{cat.name}</h4>
+                              {cat.daily_reset && (
+                                <span className="rounded-full bg-orange-50 border border-orange-200 text-[#F47721] px-1.5 py-0.2 text-[9px] font-bold shrink-0">
+                                  12 AM
+                                </span>
+                              )}
+                            </div>
                             <p className="text-[10px] text-[#666666] line-clamp-2 mt-0.5 min-h-[1.75rem]">
                               {cat.description || 'No description'}
                             </p>
@@ -1344,7 +1378,14 @@ export default function AdminMenuPage() {
                               {cat.sort_order ?? 0}
                             </td>
                             <td className="px-6 py-4 font-bold text-[#252525] text-sm">
-                              {cat.name}
+                              <div className="flex items-center gap-2">
+                                <span>{cat.name}</span>
+                                {cat.daily_reset && (
+                                  <span className="rounded-full bg-orange-50 border border-orange-200 text-[#F47721] px-2 py-0.5 text-[10px] font-bold">
+                                    Reset 12 AM
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-[#666666] max-w-xs truncate">
                               {cat.description || '-'}
@@ -1666,6 +1707,26 @@ export default function AdminMenuPage() {
                         />
                         <span>Category Active (visible to customers)</span>
                       </label>
+                    </div>
+
+                    <div className="rounded-xl border border-[#EEEEEE] bg-[#FAFAFA] p-3 flex items-center justify-between">
+                      <div>
+                        <span className="block text-xs font-semibold text-[#252525]">Daily Stock Reset</span>
+                        <span className="block text-[10px] text-[#888888]">Wipe dish stock to 0 at 12:00 AM daily for morning replenishment</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditCatDailyReset(!editCatDailyReset)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                          editCatDailyReset ? 'bg-[#F47721]' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                            editCatDailyReset ? 'translate-x-4.5' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
                     </div>
 
                     <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EEEEEE]">

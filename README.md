@@ -5,7 +5,7 @@
 [![Admin](https://img.shields.io/badge/Admin-Next.js%20(Port%203001)-indigo.svg)](admin)
 [![Backend](https://img.shields.io/badge/Backend-Hono%20%2B%20Cloudflare%20(Port%208787)-orange.svg)](backend)
 
-Cafteria is a modern, full-stack digital canteen platform for college campuses. It enables students and faculty to browse daily food menus, pre-order meals between classes, skip physical queues, and pay securely via Razorpay or Faculty Pay Later, while providing canteen staff and management with real-time kitchen displays, inventory tracking, teacher administration, QR collection passes, thermal bill printing, financial ledgers, and campus support desks.
+Cafteria is a modern, full-stack digital canteen platform for college campuses. It enables students and faculty to browse daily food menus, pre-order meals between classes, skip physical queues, and pay securely via Razorpay or Faculty Pay Later, while providing canteen staff and management with real-time kitchen displays, inventory tracking with automated 12:00 AM IST daily category resets, store open/closed controls, teacher administration, QR collection passes, thermal bill printing, financial ledgers, and campus support desks.
 
 For deep architectural details, see [docs/architecture.md](docs/architecture.md).  
 For authentication and RLS policies, see [docs/authentication.md](docs/authentication.md).  

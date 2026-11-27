@@ -8,7 +8,6 @@ import { AdminSidebar } from '../components/AdminSidebar';
 import {
   ShieldAlert,
   Loader2,
-  Search,
   Download,
   CheckCircle2,
   ArrowRight,
@@ -124,6 +123,52 @@ export default function AdminDashboardPage() {
   const [statsLoading, setStatsLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [isCanteenOpen, setIsCanteenOpen] = useState<boolean>(true);
+  const [statusLoading, setStatusLoading] = useState<boolean>(true);
+  const [togglePending, setTogglePending] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchStoreStatus = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/store-status?t=${Date.now()}`, { cache: 'no-store' });
+        const json = await res.json();
+        if (json.success && json.data) {
+          setIsCanteenOpen(Boolean(json.data.is_open));
+        }
+      } catch {} finally {
+        setStatusLoading(false);
+      }
+    };
+    fetchStoreStatus();
+  }, []);
+
+  const handleToggleCanteenStatus = async () => {
+    if (togglePending || !session?.access_token) return;
+    const nextState = !isCanteenOpen;
+    setTogglePending(true);
+    setIsCanteenOpen(nextState);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/v1/admin/store-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          is_open: nextState,
+          message: nextState ? 'Canteen is open for orders' : 'We are currently closed.',
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setIsCanteenOpen(!nextState);
+      }
+    } catch {
+      setIsCanteenOpen(!nextState);
+    } finally {
+      setTogglePending(false);
+    }
+  };
 
   const refreshRazorpayLogs = async () => {
     if (!session?.access_token) return;
@@ -407,14 +452,43 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="relative w-full sm:w-64">
-                <input
-                  type="text"
-                  placeholder="Search orders, dishes..."
-                  className="w-full rounded-xl bg-white border border-[#EEEEEE] hover:border-gray-300 pl-4 pr-9 py-2 text-xs font-medium text-[#252525] placeholder:text-[#888888] focus:outline-none focus:border-[#F47721] focus:ring-2 focus:ring-[#F47721]/20 transition-all"
-                />
-                <Search className="absolute right-3.5 top-2.5 h-3.5 w-3.5 text-[#888888]" />
-              </div>
+              <button
+                type="button"
+                onClick={handleToggleCanteenStatus}
+                disabled={statusLoading || togglePending}
+                className={`relative inline-flex h-9 w-44 sm:w-48 items-center rounded-full p-1 transition-all duration-300 focus:outline-none shadow-xs border cursor-pointer ${
+                  isCanteenOpen
+                    ? 'bg-[#EBFBF2] border-emerald-300 text-emerald-800'
+                    : 'bg-[#FFF2F0] border-rose-300 text-rose-800'
+                }`}
+                title={isCanteenOpen ? "Canteen is OPEN — Click to close" : "Canteen is CLOSED — Click to open"}
+              >
+                <span
+                  className={`absolute top-1 bottom-1 w-20 sm:w-22 rounded-full transition-transform duration-300 flex items-center justify-center font-black text-[11px] shadow-sm select-none ${
+                    isCanteenOpen
+                      ? 'translate-x-0 bg-emerald-600 text-white'
+                      : 'translate-x-[5.3rem] sm:translate-x-[5.8rem] bg-rose-600 text-white'
+                  }`}
+                >
+                  {togglePending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : isCanteenOpen ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                      OPEN
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                      CLOSED
+                    </span>
+                  )}
+                </span>
+                <span className="w-full flex items-center justify-between px-3 text-[10px] font-bold select-none">
+                  <span className={isCanteenOpen ? 'opacity-0' : 'text-emerald-700 ml-1'}>Open</span>
+                  <span className={!isCanteenOpen ? 'opacity-0' : 'text-rose-700 mr-1'}>Closed</span>
+                </span>
+              </button>
             </div>
           </header>
 

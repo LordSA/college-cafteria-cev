@@ -10,6 +10,7 @@ const CategoryCreateSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   sort_order: z.number().int().default(0),
   is_active: z.boolean().default(true),
+  daily_reset: z.boolean().default(false),
 });
 
 const CategoryUpdateSchema = z.object({
@@ -17,6 +18,7 @@ const CategoryUpdateSchema = z.object({
   description: z.string().max(500).optional().nullable(),
   sort_order: z.number().int().optional(),
   is_active: z.boolean().optional(),
+  daily_reset: z.boolean().optional(),
 });
 
 export const publicCategoriesRouter = new Hono<{

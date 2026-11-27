@@ -13,6 +13,7 @@ import { cartRouter } from './cart';
 import { adminReportsRouter } from './reports';
 import { webhooksRouter } from './webhooks';
 import { supportRouter, adminSupportRouter } from './support';
+import { publicStoreStatusRouter, adminStoreStatusRouter } from './storeStatus';
 
 export const apiV1Router = new Hono<{
   Bindings: Env;
@@ -35,6 +36,8 @@ apiV1Router.route('/cart', cartRouter);
 apiV1Router.route('/webhooks', webhooksRouter);
 apiV1Router.route('/support', supportRouter);
 apiV1Router.route('/admin/support', adminSupportRouter);
+apiV1Router.route('/store-status', publicStoreStatusRouter);
+apiV1Router.route('/admin/store-status', adminStoreStatusRouter);
 
 apiV1Router.get('/', (c) => {
   return c.json(

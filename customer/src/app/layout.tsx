@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { StoreStatusProvider } from '../context/StoreStatusContext';
+import { StoreStatusGuard } from '../components/StoreStatusGuard';
 import { MobileBottomNav } from '../components/MobileBottomNav';
 import './globals.css';
 
@@ -44,12 +46,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased bg-[#fafaf9] dark:bg-[#0d0e12] text-stone-900 dark:text-stone-100 transition-colors duration-200">
         <ThemeProvider>
-          <AuthProvider>
-            <CartProvider>
-              {children}
-              <MobileBottomNav />
-            </CartProvider>
-          </AuthProvider>
+          <StoreStatusProvider>
+            <AuthProvider>
+              <CartProvider>
+                <StoreStatusGuard>
+                  {children}
+                </StoreStatusGuard>
+                <MobileBottomNav />
+              </CartProvider>
+            </AuthProvider>
+          </StoreStatusProvider>
         </ThemeProvider>
       </body>
     </html>

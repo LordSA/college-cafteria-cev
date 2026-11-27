@@ -75,3 +75,20 @@ Authorized administrators (`developer`, `admin`, `retail`) can:
 - Toggle `is_available` at any time to instantly 86 an item if ingredients spoil or sell out.
 - View responsive 2-column mobile box cards or desktop tables with portion meters.
 - Filter inventory by low-stock status to proactively prepare batches during prep hours.
+
+---
+
+## 6. Daily Category Stock Reset System (12:00 AM IST)
+
+For categories that prepare fresh daily cooked batches (e.g., Breakfast, Snacks, Cooked Meals):
+1. **Category Daily Reset Configuration:**
+   - Categories include `daily_reset boolean NOT NULL DEFAULT false`.
+   - When enabled via the Admin Menu Management portal, all items under this category automatically reset at 12:00 AM IST (midnight) each day.
+2. **Reset Behavior:**
+   - Sets `stock_quantity = 0` for all menu items belonging to `daily_reset = true` categories.
+   - For items with `track_inventory = true`, sets `is_available = false` ("86'd") until kitchen staff arrives in the morning and enters the day's freshly prepared batch count in `/inventory`.
+   - Records an immutable audit row in `public.inventory_logs` with `reason = 'daily_reset'`.
+3. **Trigger Mechanisms:**
+   - **Cloudflare Workers Scheduled Cron:** Triggered daily at `30 18 * * *` (18:30 UTC = 00:00 AM IST).
+   - **Lazy Catch-up:** `GET /api/v1/store-status` checks `last_daily_reset_date` against current IST date (`Asia/Kolkata`) and executes `reset_daily_category_stock()` automatically if midnight has passed.
+   - **Manual Admin Trigger:** `POST /api/v1/admin/inventory/daily-reset` allows developers and admins to trigger an immediate reset.

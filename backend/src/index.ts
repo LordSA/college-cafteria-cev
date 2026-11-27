@@ -5,6 +5,7 @@ import { configureCors } from './middleware/cors';
 import { errorHandler, notFoundHandler } from './middleware/error';
 import { healthRouter } from './routes/health';
 import { apiV1Router } from './routes/api';
+import { getSupabaseAdminClient } from './lib/supabase';
 
 const app = new Hono<{
   Bindings: Env;
@@ -27,5 +28,14 @@ app.get('/', (c) => {
 
 app.notFound(notFoundHandler);
 app.onError(errorHandler);
+
+(app as any).scheduled = async (_event: any, env: Env, _ctx: any) => {
+  try {
+    const adminClient = getSupabaseAdminClient(env);
+    if (adminClient) {
+      await adminClient.rpc('reset_daily_category_stock');
+    }
+  } catch {}
+};
 
 export default app;

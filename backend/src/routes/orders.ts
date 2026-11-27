@@ -52,6 +52,28 @@ customerOrdersRouter.post(
       );
     }
 
+    try {
+      const { data: storeSetting } = await adminClient
+        .from('store_settings')
+        .select('value')
+        .eq('key', 'canteen_status')
+        .maybeSingle();
+
+      const settingVal = (storeSetting?.value as Record<string, any>) || {};
+      if (settingVal.is_open === false) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              code: 'CANTEEN_CLOSED',
+              message: settingVal.message || 'The canteen is currently closed. New orders cannot be accepted at this time.',
+            },
+          },
+          400
+        );
+      }
+    } catch {}
+
     const idempotencyKey = payload.idempotency_key?.trim() || c.req.header('Idempotency-Key')?.trim() || c.req.header('idempotency-key')?.trim() || null;
 
     if (idempotencyKey) {

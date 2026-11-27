@@ -152,3 +152,8 @@ All API endpoints return JSON conforming to standard response envelopes:
 - `GET /api/v1/admin/support`: Admin lists campus tickets with search and status filters.
 - `PATCH /api/v1/admin/support/:id/status`: Updates ticket status (`open`, `in_progress`, `resolved`, `closed`).
 - `POST /api/v1/admin/support/:id/reply`: Admin records response and dispatches transactional notification email to user via SMTP.
+
+### 3.14 Store Status & Daily Reset (`/api/v1/store-status`, `/api/v1/admin/store-status`)
+- `GET /api/v1/store-status`: Public endpoint returning store status (`is_open`, `message`, `last_daily_reset_date`), performing automatic midnight IST daily stock reset catch-up.
+- `PATCH /api/v1/admin/store-status`: Admin endpoint to toggle open/closed status (`is_open: boolean`, `message?: string`). Restricted to `developer` and `admin`.
+- `POST /api/v1/admin/inventory/daily-reset`: Admin endpoint to invoke `public.reset_daily_category_stock()` on-demand.

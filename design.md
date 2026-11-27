@@ -160,6 +160,21 @@ For full color scales, component anatomy, layout grids, and interactive states:
   - Interactive status changer (`open` -> `in_progress` -> `resolved` -> `closed`).
   - Inline response modal dispatching transactional notification emails to the student or faculty member via the raw socket SMTP mailer.
 
+### 4.8 Admin Open/Closed Sliding Switcher & Customer Closed Portal
+- **Admin Sliding Switcher (`admin/src/app/page.tsx`):**
+  - Tactile physical-switch appearance replacing standard search button in dashboard header.
+  - Active Green pill (`bg-emerald-500` / `border-emerald-600`) with `"CANTEEN OPEN"` and radiant pulse dot (`animate-pulse`) when accepting orders.
+  - Urgent Red pill (`bg-rose-500` / `border-rose-600`) with `"CANTEEN CLOSED"` and moon icon (`Moon`) when closed.
+  - Smooth 200ms spring-glide circular knob (`w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-200`) sliding left/right based on status.
+  - Instant optimistic client feedback paired with live `PATCH /api/v1/admin/store-status` synchronization.
+- **Customer "We Are Closed" Portal (`customer/src/components/CanteenClosedView.tsx` & `/closed`):**
+  - Full-screen distraction-free blocking modal/view rendering whenever canteen status is closed.
+  - Soft coral/stone canvas with frosted glassmorphic card container.
+  - Prominent bowl/moon badge with high-contrast `"We are Closed"` heading.
+  - Campus schedule notice detailing standard operating hours (8:00 AM – 7:00 PM IST) and Counter #1 collection policy.
+  - Interactive `"Check Again"` refresh button with rotating spinner indicator.
+  - Suppresses `MobileBottomNav` and guards all ordering paths (`/`, `/menu`, `/cart`, `/checkout`, `/orders`) while preserving access to legal terms, privacy policies, and authentication pages.
+
 ---
 
 ## 5. Subsystem Behavioral Guides
