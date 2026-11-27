@@ -1,19 +1,25 @@
-# Cafteria Testing Wallet Architecture & Operational Guide
+# Cafteria Testing Wallet Architecture & Operational Guide [DEPRECATED]
 
-> **Notice:** "Testing Wallet — Demo Credits Only. No Real Money." This subsystem provides non-monetary credits exclusively for canteen load testing, UX evaluation, and order fulfillment simulation. Real payment gateway integrations (Razorpay) remain strictly scheduled for Phase 5.
+> [!WARNING]
+> **Subsystem Purged & Deprecated in Phase 5**:
+> The testing wallet subsystem (`public.wallets`, `public.wallet_transactions`, `pay_order_with_wallet`, `adjust_wallet_balance`, `get_or_create_wallet`) was **permanently purged** from the database and frontend codebases via migrations `0011_remove_wallet.sql` and `20261124000002_remove_wallet.sql`.
+>
+> In production, online digital payments are handled exclusively via **Razorpay Standard Checkout** (`payment_method = 'razorpay'`), with faculty deferred dining covered via **Faculty Pay Later** (`payment_method = 'pay_later'`).
+>
+> This document is preserved solely as a historical reference for Phase 4.1 architecture.
 
 ---
 
-## 1. Subsystem Architecture
+## 1. Subsystem Architecture (Historical Reference)
 
-The testing wallet enables instantaneous cashless checkout simulation while preserving full database atomicity, transactional isolation, and strict auditability.
+The testing wallet previously enabled cashless checkout simulation while preserving full database atomicity, transactional isolation, and strict auditability.
 
-### 1.1 Data Model
+### 1.1 Data Model (Purged in Phase 5)
 
 - **`public.wallets`**:
   - `id uuid PRIMARY KEY`: System wallet UUID.
   - `customer_id uuid UNIQUE REFERENCES auth.users(id)`: Owning customer.
-  - `balance integer NOT NULL DEFAULT 0 CHECK (balance >= 0)`: Autoritative current balance in integer paise (₹1.00 = 100 paise).
+  - `balance integer NOT NULL DEFAULT 0 CHECK (balance >= 0)`: Authoritative balance in integer paise (₹1.00 = 100 paise).
   - `created_at timestamptz`: Creation timestamp.
   - `updated_at timestamptz`: Last balance adjustment timestamp.
 
@@ -31,39 +37,8 @@ The testing wallet enables instantaneous cashless checkout simulation while pres
 
 ---
 
-## 2. Integrity & Security Boundaries
+## 2. Replacement in Phase 5
 
-1. **Client Isolation**: Customers cannot modify their wallet balance directly. RLS policies restrict customer queries to `SELECT` operations on their own wallet and ledger transactions.
-2. **Negative Balance Prevention**: Both PostgreSQL check constraints (`CHECK (balance >= 0)`) and stored procedures (`adjust_wallet_balance`, `pay_order_with_wallet`) enforce non-negative boundaries with atomic row-level locks (`FOR UPDATE`).
-3. **Compensating Transactions**: In accordance with financial ledger best practices, ledger records are immutable. Corrections must be applied via compensating credit or debit entries rather than mutating historical rows.
-
----
-
-## 3. REST API Interface
-
-### Customer Endpoints
-- `GET /api/v1/wallet/me`:
-  - Returns authenticated customer's wallet balance (in paise and formatted string `₹X.XX`).
-  - Automatically initializes zero-balance wallet if non-existent.
-- `GET /api/v1/wallet/transactions`:
-  - Returns paginated history of credits and debits with timestamps and reasons.
-
-### Admin Endpoints
-- `GET /api/v1/admin/wallets`:
-  - Lists customer wallets with search filtering and current balances.
-- `GET /api/v1/admin/wallets/:customerId`:
-  - Returns customer wallet balance, profile info, and recent ledger entries.
-- `POST /api/v1/admin/wallets/:customerId/adjust`:
-  - Payload: `{ amount: integer, transaction_type: 'credit' | 'debit', reason: string }`.
-  - Atomically applies adjustment and logs acting admin ID.
-
----
-
-## 4. UI Implementation
-
-- **Customer App**:
-  - `/wallet`: Current demo balance card, explanation of test credits, and ledger history.
-  - Header: Live balance indicator chip linking to `/wallet`.
-  - `/checkout`: Instant checkout with "Testing Wallet" payment method selector and real-time balance validation.
-- **Admin App**:
-  - `/wallets`: Customer search, balance inspection, credit/debit modal with mandatory reason validation, and full audit ledger dialog.
+The testing wallet was replaced with:
+1. **Razorpay Standard Checkout**: Complete UPI, Net Banking, and card processing with Web Crypto HMAC SHA-256 verification and webhook deduplication.
+2. **Faculty Pay Later**: Deferred billing for verified teachers (`account_type = 'staff_t'`) with real-time settlement tracking on the admin dashboard.

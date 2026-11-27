@@ -1,56 +1,73 @@
-# Teacher (`staff_t`) Approval Architecture & Security Workflow
+# Teachers Administration & Faculty (`staff_t`) Architecture
 
-> **Status:** Reconfigured in Phase 5  
-> **Date:** 2026-11-21  
-
----
-
-## 1. Overview & Naming Separation
-
-In college campus dining, faculty and teachers receive designated dining privileges, priority pick-up times, and Faculty Pay Later credit options. However, allowing self-declared teacher registrations creates privilege escalation risks. Furthermore, to avoid naming ambiguity with canteen store workers (`staff` in `app_role`), faculty teachers are designated as `staff_t` in the database.
-
-Cafteria enforces a strict **Zero-Trust Teacher (`staff_t`) Approval Workflow**:
-1. At signup, users can select Teacher / Faculty (`staff_t`) and provide their unique Teacher ID.
-2. The database trigger sets `approved_account_type = 'student'`, `account_type = 'student'`, `requested_account_type = 'staff_t'`, and `staff_approval_status = 'pending'`.
-3. The user remains a standard student diner until a verified canteen administrator reviews and approves their status.
-4. If rejected, `approved_account_type = 'student'` and `staff_approval_status = 'rejected'`.
-5. If approved, `approved_account_type = 'staff_t'`, `account_type = 'staff_t'`, and `staff_approval_status = 'approved'`. Pay Later is now enabled for this account.
+> **Status:** Reconfigured in Phase 5 & 5.1  
+> **Date:** 2026-11-27  
 
 ---
 
-## 2. Database Schema Fields (`public.profiles`)
+## 1. Overview & Faculty Role Architecture
+
+In college campus dining, teachers and faculty members receive designated dining privileges and Faculty Pay Later credit options. To distinguish faculty customers from canteen store workers (`staff` in `app_role`), faculty members are designated as `staff_t` in `public.profiles.account_type`.
+
+### Evolution from Self-Signup to Direct Administration
+- In earlier phases, users self-declared teacher status by entering a Teacher ID during signup, which entered a pending verification queue.
+- To eliminate signup friction, remove unused profile columns, and guarantee zero privilege escalation, migrations `0010_database_cleanup.sql` and `20261124000000_remove_teacher_id_and_fix_stock_locks.sql` completely dropped `teacher_id`, `requested_account_type`, `approved_account_type`, and `staff_approval_status`.
+- Faculty accounts are now managed directly by verified campus administrators via the Teachers Management portal (`/staff-requests`).
+
+---
+
+## 2. Database Schema (`public.profiles`)
 
 | Column | Type | Default | Constraints | Description |
 |---|---|---|---|---|
-| `requested_account_type` | `text` | `'student'` | `CHECK in ('student', 'staff_t', 'guest')` | The classification requested by the user during signup |
-| `approved_account_type` | `text` | `'student'` | `CHECK in ('student', 'staff_t', 'guest')` | The authoritative classification verified by administration |
-| `account_type` | `text` | `'student'` | Synchronized to `approved_account_type` | Effective classification used in application logic |
-| `teacher_id` | `text` | `NULL` | Unique per teacher | Official faculty institutional identifier |
-| `staff_approval_status` | `text` | `'not_requested'` | `CHECK in ('not_requested', 'pending', 'approved', 'rejected')` | Current review state |
-| `reviewed_by` | `uuid` | `NULL` | Foreign key to `auth.users(id)` | Administrator ID who approved or rejected the request |
-| `reviewed_at` | `timestamptz` | `NULL` | | Timestamp of administrative review decision |
+| `id` | `uuid` | `gen_random_uuid()` | `PRIMARY KEY REFERENCES auth.users(id)` | User unique identifier |
+| `email` | `text` | `NULL` | | User email address synchronized from `auth.users` |
+| `display_name` | `text` | `'Diner'` | | User full name |
+| `avatar_key` | `text` | `'avatars/avatar-1.svg'` | | Preset or custom avatar path |
+| `account_type` | `text` | `'student'` | `CHECK in ('student', 'staff_t', 'guest')` | Active customer classification (`staff_t` enables Pay Later) |
+| `app_role` | `text` | `'customer'` | `CHECK in ('developer', 'admin', 'retail', 'staff', 'printer', 'customer')` | Back-office operational permissions |
+| `created_at` | `timestamptz` | `now()` | | Profile creation timestamp |
+| `updated_at` | `timestamptz` | `now()` | | Last profile update timestamp |
 
 ---
 
-## 3. Database Triggers & Functions
+## 3. Administrative REST Endpoints (`/api/v1/admin/staff-requests`)
 
-- **`public.handle_new_user()`:**
-  Executes on `auth.users` insertion. Initializes `approved_account_type = 'student'` (or `'guest'` if guest). If `account_type = 'staff_t'` (or legacy `'staff'`) was requested, marks `requested_account_type = 'staff_t'`, `staff_approval_status = 'pending'`.
-- **`public.review_staff_request(p_target_user_id, p_decision, p_admin_user_id)`:**
-  `SECURITY DEFINER` function callable only by verified administrators. On approval, sets `approved_account_type = 'staff_t'`, `account_type = 'staff_t'`, and `staff_approval_status = 'approved'`.
+All teacher administration routes require authentication and are restricted to `developer` and `admin` roles (`requireRole(['developer', 'admin'])`):
+
+### 3.1 List Registered Teachers
+`GET /api/v1/admin/staff-requests/teachers/list`
+- Returns all profiles where `account_type = 'staff_t'`.
+- Includes unsettled Pay Later dues count and total money owed.
+
+### 3.2 List Eligible Candidates
+`GET /api/v1/admin/staff-requests/teachers/candidates`
+- Returns registered non-teacher users (`account_type != 'staff_t'`) matching an optional search query, facilitating 1-click promotion.
+
+### 3.3 Directly Provision New Teacher
+`POST /api/v1/admin/staff-requests/teachers/create`
+- Body: `{ email: string, password?: string, display_name: string }`
+- Provisions Supabase Auth user and initializes profile with `account_type = 'staff_t'`.
+
+### 3.4 Promote Existing User to Teacher
+`POST /api/v1/admin/staff-requests/teachers/assign`
+- Body: `{ user_id: string }`
+- Atomically updates profile `account_type = 'staff_t'`.
+
+### 3.5 Revoke Teacher Status
+`POST /api/v1/admin/staff-requests/teachers/revoke`
+- Body: `{ user_id: string }`
+- Reverts profile `account_type = 'student'`.
+
+### 3.6 Update Teacher Name
+`PATCH /api/v1/admin/staff-requests/teachers/:id`
+- Body: `{ display_name: string }`
+- Updates teacher display name in profile.
 
 ---
 
-## 4. Administrative REST Endpoints
+## 4. Frontend Operations (`admin/src/app/staff-requests/page.tsx`)
 
-### `GET /api/v1/admin/staff-requests`
-Returns all profiles with `staff_approval_status = 'pending'`.
-Protected by `requireAuth` and `requireRole(['developer', 'admin'])`.
-
-### `POST /api/v1/admin/staff-requests/:id/approve`
-Approves the teacher registration request.
-Updates `approved_account_type = 'staff_t'`, `account_type = 'staff_t'`, `staff_approval_status = 'approved'`, and records reviewer ID.
-
-### `POST /api/v1/admin/staff-requests/:id/reject`
-Rejects the teacher registration request.
-Sets `staff_approval_status = 'rejected'` and preserves `approved_account_type = 'student'`.
+- **Registered Faculty Directory:** High-density desktop table and responsive 2-column mobile cards (`grid grid-cols-2 gap-3 md:hidden`).
+- **Outstanding Dues Indicator:** Highlights faculty members with unsettled Pay Later balances.
+- **Quick Action Modals:** Fast modals for creating new faculty accounts or promoting candidates from the campus directory.

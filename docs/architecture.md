@@ -1,6 +1,6 @@
 # Cafteria Architecture & Technical Specification
 
-> **Phase 2: Authentication, Authorization & Database Security Active**
+> **Phase 5.1: Production Hardened (Payments, Roles, Support Desk & Mailer Active)**
 >
 > Cafteria is a modern, full-stack digital canteen ordering and management platform tailored for college campuses. For authentication details, see [docs/authentication.md](authentication.md).
 
@@ -31,28 +31,30 @@ college-canteen-cev/
 ```mermaid
 graph TD
     subgraph Client Tier ["Client Applications (Cloudflare Pages)"]
-        CustomerApp["Customer Web App\n(Next.js App Router / Port 3000)\n- Static Export\n- Student/Faculty Ordering"]
-        AdminApp["Admin Dashboard\n(Next.js App Router / Port 3001)\n- Static Export\n- Kitchen/Staff Operations"]
+        CustomerApp["Customer Web App\n(Next.js App Router / Port 3000)\n- Static Export\n- Student/Faculty Ordering\n- Support Desk"]
+        AdminApp["Admin Dashboard\n(Next.js App Router / Port 3001)\n- Static Export\n- Kitchen/Staff/Kiosk Operations\n- Financial & Support Desk"]
     end
 
     subgraph Edge API Tier ["Edge API Tier (Cloudflare Workers)"]
-        BackendWorker["Backend REST API\n(Hono + Zod / Port 8787)\n- Route Handling\n- Sanitized Logging\n- Dynamic CORS\n- Centralized Error Handler"]
+        BackendWorker["Backend REST API\n(Hono + Zod / Port 8787)\n- Route Handling\n- Sanitized Logging\n- Dynamic CORS\n- Centralized Error Handler\n- Raw Socket SMTP Client"]
     end
 
-    subgraph Future Services ["Future Infrastructure (Phases 2-6)"]
+    subgraph Active Services ["Active Infrastructure & Integrations"]
         SupabaseAuth["Supabase Auth\n(JWT & RBAC)"]
-        SupabaseDB["Supabase PostgreSQL\n(Menu, Orders, Ledger)"]
-        CloudflareR2["Cloudflare R2\n(Menu Item Images)"]
-        Razorpay["Razorpay Gateway\n(UPI / Card Payments)"]
+        SupabaseDB["Supabase PostgreSQL\n(Menu, Orders, Ledger, Tickets)"]
+        SupabaseStorage["Supabase Storage\n(Food Images & Avatars, R2-Ready)"]
+        Razorpay["Razorpay Gateway\n(UPI / Card / NetBanking Payments)"]
+        SMTPServer["SMTP Server (Gmail/Hostinger)\n(Support Ticket & Diagnostic Mailer)"]
     end
 
     CustomerApp -->|"REST HTTPS /api/v1"| BackendWorker
     AdminApp -->|"REST HTTPS /api/v1 (Auth Bearer)"| BackendWorker
 
-    BackendWorker -.->|"Phase 2"| SupabaseAuth
-    BackendWorker -.->|"Phase 2 & 3"| SupabaseDB
-    BackendWorker -.->|"Phase 5"| CloudflareR2
-    BackendWorker -.->|"Phase 6"| Razorpay
+    BackendWorker -->|"Auth Verification"| SupabaseAuth
+    BackendWorker -->|"Database Queries & Locks"| SupabaseDB
+    BackendWorker -->|"Presigned Uploads"| SupabaseStorage
+    BackendWorker -->|"Order Creation & Verification"| Razorpay
+    BackendWorker -->|"Direct Sockets (587/465)"| SMTPServer
 ```
 
 ---
@@ -207,17 +209,22 @@ ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
   - `public.profiles` schema with check constraints and triggers.
   - Row Level Security (RLS) preventing privilege escalation.
   - Hono Bearer token verification middleware (`requireAuth`) & admin middleware (`requireAdmin`).
-  - Endpoints: `GET /api/v1/auth/me` and `GET /api/v1/admin/me`.
-  - Comprehensive unit test suite with 12 passing tests.
+* [x] **Phase 3: Database Models & Catalog Management**
+  - Schema migrations for menu items, categories, integer paise pricing, and 86 availability toggles.
+  - Temporary Supabase Storage integration with Cloudflare R2 compatibility.
+* [x] **Phase 4: Order Lifecycle & Kitchen Display System**
+  - Shopping cart persistence, kitchen display dispatch queue, inventory tracking with low-stock alerts.
+* [x] **Phase 5: Production Payment Integration, 5-Tier Roles & Excel Reports**
+  - Razorpay Standard Checkout in integer paise, Web Crypto HMAC SHA-256 webhook deduplication (`payment_webhook_events`).
+  - 5-tier role authority (`developer`, `admin`, `staff`, `retail`, `printer`).
+  - Developer Console (`/developer`), Google OAuth, circular profile avatars, 3-column Excel report exports (`/api/v1/admin/reports/export`).
+* [x] **Phase 5.1: Production Hardening, Support Desk & Infrastructure Maturation**
+  - Campus support ticket system (`/support`) with auto-generated ticket numbers and admin email reply alerts.
+  - Raw socket SMTP mail client (ports 587/465, STARTTLS/TLS, Cloudflare Workers `node:tls` compatibility, RFC 5321 envelope sanitization).
+  - Atomic stock reservation locks (`cart_item_locks`) with non-deducting concurrency logic.
+  - 10:00 PM IST daily QR service cutoff.
+  - Permanent purge of legacy wallet and cancellation schemas from database and codebases.
 
 ### Upcoming Phases
-* **Phase 3: Database Models & Catalog Management (Supabase PostgreSQL)**
-  - Schema migrations for canteen stalls, menu items, categories, meal slots, and pricing.
-  - Zod validation schemas for all CRUD payloads.
-* **Phase 4: Order Lifecycle & Kitchen Display System (KDS)**
-  - Order state machine (`PENDING`, `CONFIRMED`, `COOKING`, `READY`, `COLLECTED`, `CANCELLED`).
-  - Token generation and verification algorithms.
-* **Phase 5: Cloudflare R2 Media Management**
-  - Secure signed upload URLs for canteen menu images.
-* **Phase 6: Razorpay Payment Integration & Settlement Engine**
-  - Payment order creation, webhook verification, and automated refund handling.
+* **Phase 6: Advanced Analytics & Predictive Inventory**
+  - Rush hour traffic heatmaps, predictive stock forecasting, and automated re-ordering triggers.

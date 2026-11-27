@@ -97,57 +97,68 @@ For full color scales, component anatomy, layout grids, and interactive states:
 
 ---
 
-## 4. Phase 4.1 Subsystem Design Guidelines
+## 4. Subsystem Design Guidelines
 
-### 4.1 Testing Wallet & Demo Credit Notices
-- **Disclaimer Badges:** All testing wallet interfaces (customer wallet dashboard, checkout payment selector, header balance indicator, admin wallet controls) must prominently display:
-  `"Testing Wallet — Demo Credits Only. No Real Money."`
-- **Color Codes:** Amber/Yellow styling (`bg-amber-500/10 text-amber-500 border-amber-500/30`) to emphasize simulated test tokens and prevent user confusion with real financial instruments.
-- **Ledger Records:** Green (`+₹X.XX`, `text-emerald-600` / `text-emerald-400`) for credits/adjustments, Red (`-₹X.XX`, `text-rose-600` / `text-rose-400`) for debits and checkout payments.
+### 4.1 Testing Wallet & Demo Credit Notices [DEPRECATED & PURGED IN PHASE 5]
+> **Deprecation Notice:** The testing wallet subsystem was permanently retired and purged from the database and frontends in Phase 5 via migrations `0011_remove_wallet.sql` / `20261124000002_remove_wallet.sql`. It is superseded by **Razorpay Standard Checkout** (for students and general diners) and **Faculty Pay Later** (for verified teachers).
+- Historical context: Amber/Yellow badges (`bg-amber-500/10 text-amber-500`) and `"Testing Wallet — Demo Credits Only. No Real Money"` disclaimer notices previously identified simulated credits.
 
 ### 4.2 High-Contrast QR Code Pass & Verification
 - **Token Format:** Cryptographically generated token format `#CAF-QR-XXXXXX`, displayed in bold monospace font (`font-mono text-lg font-bold`).
 - **QR SVG Rendering:** Pure SVG client rendering (`qrcode` library) with dark module contrast (`#0f172a` or `#000000`) on high-contrast white card container with rounded corners and `p-4` padding, optimized for handheld optical camera recognition.
 - **Scanner Viewfinder:** Responsive video viewport with optical scan guide overlay and instant manual token input fallback.
+- **Service Day Cutoff:** Enforces a 10:00 PM IST (UTC+05:30) daily service cutoff, after which uncollected orders display expired badges and reject verification.
 
 ### 4.3 Printable Receipts (`@media print`)
 - **Monochrome & High Contrast:** Pure black-on-white typography (`#000000` text on `#ffffff` background) designed for standard 80mm POS thermal printers or office inkjet/laser printers.
 - **CSS Print Media Queries:** Strict `@media print` rules hiding headers, footers, breadcrumbs, action buttons, and navigation elements (`.no-print { display: none !important; }`), ensuring crisp zero-margin page output (`@page { margin: 8mm; }`).
 
-### 4.4 Strict 3-Stage Order Lifecycles & Collection UX (Phase 4.2)
-- **Canonical 3 Stages:**
-  - `ORDER_PLACED`: Amber status badge (`bg-amber-100 text-amber-800`), neutral waiting state.
-  - `READY_TO_PICK`: Emerald status badge (`bg-emerald-100 text-emerald-800 animate-pulse ring-2 ring-emerald-500/20`), prominent green alert banner notifying customer that food is ready for counter pickup.
-  - `COLLECTED`: Neutral slate badge (`bg-stone-100 text-stone-700`), permanently expired QR state.
+### 4.4 Canonical Order Lifecycles & Collection UX
+- **Canonical Stages:**
+  - `ORDER_PLACED`: Amber status badge (`bg-amber-100 text-amber-800`), active waiting state.
+  - `COLLECTED`: Neutral slate badge (`bg-stone-100 text-stone-700`), permanently fulfilled and expired QR state.
 - **Scanner Pre-flight Safety UX:**
   - Scanning a QR code displays full customer details and order item checklist without mutating state.
-  - If scanned in `ORDER_PLACED`, displays amber caution: `"Order is not ready for pickup yet"` with a 1-click `"Mark Ready to Pick"` action.
-  - If scanned in `READY_TO_PICK`, displays green ready check and enables the explicit `"Confirm Order Collection"` button.
-  - If scanned in `COLLECTED`, displays a permanent red/stone notice: `"Order already collected"` with collection timestamp and all action buttons disabled.
+  - If scanned in `ORDER_PLACED`, displays active order checklist with 1-click `"Dispatch Meal (Mark as Collected)"` action.
+  - If scanned in `COLLECTED`, displays a permanent notice: `"Order already collected"` with collection timestamp and action buttons disabled.
 - **Customer QR Invalidation:**
   - When in `COLLECTED` stage, customer tracking and receipt pages replace the scannable SVG QR code with an `"Order Already Collected"` badge to prevent confusion or double pickup attempts.
+- **Zero Cancellation Policy:**
+  - Strict No-Refund & No-Cancellation notice displayed prominently on checkout, order tracking, and receipt screens. Customer and admin cancellation paths have been eliminated.
 
 ### 4.5 Obsidian Admin Dashboard & Faculty Pay Later
 - **Obsidian Dark Surface Tokens:** Deep black base (`#0d0e12`), dark card surfaces (`#16171d`), high border radius (`rounded-3xl`), and ultra-subtle borders (`border-white/[0.04]`).
-- **Slim Icon Sidebar:** Minimal vertical rail (`w-20 lg:w-24`) with pastel rose pill badge (`#f49ebb`) for active destination.
-- **Velocity Wave Chart:** Dual-line spline area chart with gradient fills (purple `#a78bfa` and rose `#f49ebb`) with timeframe switcher (`Daily`, `Weekly`, `Monthly`).
+- **Slim Icon Sidebar:** Minimal vertical rail (`w-20 lg:w-24`) with warm orange pill badge (`#F47721`) for active destination.
+- **Velocity Wave Chart:** Dynamic SVG spline area chart with timeframe switcher (`Daily`, `Weekly`, `Monthly`).
 - **Faculty Pay Later Benefit:**
-  - Reserved exclusively for verified faculty and staff accounts.
+  - Reserved exclusively for verified faculty and staff accounts (`account_type = 'staff_t'`).
   - Generates instant scannable QR ticket while setting `payment_status = 'unpaid'` and `payment_method = 'pay_later'`.
   - Surfaces current outstanding balance in customer checkout and profile.
-  - Interactive settlement drawer allowing 1-click clearance via Testing Wallet or UPI.
+  - Real-time Pay Later settlement logging and dues indicator on dashboard.
 
-### 4.6 Phase 5 Design Upgrades: Razorpay Checkout, 4-Tier Roles, Settings & Developer Console
+### 4.6 Phase 5 Design Upgrades: Razorpay Checkout, 5-Tier Roles, Settings & Developer Console
 - **Razorpay Standard Checkout:** Responsive popup modal integration via Razorpay SDK with INR integer paise calculations. Seamless error recovery and instant verification redirect.
-- **Instagram-Style Circular Profile Photo:** Circular avatar layout with bottom-right camera overlay badge, file picker (JPEG/PNG/WebP), crop/preview modal, presigned direct S3/R2 upload, and removal of preset grids.
-- **Customer Settings Page (`/settings`):** Clean stone-900 typography, light card layout with Back button, Account Security (Password change, Google Link/Unlink, Sign out), and Account Information (Email, Role, Teacher ID).
-- **Admin 4-Tier Role Badges:** Color-coded role pills:
+- **Instagram-Style Circular Profile Photo:** Circular avatar layout with bottom-right camera overlay badge, file picker (JPEG/PNG/WebP), crop/preview modal, presigned direct S3/R2 upload.
+- **Customer Settings Page (`/settings`):** Clean stone-900 typography, light card layout with Back button, Account Security (Password change, Google Link/Unlink, Sign out), and Account Information (Email, Role).
+- **Admin 5-Tier Role Badges:** Color-coded role pills:
   - Developer: Purple/Indigo pill (`bg-purple-500/15 border-purple-500/30 text-purple-300`)
   - Admin: Rose/Pink pill (`bg-pink-500/15 border-pink-500/30 text-pink-300`)
   - Retail: Amber pill (`bg-amber-500/15 border-amber-500/30 text-amber-300`)
   - Staff: Emerald pill (`bg-emerald-500/15 border-emerald-500/30 text-emerald-300`)
-- **Developer Console (`/developer`):** Obsidian dark system telemetry cards, user role assignment dropdowns, and diagnostic metrics.
-- **Excel Report Export UI:** Quick-action `.xlsx` download button with loading spinner positioned alongside velocity chart timeframe filters.
+  - Printer: Cyan/Blue pill (`bg-cyan-500/15 border-cyan-500/30 text-cyan-300`)
+- **Developer Console (`/developer`):** Obsidian dark system telemetry cards, user role assignment dropdowns, SMTP mailer verification tester, and diagnostic metrics.
+- **Excel Report Export UI:** Quick-action `.xlsx` download button with loading spinner positioned alongside financial velocity chart filters.
+
+### 4.7 Support Ticket System UI (Phase 5.1)
+- **Customer Inquiry Desk (`customer/src/app/support/page.tsx`):**
+  - Category pill selector (`general`, `order_issue`, `payment`, `food_quality`, `feedback`, `suggestion`, `other`).
+  - Priority indicators (`low`, `medium`, `high`, `urgent`).
+  - Auto-generated alphanumeric ticket tracking identifiers (`TICK-YYYYMMDD-XXXX`).
+  - Ticket history drawer with real-time status pill badges (`open`, `in_progress`, `resolved`, `closed`).
+- **Admin Support Desk (`admin/src/app/support/page.tsx`):**
+  - High-density support queue table with category filter tabs and search.
+  - Interactive status changer (`open` -> `in_progress` -> `resolved` -> `closed`).
+  - Inline response modal dispatching transactional notification emails to the student or faculty member via the raw socket SMTP mailer.
 
 ---
 

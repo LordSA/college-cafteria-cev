@@ -17,8 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Guarded Razorpay checkout script injection in `customer/src/lib/razorpay.ts` against duplicate DOM insertions.
   - Trimmed `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `backend/src/lib/razorpay.ts` to prevent whitespace from breaking signature generation or gateway order creation.
 - **SMTP Mailer Infrastructure (`backend/src/lib/mailer.ts`, `backend/src/types/env.ts`)**:
-  - Sanitized and trimmed all SMTP environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `DEVELOPER_EMAIL`) in `backend/src/lib/mailer.ts`.
-  - Added `SMTP_FROM` to `backend/src/types/env.ts` for clean TypeScript typing.
+  - Resolved `Test email dispatch failed: The options.rejectUnauthorized option is not implemented` runtime error by removing `rejectUnauthorized: false` from `tls.connect` options in `backend/src/lib/mailer.ts`, ensuring 100% compatibility with Cloudflare Workers `node:tls` socket implementation.
+  - Resolved `Test email dispatch failed: SMTP server error: 555 5.5.2 specifications` error with Google/Gmail SMTP by introducing RFC 5321-compliant `extractEmail()` parser. Formats protocol-level envelope commands (`MAIL FROM:<email>`, `RCPT TO:<email>`) with clean bare email addresses, while preserving friendly display names (`Display Name <email>`) in high-level MIME headers.
+  - Sanitized and trimmed all SMTP environment variables (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`, `DEVELOPER_EMAIL`) in `backend/src/lib/mailer.ts`, and defaulted `DEVELOPER_EMAIL` to `developer@cev.ac.in`.
+  - Added `SMTP_FROM?: string;` to `backend/src/types/env.ts` for clean TypeScript typing.
   - Documented SMTP configuration template and variables in `backend/.dev.vars` and `backend/.dev.vars.example`.
 
 ### Fixed

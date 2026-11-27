@@ -1,37 +1,37 @@
 # Cafteria QR Order Verification & Bill Printing Architecture
 
+> **Status:** Phase 5.1 Live  
+> **Scope:** Cryptographic Pickup Passes, Optical Scanner, Hardware Kiosk & Thermal Receipts.
+
 ---
 
 ## 1. Subsystem Overview
 
-Phase 4.1 establishes cryptographic pickup verification and print-optimized billing for canteen meal dispatch:
-1. **Opaque Verification Token**: Upon successful payment, an unguessable token (`CAF-QR-XXXXXX`) is generated and securely bound to the order record.
+Cafteria establishes cryptographic pickup verification and print-optimized billing for canteen meal dispatch:
+1. **Opaque Verification Token**: Upon successful payment or Pay Later checkout, an unguessable token (`CAF-QR-XXXXXX`) is generated and securely bound to the order record.
 2. **Customer Pass Screen**: Customer displays a high-resolution SVG QR code and alphanumeric token on their phone at the pickup counter.
-3. **Staff Scanner & Dispatch**: Canteen operators scan the QR pass via camera or enter the manual token code in `/scan` to verify order integrity, item completeness, and authorize meal collection.
-4. **Printable Bills**: Print-optimized stylesheets (`@media print`) format full register receipts on 8.5x11 / A4 paper with high contrast and zero clipped items.
+3. **Staff Scanner & Dispatch (`admin/src/app/scan/page.tsx`)**: Canteen operators scan the QR pass via camera or enter the manual token code to inspect items and confirm collection.
+4. **Hardware Kiosk & Auto-Printer (`admin/src/app/printer/page.tsx`)**: Dedicated hardware thermal printing interface for the `printer` role that auto-focuses scanner keystrokes, submits tokens directly via `/api/v1/admin/orders/collect-qr`, and triggers automatic ESC/POS printing.
+5. **Printable Bills**: Print-optimized stylesheets (`@media print`) format full register receipts on 80mm POS thermal paper or standard sheets with zero margins.
 
 ---
 
-## 2. Order Lifecycle & Verification State Machine
+## 2. Order Verification Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> unpaid: Created via Counter Cash
-    [*] --> paid: Created via Testing Wallet
-    unpaid --> paid: Counter Staff Collects Payment
-    paid --> ready_for_pickup: Kitchen Completes Cooking
-    ready_for_pickup --> completed: Staff Scans QR & Confirms Collection
-    unpaid --> cancelled: Cancelled
-    paid --> cancelled: Staff Cancellation
-    completed --> [*]
-    cancelled --> [*]
+    [*] --> ORDER_PLACED: Customer places & pays for order
+    ORDER_PLACED --> READY_TO_PICK: Kitchen prepares food
+    READY_TO_PICK --> COLLECTED: Staff scans QR & confirms pickup
+    ORDER_PLACED --> COLLECTED: Direct hardware scan collection
+    COLLECTED --> [*]: Token consumed (Permanent)
 ```
 
 ### Verification Eligibility Rules:
-An order is eligible for collection via `POST /api/v1/admin/orders/:id/collect` if and only if:
-- `payment_status = 'paid'` (unpaid orders must be settled first).
-- `order_status != 'completed'` (duplicate collections are rejected with `ERR_ALREADY_COLLECTED`).
-- `order_status != 'cancelled'` (cancelled orders are rejected with `ERR_ORDER_CANCELLED`).
+An order is eligible for collection if and only if:
+- `payment_status = 'paid'` (or approved Pay Later).
+- `order_stage != 'COLLECTED'` (duplicate collections are rejected with `ALREADY_COLLECTED`).
+- Time of scan is before 10:00 PM IST (UTC+05:30) of the order's service day (late scans rejected with `QR_EXPIRED`).
 
 ---
 
@@ -40,22 +40,23 @@ An order is eligible for collection via `POST /api/v1/admin/orders/:id/collect` 
 ### Admin Endpoints
 - `POST /api/v1/admin/orders/verify-qr`:
   - Body: `{ qr_token: string }`.
-  - Returns order metadata, items list, customer identity, and boolean `is_eligible_for_collection`.
+  - Non-mutating pre-flight inspection returning order items, customer identity, stage, and eligibility status.
+- `POST /api/v1/admin/orders/collect-qr`:
+  - Body: `{ qr_token: string }`.
+  - Direct atomic collection by QR token code, updating `order_stage = 'COLLECTED'`, `order_status = 'COLLECTED'`, `collected_at = now()`, and `qr_consumed_at = now()`.
 - `POST /api/v1/admin/orders/:id/collect`:
-  - Atomically marks order status as `completed`, recording `collected_at = now()` and `collected_by = operator_id`.
-  - Rejects duplicate calls with `400 ALREADY_COLLECTED`.
+  - Collects order by internal UUID.
 - `GET /api/v1/admin/orders/:id/receipt`:
   - Returns itemized bill data snapshot for operations register.
 
 ### Customer Endpoints
 - `GET /api/v1/orders/:id/receipt`:
-  - Customer bill retrieval endpoint (restricted to owning customer and admin).
+  - Customer bill retrieval endpoint.
 
 ---
 
-## 4. Print Layouts
+## 4. Print Layouts & Hardware POS Integration
 
 Both customer and admin bill views implement CSS `@media print` rules:
-- Interactive headers, footers, buttons, and navigation bars are hidden (`print:hidden`).
-- Document margins, page breaks, and background colors are optimized for black-and-white / color thermal and laser printers.
-- Itemized charges, token numbers, and pickup QR pass render with maximum legibility.
+- Interactive headers, footers, buttons, and navigation bars are hidden (`print:hidden`, `.no-print`).
+- Receipts format cleanly for 80mm thermal receipt printers with zero margin clipping (`@page { margin: 8mm; }`).
